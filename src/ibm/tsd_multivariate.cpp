@@ -1,5 +1,3 @@
-// sexual selection in a spatially structured population
-// assessing the scope for intragenomic conflict
 //
 
 #include <iostream>
@@ -10,7 +8,6 @@
 #include <cassert>
 #include <random>
 #include <unistd.h>
-#include <yaml-cpp/yaml.h>
 #include "individual.hpp"
 #include "patch.hpp"
 
@@ -25,384 +22,81 @@ std::uniform_real_distribution<> uniform(0.0,1.0);
 // create random number distribution for discrete 0 or 1 distribution
 std::bernoulli_distribution discrete01(0.5);
 
-// parameters
+// parameters -- just the initial values here, 
+// we set them later using argc, argv (command line)
+
 int clutch_max = 50; // maximum clutch size
 int n_patches = 50; // maximum clutch size
 int max_generations = 100;
 int skip = 10;
 
-int nm = 5; // actual number of males/patch
-int nf = 5; // actual number of females/patch
-double d[2] = {0.0,0.0}; //dm, df: male and female dispersal probabilities
-double init_t = 0.0; // initial value of baseline ornament
-double init_p = 0.0; // initial value of preference
-double init_tprime = 0.0; // initial value of ornament cond-dep 
-double p_high = 0.0; // prob male is high quality
-double l = 0.0; // probability female mates locally
-double base_surv = 0.0; // baseline mortality
-double base_mort = 0.0; // baseline mortality
-double a = 0.0; // efficacy of mate choice
-double cp = 0.0; // cost of female preference
-double cs = 0.0; // cost of male ornament
-double k = 1.0; // rate at which ornamentation costs decrease with increasing male quality
-double fl = 0.0; // juvenile survival of an offspring born from a low quality male
-double fh = 0.0; // juvenile survival of an offspring born from a hi quality male
-double mu_t = 0.0; 
-double mu_tprime = 0.0; 
-double mu_p = 0.0; 
-double sdmu_t = 0.0; 
-double sdmu_tprime = 0.0; 
-double sdmu_p = 0.0; 
+int n[2] = {10,10}; // nf, nm: females and males per patch
+
+double init_d[2] = {0.0,0.0}; // initialize 
+double init_b = 0.0; // initial value 
+double init_sr[2] = {0.0,0.0};
+
+// juvenile survival of males, 
+// females in their respective envts
+double v[2][2] = {{0.0,0.0},{0,0}}; 
+
+// mutation rates
+double mu_sr = 0.0; 
+double mu_b = 0.0; 
+double mu_d[2] = {0.0,0.0}; 
+double sdmu = 0.0; 
+
+// rates of environmental change
+double s[2] = {{0.1,0.5}};
+
+// solely for stats purposes
+// frequency of envt 2
+double p2 = 0.0;
 
 // base name used for output files
 std::string file_basename;
-
-
-// variable that characterizes which individual/allele
-// is controlling expression of a phenotype
-enum Expression {
-
-    offspr = 0,
-    maternal = 1,
-    paternal = 2,
-    madumnal = 3,
-    padumnal = 4
-};
-
-// who controls expression of p
-// again, these are parameters that are
-// set once the simulation reads in a yaml file 
-Expression control_p = offspr;
-// who controls expression of t
-Expression control_t = offspr;
-// who controls expression of t'
-Expression control_tprime = offspr;
 
 // (empty) vector of dispersing female juveniles
 std::vector <Individual> disp_juvsF;
 // (empty) vector of dispersing male juveniles
 std::vector <Individual> disp_juvsM;
 
+// the total meta population 
 std::vector <Patch> meta_population;
 
 // initializes parameters from the command line
 void init_pars_from_cmd(int arc, char **argv)
 {
-    nm = atoi(argv[1]);
-    nf = atoi(argv[2]);
-    init_t = atof(argv[3]);
-    init_p = atof(argv[4]);
-    init_tprime = atof(argv[5]);
-    p_high = atof(argv[6]);
-    d[0] = atof(argv[7]); // dm
-    d[1] = atof(argv[8]); // df
-    base_surv = atof(argv[9]);
-    base_mort = atof(argv[10]);
-    a = atof(argv[11]);
-    cp = atof(argv[12]);
-    cs = atof(argv[13]);
-    k = atof(argv[14]);
-    fl = atof(argv[15]);
-    fh = atof(argv[16]);
-    control_p = static_cast<Expression>(atoi(argv[17]));
-    control_t = static_cast<Expression>(atoi(argv[18]));
-    control_tprime = static_cast<Expression>(atoi(argv[19]));
-    mu_t = atof(argv[20]);
-    mu_p = atof(argv[21]);
-    mu_tprime = atof(argv[22]);
-    sdmu_t = atof(argv[23]);
-    sdmu_p = atof(argv[24]);
-    sdmu_tprime = atof(argv[25]);
+    n[Female] = atoi(argv[1]);
+    n[Male] = atoi(argv[2]);
+
+    init_d[Female] = atof(argv[3]);
+    init_d[Male] = atof(argv[3]);
+    init_b = atof(argv[5]);
+    init_sr = atof(argv[5]);
+
+    d[Female] = atof(argv[7]); 
+    d[Male] = atof(argv[8]); 
+   
+    
+    v[Female][0] = atof(argv[9]);
+    v[Female][1] = atof(argv[10]);
+    v[Male][0] = atof(argv[11]);
+    v[Male][1] = atof(argv[12]);
+
+    s[0] = atof(argv[13]);
+    s[1] = atof(argv[14]);
+
+    p2 = s[0] / (s[0] + s[1]);
+
+    mu_sr = atof(argv[20]);
+    mu_b = atof(argv[21]);
+    mu_d = atof(argv[22]);
+    sdmu = atof(argv[23]);
     file_basename = argv[26];
-}
-
-// preferred method: initialize parameter
-// from yaml file with parameter
-void init_pars_from_yaml(std::string const &yaml_file_name)
-{
-    // make the yaml file into an object so that we
-    // can extract things
-    YAML::Node param_file = YAML::LoadFile(yaml_file_name);
-
-    // variables to set if reading the YAML
-    // file fails
-    bool fail = false;
-    std::string fail_param{};
-
-    // check whether the nm parameter exists
-    if (param_file["nm"]) {
-
-        // if yes, assign it to the variable
-        // nm as an int
-        nm = param_file["nm"].as<int>();
-    }
-    else
-    {
-        // if not set failure, but continue
-        fail = true;
-        fail_param = "nm";
-    }
-
-    if (param_file["nf"]) {
-        nf = param_file["nf"].as<int>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "nf";
-    }
-    
-    if (param_file["init_t"]) {
-        init_t = param_file["init_t"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "init_t";
-    }
-    
-    if (param_file["init_p"]) {
-        init_p = param_file["init_p"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "init_p";
-    }
-    
-    if (param_file["init_tprime"]) {
-        init_tprime = param_file["init_tprime"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "init_tprime";
-    }
-    
-    if (param_file["p_high"]) {
-        p_high = param_file["p_high"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "p_high";
-    }
+} // end init_pars_from_cmd()
 
 
-    if (param_file["dm"]) {
-        d[0] = param_file["dm"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "dm";
-    }
-    
-    if (param_file["df"]) {
-        d[1] = param_file["df"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "df";
-    }
-    
-    if (param_file["base_surv"]) {
-        base_surv = param_file["base_surv"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "base_surv";
-    }
-    
-    if (param_file["base_mort"]) {
-        base_mort = param_file["base_mort"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "base_mort";
-    }
-
-    if (param_file["a"]) {
-        a = param_file["a"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "a";
-    }
-    
-    if (param_file["cp"]) {
-        cp = param_file["cp"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "cp";
-    }
-    
-    if (param_file["cs"]) {
-        cs = param_file["cs"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "cs";
-    }
-    
-    if (param_file["k"]) {
-        k = param_file["k"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "k";
-    }
-    
-    if (param_file["fl"]) {
-        fl = param_file["fl"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "fl";
-    }
-    
-    if (param_file["fh"]) {
-        fh = param_file["fh"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "fh";
-    }
-    
-    if (param_file["control_p"]) {
-        control_p = static_cast<Expression>(param_file["control_p"].as<int>());
-    }
-    else
-    {
-        fail = true;
-        fail_param = "control_p";
-    }
-    
-    if (param_file["control_t"]) {
-        control_t = static_cast<Expression>(param_file["control_t"].as<int>());
-    }
-    else
-    {
-        fail = true;
-        fail_param = "control_t";
-    }
-
-    if (param_file["control_tprime"]) {
-        control_tprime = static_cast<Expression>(param_file["control_tprime"].as<int>());
-    }
-    else
-    {
-        fail = true;
-        fail_param = "control_tprime";
-    }
-
-    if (param_file["mu_t"]) {
-        mu_t = param_file["mu_t"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "mu_t";
-    }
-    
-    if (param_file["mu_p"]) {
-        mu_p = param_file["mu_p"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "mu_p";
-    }
-    
-    if (param_file["mu_tprime"]) {
-        mu_tprime = param_file["mu_tprime"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "mu_tprime";
-    }
-    
-    if (param_file["sdmu_t"]) {
-        sdmu_t = param_file["sdmu_t"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "sdmu_t";
-    }
-    
-    if (param_file["sdmu_p"]) {
-        sdmu_p = param_file["sdmu_p"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "sdmu_p";
-    }
-    
-    if (param_file["sdmu_tprime"]) {
-        sdmu_tprime = param_file["sdmu_tprime"].as<double>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "sdmu_tprime";
-    }
-    
-    if (param_file["file_basename"]) {
-        file_basename = param_file["file_basename"].as<std::string>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "file_basename";
-    }
-    
-    if (param_file["max_generations"]) {
-        max_generations = param_file["max_generations"].as<int>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "max_generations";
-    }
-    
-    if (param_file["n_patches"]) {
-        n_patches = param_file["n_patches"].as<int>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "n_patches";
-    }
-    
-    if (param_file["clutch_max"]) {
-        clutch_max = param_file["clutch_max"].as<int>();
-    }
-    else
-    {
-        fail = true;
-        fail_param = "clutch_max";
-    }
-
-    if (fail)
-    {
-        std::cout << "Cannot find '" << fail_param <<  "' in " << yaml_file_name << std::endl;
-        throw "Cannot find '" + fail_param + "' in " + yaml_file_name;
-    }
-
-} // end init_pars_from_yaml()
 
 // initialize the population by creating individuals
 // and assigning them traits
@@ -423,14 +117,19 @@ void initialize_population()
             // now assign initial values to each allele
             for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
             {
-                female_i.t[allele_idx] = init_t;
-                female_i.p[allele_idx] = init_p;
-                female_i.tprime[allele_idx] = init_tprime;
+                female_i.sr[0][allele_idx] = init_sr[0];
+                female_i.sr[1][allele_idx] = init_sr[1];
+
+                female_i.d[Female][allele_idx] = init_d[Female];
+                female_i.d[Male][allele_idx] = init_d[Male];
+
+                female_i.b[allele_idx] = init_b;
             }
 
             deme_i.breedersF.push_back(female_i);
-        }
+        } // end for female_idx
         
+        // loop through all the males in the patch
         for (int male_idx = 0; male_idx < nm; ++male_idx)
         {
             // initialize male
@@ -438,9 +137,13 @@ void initialize_population()
 
             for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
             {
-                male_i.t[allele_idx] = init_t;
-                male_i.p[allele_idx] = init_p;
-                male_i.tprime[allele_idx] = init_tprime;
+                male_i.sr[0][allele_idx] = init_sr[0];
+                male_i.sr[1][allele_idx] = init_sr[1];
+
+                male_i.d[Female][allele_idx] = init_d[Female];
+                male_i.d[Male][allele_idx] = init_d[Male];
+
+                male_i.b[allele_idx] = init_b;
             }
 
             male_i.envt_quality_high = 
@@ -467,34 +170,30 @@ void write_parameters(std::ofstream &data_file)
     data_file << 
         std::endl << 
         std::endl <<
-        "p_high;" << p_high << std::endl <<
-        "init_tprime;" << init_tprime << std::endl <<
-        "init_t;" << init_t << std::endl <<
-        "init_p;" << init_p << std::endl <<
+        "p2;" << p2 << std::endl <<
+        "init_df;" << init_d[Female] << std::endl <<
+        "init_dm;" << init_d[Male] << std::endl <<
+        "init_b;" << init_b << std::endl <<
+        "init_sr;" << init_sr << std::endl <<
         "seed;" << seed << std::endl <<
-        "nm;" << nm << std::endl <<
-        "nf;" << nf << std::endl <<
-        "dm;" << d[0] << std::endl <<
-        "df;" << d[1] << std::endl <<
-        "base_surv;" << base_surv << std::endl <<
-        "base_mort;" << base_mort << std::endl <<
-        "a;" << a << std::endl <<
-        "cp;" << cp << std::endl <<
-        "cs;" << cs << std::endl <<
-        "k;" << k << std::endl <<
-        "fl;" << fl << std::endl <<
-        "fh;" << fh << std::endl <<
-        "control_p;" << control_p << std::endl <<
-        "control_t;" << control_t << std::endl <<
-        "control_tprime;" << control_tprime << std::endl <<
-        "mu_t;" << mu_t << std::endl <<
-        "mu_p;" << mu_p << std::endl <<
-        "mu_tprime;" << mu_tprime << std::endl <<
-        "sdmu_t;" << sdmu_t << std::endl <<
-        "sdmu_p;" << sdmu_p << std::endl <<
-        "sdmu_tprime;" << sdmu_tprime << std::endl <<
+        "nm;" << n[Males] << std::endl <<
+        "nf;" << n[Females] << std::endl <<
+        "s1;" << s[0] << std::endl <<
+        "s2;" << s[1] << std::endl <<
+        "vf1;" << v[Female][0] << std::endl <<
+        "vf2;" << v[Female][1] << std::endl <<
+        "vm1;" << v[Male][0] << std::endl <<
+        "vm2;" << v[Male][1] << std::endl <<
+        "mu_sr;" << mu_sr << std::endl <<
+        "mu_b;" << mu_p << std::endl <<
+        "mu_d;" << mu_d << std::endl <<
+        "sdmu;" << sdmu_p << std::endl <<
+        "basename;" << file_basename << std::endl <<
         std::endl;
 }
+
+// TODO
+
 
 
 void write_stats_headers(std::ofstream &data_file)
