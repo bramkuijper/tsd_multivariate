@@ -1,0 +1,302 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{apjfonts}
+\usepackage{doi}
+\usepackage{color}
+\definecolor{darkblue}{RGB}{28,29,123}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks true
+\pdf_pdfborder true
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle true
+\pdf_quoted_options "urlcolor=darkblue,linkcolor=darkblue,citecolor=darkblue"
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2.5cm
+\topmargin 2.5cm
+\rightmargin 2.5cm
+\bottommargin 2.5cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+What factors maintain sex ratios in taxa with environmental sex determination
+ that face environmental change? Long-standing debates focused on the relative
+ roles of maternal nest-site selection behaviour and thermal sensitivity
+ of offspring sex (e.g., 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Bull1982,Bull1982a,Janzen1992,Rhen1998,Morjan2003a,Morjan2003"
+literal "false"
+
+\end_inset
+
+.
+ Indeed, field heritabilities of temperature-dependent sex ratios have been
+ found to vary from 0.0 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Bull1982,Janzen1992"
+literal "false"
+
+\end_inset
+
+ to 
+\end_layout
+
+\begin_layout Standard
+has focused on heritabilities of the sex ratio, which are typically low
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Bull1982"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+The model
+\end_layout
+
+\begin_layout Standard
+Our initial model considers the following traits: 
+\end_layout
+
+\begin_layout Itemize
+dispersal
+\end_layout
+
+\begin_layout Itemize
+maternal nest site choice
+\end_layout
+
+\begin_layout Itemize
+nest depth, with nest depth affecting temperature in environment 2 
+\end_layout
+
+\begin_layout Itemize
+TSD
+\end_layout
+
+\begin_layout Subsection
+Life cycle
+\end_layout
+
+\begin_layout Standard
+We consider two environments, environment 1 (e.g., a cold environment) and
+ environment 2 (e.g., the hot environment).
+ Environment 1 affects the survival of daughters, but not that of sons.
+\end_layout
+
+\begin_layout Subsubsection
+Numbers of surviving daughters and sons
+\end_layout
+
+\begin_layout Paragraph
+Environment 1
+\end_layout
+
+\begin_layout Standard
+The number of surviving daughters 
+\begin_inset Formula $f_{1}\left(s_{1}\right)$
+\end_inset
+
+ and sons 
+\begin_inset Formula $m_{1}(s_{1})$
+\end_inset
+
+ that hatch from a brood produced in the cold site 
+\begin_inset Formula $1$
+\end_inset
+
+ is given by
+\begin_inset Formula 
+\begin{align*}
+f_{1}\left(s_{1}\right) & =K\left(1-s_{1}\right)v_{\mathrm{f1}}\\
+m_{1}\left(s_{1}\right) & =Ks_{1}v_{\mathrm{m}1}.
+\end{align*}
+
+\end_inset
+
+where 
+\begin_inset Formula $K_{1}$
+\end_inset
+
+ is the fecundity of females who breed in environment 
+\begin_inset Formula $1$
+\end_inset
+
+, while 
+\begin_inset Formula $s_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $1-s_{1}$
+\end_inset
+
+ are the proportions of daughters and sons produced in the cold environment.
+ 
+\end_layout
+
+\begin_layout Standard
+Note that the average depth of the burrow 
+\begin_inset Formula $b$
+\end_inset
+
+ is assumed to not affect the sex ratio or survival in environment 
+\begin_inset Formula $1$
+\end_inset
+
+.
+ In the case of temperature, for example, this is because environment 1
+ is the cold environment and hence, by digging deeper, the environment only
+ becomes colder.
+ However, in the supplement we consider an extension of the model where
+ burrow depth in environment 1 does not increase the sex ratio but does
+ affect sex-specific survival.
+\end_layout
+
+\begin_layout Paragraph
+\noindent
+Enviroment 2
+\end_layout
+
+\begin_layout Standard
+\noindent
+The number of surviving daughters 
+\begin_inset Formula $f_{2}\left(s_{1},s_{2};b\right)$
+\end_inset
+
+ and sons 
+\begin_inset Formula $m_{2}\left(s_{1},s_{2};b\right)$
+\end_inset
+
+ that hatch from a brood produced in the warm site 
+\begin_inset Formula $2$
+\end_inset
+
+ is given by
+\begin_inset Formula 
+\begin{align*}
+f_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)\left(1-s_{2}\right)v_{\mathrm{f2}}+b\left(1-s_{1}\right)v_{\mathrm{f1}}\right]\\
+m_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)s_{2}v_{\mathrm{m2}}+bs_{1}v_{\mathrm{m1}}\right]
+\end{align*}
+
+\end_inset
+
+When we census right after offspring survival on the patch of birth, we
+ have
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+w_{\mathrm{f1\rightarrow f1}} & =\left(1-\sigma_{12}\right)\frac{\left(1-d_{\mathrm{f}}^{\text{focal}}\right)f_{1}\left(s_{1}^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f\left(s_{1}^{\text{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}\\
+ & +\frac{\left[p_{1}\left(1-\sigma_{12}\right)+p_{2}\sigma_{21}\right]d_{\mathrm{f}}^{\mathrm{focal}}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f\left(s_{1}^{\text{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}\\
+w_{\mathrm{f1\rightarrow f2}} & =\sigma_{12}\frac{\left(1-d_{\mathrm{f}}^{\text{focal}}\right)f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f_{2}\left(s_{1}^{\mathrm{local}},s_{2}^{\mathrm{local}};b^{\mathrm{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}\\
+ & +\frac{\left[p_{1}\sigma_{12}+p_{2}\left(1-\sigma_{21}\right)\right]d_{\mathrm{f}}^{\mathrm{focal}}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f\left(s_{1}^{\text{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+btprint "btPrintCited"
+bibfiles "../databases/references"
+options "bram"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
