@@ -262,8 +262,8 @@ The number of surviving daughters
  is given by
 \begin_inset Formula 
 \begin{align*}
-f_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)\left(1-s_{2}\right)v_{\mathrm{f2}}+b\left(1-s_{1}\right)v_{\mathrm{f1}}\right]\\
-m_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)s_{2}v_{\mathrm{m2}}+bs_{1}v_{\mathrm{m1}}\right]
+f_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)\left(1-s_{2}\right)v_{\mathrm{f2}}+b\left(1-s_{1}\right)\left[kv_{\mathrm{f1}}+\left(1-k\right)v_{\mathrm{f2}}\right]\right]\\
+m_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)s_{2}v_{\mathrm{m2}}+bs_{1}\left[kv_{\mathrm{m1}}+\left(1-k\right)v_{\mathrm{m2}}\right]\right]
 \end{align*}
 
 \end_inset
