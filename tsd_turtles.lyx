@@ -284,9 +284,6 @@ w_{\mathrm{f1\rightarrow f2}} & =\sigma_{12}\frac{\left(1-d_{\mathrm{f}}^{\text{
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 btprint "btPrintCited"
@@ -296,6 +293,261 @@ options "bram"
 \end_inset
 
 
+\lang british
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+clearpage
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{equation}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{section}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{table}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{figure}{0}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+setcounter{page}{1}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+theequation{S
+\backslash
+arabic{equation}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+theHequation{S
+\backslash
+arabic{equation}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+theHsection{S
+\backslash
+arabic{section}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+thesection{S
+\backslash
+arabic{section}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+theHfigure{S
+\backslash
+arabic{figure}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+theHtable{S
+\backslash
+arabic{table}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+thefigure{S
+\backslash
+arabic{figure}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+thetable{S
+\backslash
+arabic{table}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+renewcommand*
+\backslash
+thepage{S
+\backslash
+arabic{page}}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{center}
+\end_layout
+
+\begin_layout Plain Layout
+
+%
+\backslash
+LARGE{Evolution of epigenetic transmission when selection acts on fecundity
+ versus viability}
+\backslash
+
+\backslash
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+%
+\backslash
+Large{Bram Kuijper 
+\backslash
+& Rufus A.
+ Johnstone}
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+vspace{1cm}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+Large{Online Supplement}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{center}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Supplementary Model Information
+\end_layout
+
+\begin_layout Subsection
+Individual-based simulations
+\end_layout
+
+\begin_layout Standard
+We corroborated the analytical model using individual-based simulations.
+ The simulation code is written in 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+texttt{C++}
+\end_layout
+
+\end_inset
+
+ and can be found at 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+url{https://github.com/bramkuijper/tsd_multivariate/src/ibm}
+\end_layout
+
+\end_inset
+
+.
+ We consider a metapopulation with 
+\begin_inset Formula $n_{\mathrm{f}}$
+\end_inset
+
+ and 
+\begin_inset Formula $n_{\mathrm{m}}$
+\end_inset
+
+ breeders distributed over 
+\begin_inset Formula $n_{p}=5000/n_{\mathrm{f}}$
+\end_inset
+
+ patches.
 \end_layout
 
 \end_body

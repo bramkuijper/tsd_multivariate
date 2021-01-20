@@ -1,27 +1,25 @@
 #ifndef INDIVIDUAL_HPP_
 #define INDIVIDUAL_HPP_
 
+enum Sex {
+    Female = 0,
+    Male = 1
+};
+
 class Individual
 {
     public:
-        // baseline ornament investment
-        double t[2];
+        // sex ratio in envt 1 and 2, each coded by diploid loci
+        double sr[2][2];
 
-        // quality dependent ornament investment
-        double tprime[2];
+        // male and female dispersal, each coded by diploid loci
+        double d[2][2];
 
-        // preference locus, p = 0 means random mating
-        double p[2];
+        double b[2];
 
-        // preference phenotype
-        double p_phen;
+        double viability;
 
-        // total size of the ornament
-        double s;
-
-        // whether this male lives in a 
-        // high quality environment
-        bool envt_quality_high;
+        bool sex;
 
         // constructor (i.e., build this individual)
         Individual();

@@ -1,4 +1,5 @@
-//
+// Temperature-dependent sex determination
+// coevolving with phylopatry and burrowing
 
 #include <iostream>
 #include <fstream>
@@ -40,6 +41,9 @@ double init_sr[2] = {0.0,0.0};
 // females in their respective envts
 double v[2][2] = {{0.0,0.0},{0,0}}; 
 
+// does borrowing depth affect survival, y/n
+bool burrow_mod_survival = 0;
+
 // mutation rates
 double mu_sr = 0.0; 
 double mu_b = 0.0; 
@@ -47,7 +51,10 @@ double mu_d[2] = {0.0,0.0};
 double sdmu = 0.0; 
 
 // rates of environmental change
-double s[2] = {{0.1,0.5}};
+double s[2] = {0.1,0.5};
+
+// whether environmental variation is spatial or not
+bool spatial = false;
 
 // solely for stats purposes
 // frequency of envt 2
@@ -65,35 +72,39 @@ std::vector <Individual> disp_juvsM;
 std::vector <Patch> meta_population;
 
 // initializes parameters from the command line
-void init_pars_from_cmd(int arc, char **argv)
+void init_pars_from_cmd(int argc, char **argv)
 {
     n[Female] = atoi(argv[1]);
     n[Male] = atoi(argv[2]);
+    n_patches = atoi(argv[3]);
+    clutch_max = atoi(argv[4]);
 
-    init_d[Female] = atof(argv[3]);
-    init_d[Male] = atof(argv[3]);
-    init_b = atof(argv[5]);
-    init_sr = atof(argv[5]);
+    init_d[Female] = atof(argv[5]);
+    init_d[Male] = atof(argv[6]);
+    init_b = atof(argv[7]);
+    init_sr[0] = atof(argv[8]);
+    init_sr[1] = atof(argv[9]);
 
-    d[Female] = atof(argv[7]); 
-    d[Male] = atof(argv[8]); 
-   
-    
-    v[Female][0] = atof(argv[9]);
-    v[Female][1] = atof(argv[10]);
-    v[Male][0] = atof(argv[11]);
-    v[Male][1] = atof(argv[12]);
+    v[Female][0] = atof(argv[10]);
+    v[Female][1] = atof(argv[11]);
+    v[Male][0] = atof(argv[12]);
+    v[Male][1] = atof(argv[13]);
+    burrow_mod_survival = atoi(argv[14]);
 
-    s[0] = atof(argv[13]);
-    s[1] = atof(argv[14]);
+    s[0] = atof(argv[15]);
+    s[1] = atof(argv[16]);
+
+    spatial = atoi(argv[17]);
 
     p2 = s[0] / (s[0] + s[1]);
 
-    mu_sr = atof(argv[20]);
-    mu_b = atof(argv[21]);
-    mu_d = atof(argv[22]);
-    sdmu = atof(argv[23]);
-    file_basename = argv[26];
+    mu_sr = atof(argv[18]);
+    mu_b = atof(argv[19]);
+    mu_d[Female] = atof(argv[20]);
+    mu_d[Male] = atof(argv[21]);
+    sdmu = atof(argv[22]);
+    max_generations = atoi(argv[23]);
+    file_basename = argv[24];
 } // end init_pars_from_cmd()
 
 
@@ -102,11 +113,16 @@ void init_pars_from_cmd(int arc, char **argv)
 // and assigning them traits
 void initialize_population()
 {
+    meta_population.reserve(n_patches);
+
     // loop through all the patches
     for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
         // initialize an empty patch
         Patch deme_i{};
+
+        deme_i.breedersM.reserve(n[Male]);
+        deme_i.breedersF.reserve(n[Female]);
 
         // loop through all the females in the patch
         for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
@@ -117,38 +133,34 @@ void initialize_population()
             // now assign initial values to each allele
             for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
             {
-                female_i.sr[0][allele_idx] = init_sr[0];
-                female_i.sr[1][allele_idx] = init_sr[1];
+                female_i.sr[0][allele_idx] = 0.5 * init_sr[0];
+                female_i.sr[1][allele_idx] = 0.5 * init_sr[1];
 
-                female_i.d[Female][allele_idx] = init_d[Female];
-                female_i.d[Male][allele_idx] = init_d[Male];
+                female_i.d[Female][allele_idx] = 0.5 * init_d[Female];
+                female_i.d[Male][allele_idx] = 0.5 * init_d[Male];
 
-                female_i.b[allele_idx] = init_b;
+                female_i.b[allele_idx] = 0.5 * init_b;
             }
 
             deme_i.breedersF.push_back(female_i);
         } // end for female_idx
         
         // loop through all the males in the patch
-        for (int male_idx = 0; male_idx < nm; ++male_idx)
+        for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
         {
             // initialize male
             Individual male_i{};
 
             for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
             {
-                male_i.sr[0][allele_idx] = init_sr[0];
-                male_i.sr[1][allele_idx] = init_sr[1];
+                male_i.sr[0][allele_idx] = 0.5 * init_sr[0];
+                male_i.sr[1][allele_idx] = 0.5 * init_sr[1];
 
-                male_i.d[Female][allele_idx] = init_d[Female];
-                male_i.d[Male][allele_idx] = init_d[Male];
+                male_i.d[Female][allele_idx] = 0.5 * init_d[Female];
+                male_i.d[Male][allele_idx] = 0.5 * init_d[Male];
 
-                male_i.b[allele_idx] = init_b;
+                male_i.b[allele_idx] = 0.5 * init_b;
             }
-
-            male_i.envt_quality_high = 
-                uniform(rng_r) < p_high;
-
 
             deme_i.breedersM.push_back(male_i);
         } 
@@ -157,9 +169,12 @@ void initialize_population()
     } // end for patch_idx
 
     assert(meta_population[n_patches - 1].breedersF.size() == n[Female]);
-    assert(meta_population[n_patches - 1].breedersM.size() == nm);
+    assert(meta_population[n_patches - 1].breedersM.size() == n[Male]);
     assert(meta_population.size() > 0);
     assert(meta_population.size() == n_patches);
+
+    disp_juvsM.reserve(n_patches * n[Female] * clutch_max);
+    disp_juvsF.reserve(n_patches * n[Female] * clutch_max);
 } // end initialize_population()
 
 // function to write parameters 
@@ -174,20 +189,26 @@ void write_parameters(std::ofstream &data_file)
         "init_df;" << init_d[Female] << std::endl <<
         "init_dm;" << init_d[Male] << std::endl <<
         "init_b;" << init_b << std::endl <<
-        "init_sr;" << init_sr << std::endl <<
+        "init_sr1;" << init_sr[0] << std::endl <<
+        "init_sr2;" << init_sr[1] << std::endl <<
         "seed;" << seed << std::endl <<
-        "nm;" << n[Males] << std::endl <<
-        "n[Female];" << n[Females] << std::endl <<
+        "nm;" << n[Male] << std::endl <<
+        "nf;" << n[Female] << std::endl <<
+        "npatches;" << n_patches << std::endl <<
+        "clutch_max;" << clutch_max << std::endl <<
+        "spatial;" << spatial << std::endl <<
         "s1;" << s[0] << std::endl <<
         "s2;" << s[1] << std::endl <<
         "vf1;" << v[Female][0] << std::endl <<
         "vf2;" << v[Female][1] << std::endl <<
         "vm1;" << v[Male][0] << std::endl <<
         "vm2;" << v[Male][1] << std::endl <<
+        "burrow_mod_survival;" << burrow_mod_survival << std::endl <<
         "mu_sr;" << mu_sr << std::endl <<
-        "mu_b;" << mu_p << std::endl <<
-        "mu_d;" << mu_d << std::endl <<
-        "sdmu;" << sdmu_p << std::endl <<
+        "mu_b;" << mu_b << std::endl <<
+        "mu_df;" << mu_d[Female] << std::endl <<
+        "mu_dm;" << mu_d[Male] << std::endl <<
+        "sdmu;" << sdmu << std::endl <<
         "basename;" << file_basename << std::endl <<
         std::endl;
 } // end write_parameters
@@ -211,69 +232,83 @@ void write_stats_per_timestep(int time_step, std::ofstream &data_file)
     double ss_d[2] = {0.0,0.0};
     double ss_b = 0.0;
 
+    double z;
+
     for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
         assert(meta_population[patch_idx].breedersF.size() == n[Female]);
-        assert(meta_population[patch_idx].breedersM.size() == nm);
+        assert(meta_population[patch_idx].breedersM.size() == n[Male]);
 
         for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
-            for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
-            {
-                z = meta_population[patch_idx].breedersF[female_idx].sr[0][allele_idx]
-                mean_sr[0] += z;
-                ss_sr[0] += z * z;
-
-                z = meta_population[patch_idx].breedersF[female_idx].sr[1][allele_idx]
-                mean_sr[1] += z;
-                ss_sr[1] += z * z;
-
-                z = meta_population[patch_idx].breedersF[female_idx].d[Female][allele_idx]
-                mean_d[Female] += z;
-                ss_d[Female] += z * z;
+            z = meta_population[patch_idx].breedersF[female_idx].sr[0][0]
+                    + meta_population[patch_idx].breedersF[female_idx].sr[0][1];
                 
-                z = meta_population[patch_idx].breedersF[female_idx].d[Male][allele_idx]
-                mean_d[Male] += z;
-                ss_d[Male] += z * z;
-                
-                z = meta_population[patch_idx].breedersF[female_idx].b[allele_idx]
-                mean_b += z;
-                ss_b += z * z;
-            }
-        } // end for female_idx
+            mean_sr[0] += z;
+            ss_sr[0] += z * z;
+
+            z = meta_population[patch_idx].breedersF[female_idx].sr[1][0]
+                    + meta_population[patch_idx].breedersF[female_idx].sr[1][1];
+
+            mean_sr[1] += z;
+            ss_sr[1] += z * z;
+
+            z = meta_population[patch_idx].breedersF[female_idx].d[Female][0]
+                    + meta_population[patch_idx].breedersF[female_idx].d[Female][1];
+
+            mean_d[Female] += z;
+            ss_d[Female] += z * z;
             
+            z = meta_population[patch_idx].breedersF[female_idx].d[Male][0]
+                    + meta_population[patch_idx].breedersF[female_idx].d[Male][1];
+
+            mean_d[Male] += z;
+            ss_d[Male] += z * z;
+            
+            z = meta_population[patch_idx].breedersF[female_idx].b[0]
+                    + meta_population[patch_idx].breedersF[female_idx].b[1];
+            mean_b += z;
+            ss_b += z * z;
+        }
         
         for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
         {
-            for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
-            {
-                z = meta_population[patch_idx].breedersM[male_idx].sr[0][allele_idx]
-                mean_sr[0] += z;
-                ss_sr[0] += z * z;
-
-                z = meta_population[patch_idx].breedersM[male_idx].sr[1][allele_idx]
-                mean_sr[1] += z;
-                ss_sr[1] += z * z;
-
-                z = meta_population[patch_idx].breedersM[male_idx].d[Female][allele_idx]
-                mean_d[Female] += z;
-                ss_d[Female] += z * z;
+            z = meta_population[patch_idx].breedersM[male_idx].sr[0][0]
+                    + meta_population[patch_idx].breedersM[male_idx].sr[0][1];
                 
-                z = meta_population[patch_idx].breedersM[male_idx].d[Male][allele_idx]
-                mean_d[Male] += z;
-                ss_d[Male] += z * z;
-                
-                z = meta_population[patch_idx].breedersM[male_idx].b[allele_idx]
-                mean_b += z;
-                ss_b += z * z;
-            }
+            mean_sr[0] += z;
+            ss_sr[0] += z * z;
+
+            z = meta_population[patch_idx].breedersM[male_idx].sr[1][0]
+                    + meta_population[patch_idx].breedersM[male_idx].sr[1][1];
+
+            mean_sr[1] += z;
+            ss_sr[1] += z * z;
+
+            z = meta_population[patch_idx].breedersM[male_idx].d[Female][0]
+                    + meta_population[patch_idx].breedersM[male_idx].d[Female][1];
+
+            mean_d[Female] += z;
+            ss_d[Female] += z * z;
+            
+            z = meta_population[patch_idx].breedersM[male_idx].d[Male][0]
+                    + meta_population[patch_idx].breedersM[male_idx].d[Male][1];
+
+            mean_d[Male] += z;
+            ss_d[Male] += z * z;
+            
+            z = meta_population[patch_idx].breedersM[male_idx].b[0]
+                    + meta_population[patch_idx].breedersM[male_idx].b[1];
+            mean_b += z;
+            ss_b += z * z;
         } // end for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
+
     } // end for (int patch_idx
 
     mean_sr[0] /= (n[Male] + n[Female]) * n_patches;
     mean_sr[1] /= (n[Male] + n[Female]) * n_patches;
-    mean_df[Female] /= (n[Male] + n[Female]) * n_patches;
-    mean_df[Male] /= (n[Male] + n[Female]) * n_patches;
+    mean_d[Female] /= (n[Male] + n[Female]) * n_patches;
+    mean_d[Male] /= (n[Male] + n[Female]) * n_patches;
     mean_b /= (n[Male] + n[Female]) * n_patches;
 
     double var_sr[2];
@@ -337,75 +372,96 @@ void create_offspring(
     for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
     {
         // inherit alleles
-        offspring.sr[0][0] = mutate(
-                mother.sr[0][discrete01(rng_r)]
-                ,mu_sr
-                ,mutational_distribution);
+        offspring.sr[0][0] = std::clamp(
+                mutate(
+                    mother.sr[0][discrete01(rng_r)]
+                    ,mu_sr
+                    ,mutational_distribution)
+                ,0.0,0.5);
 
-        offspring.sr[0][1] = mutate(
-                father.sr[0][discrete01(rng_r)]
-                ,mu_sr
-                ,mutational_distribution);
+        offspring.sr[0][1] = std::clamp(
+                mutate(
+                    father.sr[0][discrete01(rng_r)]
+                    ,mu_sr
+                    ,mutational_distribution)
+                ,0.0,0.5);
         
-        offspring.sr[1][0] = mutate(
-                mother.sr[1][discrete01(rng_r)]
-                ,mu_sr
-                ,mutational_distribution);
+        offspring.sr[1][0] = std::clamp(
+                mutate(
+                    mother.sr[1][discrete01(rng_r)]
+                    ,mu_sr
+                    ,mutational_distribution)
+                ,0.0,0.5);
 
-        offspring.sr[1][1] = mutate(
-                father.sr[1][discrete01(rng_r)]
-                ,mu_sr
-                ,mutational_distribution);
+        offspring.sr[1][1] = std::clamp(
+                mutate(
+                    father.sr[1][discrete01(rng_r)]
+                    ,mu_sr
+                    ,mutational_distribution)
+                ,0.0,0.5);
 
-        offspring.d[Female][0] = mutate(
-                mother.d[Female][discrete01(rng_r)]
-                ,mu_d[Female]
-                ,mutational_distribution);
+        offspring.d[Female][0] = std::clamp(
+                mutate(
+                    mother.d[Female][discrete01(rng_r)]
+                    ,mu_d[Female]
+                    ,mutational_distribution)
+                ,0.0,0.5);
 
-        offspring.d[Female][1] = mutate(
-                father.d[Female][discrete01(rng_r)]
-                ,mu_d[Female]
-                ,mutational_distribution);
+        offspring.d[Female][1] = std::clamp(
+                mutate(
+                    father.d[Female][discrete01(rng_r)]
+                    ,mu_d[Female]
+                    ,mutational_distribution)
+                ,0.0,0.5);
         
-        offspring.d[Male][0] = mutate(
-                mother.d[Male][discrete01(rng_r)]
-                ,mu_d[Male]
-                ,mutational_distribution);
+        offspring.d[Male][0] = std::clamp(
+                mutate(
+                    mother.d[Male][discrete01(rng_r)]
+                    ,mu_d[Male]
+                    ,mutational_distribution)
+                ,0.0,0.5);
 
-        offspring.d[Male][1] = mutate(
-                father.d[Male][discrete01(rng_r)]
-                ,mu_d[Male]
-                ,mutational_distribution);
+        offspring.d[Male][1] = std::clamp(
+                mutate(
+                    father.d[Male][discrete01(rng_r)]
+                    ,mu_d[Male]
+                    ,mutational_distribution)
+                ,0.0,0.5);
         
-        offspring.b[0] = mutate(
-                mother.b[discrete01(rng_r)]
-                ,mu_b
-                ,mutational_distribution);
+        offspring.b[0] = std::clamp(
+                mutate(
+                    mother.b[discrete01(rng_r)]
+                    ,mu_b
+                    ,mutational_distribution)
+                ,0.0,0.5);
 
-        offspring.b[1] = mutate(
-                father.b[discrete01(rng_r)]
-                ,mu_b
-                ,mutational_distribution);
+        offspring.b[1] = std::clamp(
+                mutate(
+                    father.b[discrete01(rng_r)]
+                    ,mu_b
+                    ,mutational_distribution)
+                ,0.0,0.5);
+
     } // end for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
 
+
+    bool current_envt = natal_envt;
+
+    if (natal_envt && uniform(rng_r) < mother.b[0] + mother.b[1])
+    {
+        current_envt = !natal_envt;
+    }
+    
     // sex determination - note that sr measures proportions sons 
     // as in most sex allocation papers - so that if any uniform number
     // is larger than the sr expression loci, it must be a daughter
     offspring.sex = Male;
-
-    bool current_envt = natal_envt;
-
-    if (natal_envt && uniform(rng_r) < mother.b)
-    {
-        current_envt = !natal_envt;
-    }
 
     // sex allocation decision making 
     if (uniform(rng_r) > 
             offspring.sr[current_envt][0] + offspring.sr[current_envt][1])
     {
         offspring.sex = Female;
-
     }
 
     offspring.viability = v[offspring.sex][
@@ -424,6 +480,8 @@ void mate_produce_offspring()
 
     // aux variable to store local patch environment
     bool local_envt_hi; 
+
+    int father_idx;
 
     // loop through all patches of the metapopulation
     for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
@@ -457,7 +515,7 @@ void mate_produce_offspring()
                 // to see whether there are no bugs and
                 // resulting buffer overflows
                 assert(father_idx >= 0);
-                assert(father_idx < n[Males]);
+                assert(father_idx < n[Male]);
 
                 // offspring has survived, now allocate it and decide whether 
                 // it disperses or not
@@ -470,12 +528,12 @@ void mate_produce_offspring()
                         ,meta_population[patch_idx].envt_hi
                         );
 
-                if (uniform(rng_r) > offspring.viability)
+                if (uniform(rng_r) > Kid.viability)
                 {
                     continue;
                 }
 
-                if (uniform(rng_r) < d[Kid.sex]) // kid disperses
+                if (uniform(rng_r) < Kid.d[Kid.sex][0] + Kid.d[Kid.sex][1]) // kid disperses
                 {
                     if (Kid.sex == Female)
                     {
@@ -502,8 +560,10 @@ void mate_produce_offspring()
 
                     }
                     
-                    assert(meta_population[patch_idx].phil_juvsM.size() < n[Female] * clutch_max);
-                    assert(meta_population[patch_idx].phil_juvsF.size() < n[Female] * clutch_max);
+                    assert(meta_population[patch_idx].phil_juvsM.size() < 
+                            n[Female] * clutch_max);
+                    assert(meta_population[patch_idx].phil_juvsF.size() < 
+                            n[Female] * clutch_max);
                 }
 
             } // end for for (int egg_i = 0; egg_i < clutch_max; ++egg_i)
@@ -515,7 +575,6 @@ void mate_produce_offspring()
     // randomly shuffle dispersers
     shuffle(disp_juvsM.begin(), disp_juvsM.end(), rng_r);
     shuffle(disp_juvsF.begin(), disp_juvsF.end(), rng_r);
-
 } // end mate_produce_offspring()
 
 
@@ -532,6 +591,10 @@ void adult_mortality_replacement()
     int nm_imm_total = disp_juvsM.size();
     int nf_imm_total = disp_juvsF.size();
 
+    // if only temporal variation (i.e., all patches
+    // switch between envt'al states at the same moment
+    bool envt_change = !spatial && uniform(rng_r) < s[meta_population[0].envt_hi];
+
     // loop through all patches of the metapopulation
     for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
@@ -541,135 +604,113 @@ void adult_mortality_replacement()
         // loop through all females in a particular site
         for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
-                // choose immigrant rathern than local female
-                if (uniform(rng_r) < (double) nf_imm_local  / 
-                        (nf_imm_local + meta_population[patch_idx].phil_juvsF.size()))
-                {
-                    assert(disp_juvsF.size() > 0);
+            assert(nf_imm_local > 0 || 
+                    meta_population[patch_idx].phil_juvsF.size() > 0);
 
-                    meta_population[patch_idx].breedersF[female_idx] = 
-                        disp_juvsF.back();
+            // choose immigrant rathern than local female
+            if (uniform(rng_r) < (double) nf_imm_local  / 
+                    (nf_imm_local + meta_population[patch_idx].phil_juvsF.size()))
+            {
+                assert(disp_juvsF.size() > 0);
 
-                    disp_juvsF.pop_back();
+                meta_population[patch_idx].breedersF[female_idx] = 
+                    disp_juvsF.back();
 
-                    // reduce number of 
-                    // immigrant juvenile females for this local patch
-                    --nf_imm_local;
-                }
-                else
-                {
-                    assert(meta_population[patch_idx].phil_juvsF.size() > 0);
+                disp_juvsF.pop_back();
 
-                    std::uniform_int_distribution<int> 
-                        local_female_sampler(0, meta_population[patch_idx].phil_juvsF.size() - 1);
+                // reduce number of 
+                // immigrant juvenile females for this local patch
+                --nf_imm_local;
+            }
+            else
+            {
+                assert(meta_population[patch_idx].phil_juvsF.size() > 0);
 
-                    int sampled_juvF = local_female_sampler(rng_r);
+                std::uniform_int_distribution<int> 
+                    local_female_sampler(0, meta_population[patch_idx].phil_juvsF.size() - 1);
 
-                    assert(sampled_juvF >= 0);
-                    assert(sampled_juvF < meta_population[patch_idx].phil_juvsF.size());
+                int sampled_juvF = local_female_sampler(rng_r);
 
-                    // assign one of the local female juveniles to this spot
-                    meta_population[patch_idx].breedersF[female_idx] = 
-                        meta_population[patch_idx].phil_juvsF[sampled_juvF];
+                assert(sampled_juvF >= 0);
+                assert(sampled_juvF < meta_population[patch_idx].phil_juvsF.size());
 
-                    // delete individual by overwriting it with the last
-                    // individual from the stack and then reducing
-                    // the count
-                    meta_population[patch_idx].phil_juvsF[sampled_juvF] = 
-                        meta_population[patch_idx].phil_juvsF.back();
+                // assign one of the local female juveniles to this spot
+                meta_population[patch_idx].breedersF[female_idx] = 
+                    meta_population[patch_idx].phil_juvsF[sampled_juvF];
 
-                    meta_population[patch_idx].phil_juvsF.pop_back();
-                }
+                // delete individual by overwriting it with the last
+                // individual from the stack and then reducing
+                // the count
+                meta_population[patch_idx].phil_juvsF[sampled_juvF] = 
+                    meta_population[patch_idx].phil_juvsF.back();
+
+                meta_population[patch_idx].phil_juvsF.pop_back();
+            }
         } // end female_idx
 
         for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
         {
-                // male dies
-                assert(nm_imm_local >= 0);
+            // male dies
+            assert(nm_imm_local >= 0);
 
-                // choose immigrant rathern than local female
-                if (uniform(rng_r) < (double) nm_imm_local  / 
-                        (nm_imm_local + meta_population[patch_idx].phil_juvsM.size()))
-                {
-                    assert(disp_juvsM.size() > 0);
+            // choose immigrant rathern than local female
+            if (uniform(rng_r) < (double) nm_imm_local  / 
+                    (nm_imm_local + meta_population[patch_idx].phil_juvsM.size()))
+            {
+                assert(disp_juvsM.size() > 0);
 
-                    meta_population[patch_idx].breedersM[male_idx] = 
-                        disp_juvsM.back();
+                meta_population[patch_idx].breedersM[male_idx] = 
+                    disp_juvsM.back();
 
-                    disp_juvsM.pop_back();
+                disp_juvsM.pop_back();
 
-                    // reduce number of 
-                    // immigrant juvenile males for this local patch
-                    --nm_imm_local;
-                }
-                else
-                {
-                    assert(meta_population[patch_idx].phil_juvsM.size() > 0);
+                // reduce number of 
+                // immigrant juvenile males for this local patch
+                --nm_imm_local;
+            }
+            else
+            {
+                assert(meta_population[patch_idx].phil_juvsM.size() > 0);
 
-                    assert(meta_population[patch_idx].phil_juvsM.size() < n[Female] * clutch_max);
+                assert(meta_population[patch_idx].phil_juvsM.size() < n[Female] * clutch_max);
 
-                    std::uniform_int_distribution<int> 
-                        local_male_sampler(0, meta_population[patch_idx].phil_juvsM.size() - 1);
+                std::uniform_int_distribution<int> 
+                    local_male_sampler(0, meta_population[patch_idx].phil_juvsM.size() - 1);
 
-                    int sampled_juvM = local_male_sampler(rng_r);
+                int sampled_juvM = local_male_sampler(rng_r);
 
-                    assert(sampled_juvM >= 0);
-                    assert(sampled_juvM < meta_population[patch_idx].phil_juvsM.size());
+                assert(sampled_juvM >= 0);
+                assert(sampled_juvM < meta_population[patch_idx].phil_juvsM.size());
 
-                    // assign one of the local female juveniles to this spot
-                    meta_population[patch_idx].breedersM[male_idx] = 
-                        meta_population[patch_idx].phil_juvsM[sampled_juvM];
+                // assign one of the local female juveniles to this spot
+                meta_population[patch_idx].breedersM[male_idx] = 
+                    meta_population[patch_idx].phil_juvsM[sampled_juvM];
 
-                    // delete individual by overwriting it with the last
-                    // individual from the stack and then reducing
-                    // the count
-                    meta_population[patch_idx].phil_juvsM[sampled_juvM] = 
-                        meta_population[patch_idx].phil_juvsM.back();
+                // delete individual by overwriting it with the last
+                // individual from the stack and then reducing
+                // the count
+                meta_population[patch_idx].phil_juvsM[sampled_juvM] = 
+                    meta_population[patch_idx].phil_juvsM.back();
 
-                    // reduce the number of local female juveniles
-                    meta_population[patch_idx].phil_juvsM.pop_back();
-                }
-            } // end if if (uniform(rng_r) < base_surv + ...
+                // reduce the number of local female juveniles
+                meta_population[patch_idx].phil_juvsM.pop_back();
+            } // end if else local vs global recruitment
+        }  // end for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
+
+        // environmental change in case of spatial environments
+        if ((spatial && uniform(rng_r) < s[meta_population[patch_idx].envt_hi])
+                || envt_change) 
+        {
+                meta_population[patch_idx].envt_hi = 
+                    !meta_population[patch_idx].envt_hi;
         }
-    }
+    } // end for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
 } // end adult_mortality_replacement()
 
 // the main part of the code
 int main(int argc, char **argv)
 {
-    // variable storing the name of the yaml parameter file
-    std::string yaml_file{};
- 
-    // first
-    int opt;
-
-    std::stringstream usage;
-    
-    usage << "Usage of this programme: " << argv[0] << " -f location_of_yaml_parameter_file.yaml" << std::endl;
-
-    while ((opt = getopt(argc, argv, "f:")) != -1) 
-    {
-        if (opt == 'f')
-        {
-            yaml_file = optarg;
-        }
-        else
-        {
-            std::cerr << usage.str();
-
-            exit(EXIT_FAILURE);
-        }
-    } // end while
-
-    if (argc < 2)
-    {
-        std::cerr << usage.str();
-        exit(EXIT_FAILURE);
-    }
-
-    init_pars_from_yaml(yaml_file);
-
-//    init_pars_from_cmd(argc, argv);
+    init_pars_from_cmd(argc, argv);
     // ok parameters initialized, now lets do some work
 
     // initialize output files
@@ -683,6 +724,7 @@ int main(int argc, char **argv)
     for (int generation_idx = 0; generation_idx < max_generations; ++generation_idx)
     {
         mate_produce_offspring();
+
         adult_mortality_replacement();
 
         if (generation_idx % skip == 0)

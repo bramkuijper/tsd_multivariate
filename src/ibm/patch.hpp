@@ -10,6 +10,8 @@
 class Patch {
 
     public:
+        bool envt_hi;
+
         std::vector<Individual> breedersF;
         std::vector<Individual> breedersM;
 

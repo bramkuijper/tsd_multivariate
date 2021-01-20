@@ -2,8 +2,8 @@
 # individual based simulation into
 # a runnable executable file
 
-EXE=sexsel_intragenomic.exe
-CPP=sexsel_intragenomic.cpp individual.cpp patch.cpp
+EXE=tsd_multivariate.exe
+CPP=tsd_multivariate.cpp individual.cpp patch.cpp
 HPP=individual.hpp patch.hpp
 LIBS=yaml-cpp
 LFLAGS=-L$(HOME)/usr/local/lib64
