@@ -47,9 +47,17 @@ nrep = 5
 
 ctr = 0
 
+# whether jobs should be run in the background
+run_in_background = True
+
+# never run background jobs on cluster
+hostname = socket.gethostname()
+if "athena" in hostname:
+    run_in_background = False
+
 exe = "./tsd_multivariate.exe"
 
-max_generations = 100
+max_generations = 50000
 
 for replicate_i in range(0,nrep):
     for nf_nm_i in nf_nm:
@@ -96,7 +104,8 @@ for replicate_i in range(0,nrep):
                                                         f"{mu_d_i[1]} " +
                                                         f"{sdmu} " +
                                                         f"{max_generations} " +
-                                                        base_name_i
+                                                        base_name_i + " " +
+                                                        "&" if run_in_background else ""
                                                         )
 
                                 

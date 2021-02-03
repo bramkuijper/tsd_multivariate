@@ -26,12 +26,12 @@ std::bernoulli_distribution discrete01(0.5);
 // parameters -- just the initial values here, 
 // we set them later using argc, argv (command line)
 
-int clutch_max = 50; // maximum clutch size
-int n_patches = 50; // maximum clutch size
-int max_generations = 100;
-int skip = 10;
+unsigned int clutch_max = 50; // maximum clutch size
+unsigned int n_patches = 50; // maximum clutch size
+unsigned int max_generations = 100;
+unsigned int skip = 10;
 
-int n[2] = {10,10}; // n[Female], nm: females and males per patch
+unsigned int n[2] = {10,10}; // n[Female], nm: females and males per patch
 
 double init_d[2] = {0.0,0.0}; // initialize 
 double init_b = 0.0; // initial value 
@@ -116,7 +116,7 @@ void initialize_population()
     meta_population.reserve(n_patches);
 
     // loop through all the patches
-    for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
+    for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
         // initialize an empty patch
         Patch deme_i{};
@@ -125,13 +125,13 @@ void initialize_population()
         deme_i.breedersF.reserve(n[Female]);
 
         // loop through all the females in the patch
-        for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
+        for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
             // initialize female
             Individual female_i{};
 
             // now assign initial values to each allele
-            for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
+            for (unsigned int allele_idx = 0; allele_idx < 2; ++allele_idx)
             {
                 female_i.sr[0][allele_idx] = 0.5 * init_sr[0];
                 female_i.sr[1][allele_idx] = 0.5 * init_sr[1];
@@ -146,12 +146,12 @@ void initialize_population()
         } // end for female_idx
         
         // loop through all the males in the patch
-        for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
+        for (unsigned int male_idx = 0; male_idx < n[Male]; ++male_idx)
         {
             // initialize male
             Individual male_i{};
 
-            for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
+            for (unsigned int allele_idx = 0; allele_idx < 2; ++allele_idx)
             {
                 male_i.sr[0][allele_idx] = 0.5 * init_sr[0];
                 male_i.sr[1][allele_idx] = 0.5 * init_sr[1];
@@ -220,7 +220,7 @@ void write_stats_headers(std::ofstream &data_file)
 } // end write_stats_headers
 
 // write statistics to file data_file
-void write_stats_per_timestep(int time_step, std::ofstream &data_file)
+void write_stats_per_timestep(unsigned int const time_step, std::ofstream &data_file)
 {
     // mean values
     double mean_sr[2] = {0.0,0.0};
@@ -234,12 +234,12 @@ void write_stats_per_timestep(int time_step, std::ofstream &data_file)
 
     double z;
 
-    for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
+    for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
         assert(meta_population[patch_idx].breedersF.size() == n[Female]);
         assert(meta_population[patch_idx].breedersM.size() == n[Male]);
 
-        for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
+        for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
             z = meta_population[patch_idx].breedersF[female_idx].sr[0][0]
                     + meta_population[patch_idx].breedersF[female_idx].sr[0][1];
@@ -271,7 +271,7 @@ void write_stats_per_timestep(int time_step, std::ofstream &data_file)
             ss_b += z * z;
         }
         
-        for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
+        for (unsigned int male_idx = 0; male_idx < n[Male]; ++male_idx)
         {
             z = meta_population[patch_idx].breedersM[male_idx].sr[0][0]
                     + meta_population[patch_idx].breedersM[male_idx].sr[0][1];
@@ -369,7 +369,7 @@ void create_offspring(
 {
     std::normal_distribution<double> mutational_distribution(0.0, sdmu);
 
-    for (int allele_idx = 0; allele_idx < 2; ++allele_idx)
+    for (unsigned int allele_idx = 0; allele_idx < 2; ++allele_idx)
     {
         // inherit alleles
         offspring.sr[0][0] = std::clamp(
@@ -476,15 +476,13 @@ void mate_produce_offspring()
     disp_juvsF.clear();
 
     // sample a random local male on the patch
-    std::uniform_int_distribution<int> male_sampler(0,n[Male] - 1);
+    std::uniform_int_distribution<unsigned int> male_sampler(0,n[Male] - 1);
 
-    // aux variable to store local patch environment
-    bool local_envt_hi; 
-
-    int father_idx;
+    // aux variable to store index of father
+    unsigned int father_idx;
 
     // loop through all patches of the metapopulation
-    for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
+    for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
         assert(meta_population[patch_idx].breedersM.size() > 0);
         assert(meta_population[patch_idx].breedersM.size() == n[Male]);
@@ -497,13 +495,11 @@ void mate_produce_offspring()
         meta_population[patch_idx].phil_juvsF.clear();
         meta_population[patch_idx].phil_juvsM.clear();
 
-        local_envt_hi = meta_population[patch_idx].envt_hi;
-
         // loop through all females in a particular site
-        for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
+        for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
             // loop through a female's clutch
-            for (int egg_i = 0; egg_i < clutch_max; ++egg_i)
+            for (unsigned int egg_i = 0; egg_i < clutch_max; ++egg_i)
             {
                 // sample male to sire egg_i
                 // according to mate choice distribution
@@ -583,26 +579,26 @@ void adult_mortality_replacement()
     // auxiliary variables for the number 
     // of juvenile male and female immigrants
     // available in the local patch
-    int nm_imm_local, nf_imm_local;
+    unsigned int nm_imm_local, nf_imm_local;
 
     // auxiliary variables for the number 
     // of juvenile male and female immigrants
     // globally available
-    int nm_imm_total = disp_juvsM.size();
-    int nf_imm_total = disp_juvsF.size();
+    unsigned int nm_imm_total = disp_juvsM.size();
+    unsigned int nf_imm_total = disp_juvsF.size();
 
     // if only temporal variation (i.e., all patches
     // switch between envt'al states at the same moment
     bool envt_change = !spatial && uniform(rng_r) < s[meta_population[0].envt_hi];
 
     // loop through all patches of the metapopulation
-    for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
+    for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
         nm_imm_local = nm_imm_total / n_patches;
         nf_imm_local = nf_imm_total / n_patches;
                     
         // loop through all females in a particular site
-        for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
+        for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
             assert(nf_imm_local > 0 || 
                     meta_population[patch_idx].phil_juvsF.size() > 0);
@@ -626,10 +622,10 @@ void adult_mortality_replacement()
             {
                 assert(meta_population[patch_idx].phil_juvsF.size() > 0);
 
-                std::uniform_int_distribution<int> 
+                std::uniform_int_distribution<unsigned int> 
                     local_female_sampler(0, meta_population[patch_idx].phil_juvsF.size() - 1);
 
-                int sampled_juvF = local_female_sampler(rng_r);
+                unsigned int sampled_juvF = local_female_sampler(rng_r);
 
                 assert(sampled_juvF >= 0);
                 assert(sampled_juvF < meta_population[patch_idx].phil_juvsF.size());
@@ -648,7 +644,7 @@ void adult_mortality_replacement()
             }
         } // end female_idx
 
-        for (int male_idx = 0; male_idx < n[Male]; ++male_idx)
+        for (unsigned int male_idx = 0; male_idx < n[Male]; ++male_idx)
         {
             // male dies
             assert(nm_imm_local >= 0);
@@ -674,10 +670,10 @@ void adult_mortality_replacement()
 
                 assert(meta_population[patch_idx].phil_juvsM.size() < n[Female] * clutch_max);
 
-                std::uniform_int_distribution<int> 
+                std::uniform_int_distribution<unsigned int> 
                     local_male_sampler(0, meta_population[patch_idx].phil_juvsM.size() - 1);
 
-                int sampled_juvM = local_male_sampler(rng_r);
+                unsigned int sampled_juvM = local_male_sampler(rng_r);
 
                 assert(sampled_juvM >= 0);
                 assert(sampled_juvM < meta_population[patch_idx].phil_juvsM.size());
@@ -721,7 +717,8 @@ int main(int argc, char **argv)
 
     initialize_population();
 
-    for (int generation_idx = 0; generation_idx < max_generations; ++generation_idx)
+    for (unsigned int generation_idx = 0; 
+            generation_idx < max_generations; ++generation_idx)
     {
         mate_produce_offspring();
 
