@@ -169,10 +169,12 @@ def plot_from_dict(plot_dict, data, sim_file):
                 )
 
     format = "png"
+    
+    path_base, extension = os.path.splitext(sim_file)
 
     filename = os.path.join(
-            os.path.dirname(sim_file),
-            "graph_" + os.path.basename(sim_file) + "." + format
+            os.path.dirname(path_base),
+            "graph_" + os.path.basename(path_base) + "." + format
             )
 
     plt.savefig(
