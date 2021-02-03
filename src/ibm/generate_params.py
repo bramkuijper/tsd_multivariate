@@ -40,7 +40,7 @@ sdmu = 0.01
 burrow_mod_survival = [0]
 
 date = datetime.datetime.now()
-base_name = "sim_cue_integration_" +\
+base_name = "sim_tsd_multivariate_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
 nrep = 5
