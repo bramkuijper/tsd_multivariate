@@ -49,7 +49,7 @@ ctr = 0
 
 exe = "./tsd_multivariate.exe"
 
-max_generations = 100
+max_generations = 50000
 
 for replicate_i in range(0,nrep):
     for nf_nm_i in nf_nm:
