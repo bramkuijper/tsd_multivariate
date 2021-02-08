@@ -1,8 +1,8 @@
-#include "tsd_turtle.hpp"
+#include "tsd_multivariate.hpp"
 
 int main(int argc, char **argv)
 {
-    TSDTurtle simulation{};
+    TSD_Multivariate simulation{};
 
     simulation.init_arguments(argc, argv);
 

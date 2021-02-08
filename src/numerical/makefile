@@ -7,17 +7,22 @@ TEST_EXE=tsd_testsuite.exe
 
 CXX=g++
 
+# flags for any compilation
 CXXFLAGS=-Wall -std=c++17 -O3 -lgsl -lgslcblas
 
-IFLAGS=-I /usr/local/Cellar/boost/1.74.0/include/boost/test/unit_test.hpp
+# flags to compile boost etc
+IFLAGS=-I /usr/local/Cellar/boost/1.75.0_1/include
 LFLAGS=-L /usr/local/lib/
-lFlags=-lboost_unit_test_framework-mt
+lFlags=/usr/local/lib/libboost_unit_test_framework-mt.a
 
+# build everything
 all : $(EXE) $(TEST_EXE)
 
+# build the normal executable
 $(EXE) : $(CPP) $(HPP)
 	$(CXX) $(CXXFLAGS) -o $(EXE) $(CPP)
 
+# build the testsuite
 $(TEST_EXE) : $(TEST_CPP) $(HPP)
 	$(CXX) $(CXXFLAGS) $(IFLAGS) -o $(TEST_EXE) $(TEST_CPP) $(LFLAGS) $(lFlags)
 

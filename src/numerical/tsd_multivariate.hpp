@@ -1,4 +1,4 @@
-#ifndef TSD_TURTLE_HPP
+#ifndef TSD_MULTIVARIATE_HPP
 #include <string>
 
 enum Sex {
@@ -6,7 +6,21 @@ enum Sex {
     Female = 1
 };
 
-class TSDTurtle
+// struct with parameters
+struct parstruct{
+
+    double surv[2][2];
+    double d[2];
+    double b;
+    double s[2];
+    double sigma[2][2];
+    double p[2];
+    double v[2][2];
+    double u[2][2];
+    std::string base;
+};
+
+class TSD_Multivariate
 {
     private:
         // sex specific survival probabilities
@@ -55,18 +69,9 @@ class TSDTurtle
 
     public: 
         
-        TSDTurtle();
+        TSD_Multivariate();
         
-        TSDTurtle(
-                double surv[2][2]
-                ,double d[2]
-                ,double b
-                ,double s[2]
-                ,double sigma[2][2]
-                ,double p[2]
-                ,double v[2][2]
-                ,double u[2][2]
-                ,std::string base);
+        TSD_Multivariate(parstruct const &parstruct);
 
         // run the simulation
         void run();

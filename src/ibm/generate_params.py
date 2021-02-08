@@ -13,11 +13,11 @@ import copy
 
 nf_nm = [[10,10]]
 
-init_d = [[0.5,0.5]]
+init_d = [[0.2,0.2]]
 
 init_b = [0]
 
-init_sr = [[0.5,0.5]]
+init_sr = [[0.8,0.1]]
 
 vf = [[0.5,1.0]]
 
@@ -25,9 +25,9 @@ vm = [[1.0,1.0]]
 
 s = [[0.5,0.5]]
 
-spatial = [0]
+spatial = [1]
 
-clutch_max = 10
+clutch_max = 25
 
 mu_sr = 0.01
 

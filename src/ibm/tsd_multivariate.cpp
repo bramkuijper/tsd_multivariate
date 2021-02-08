@@ -216,7 +216,7 @@ void write_parameters(std::ofstream &data_file)
 // write the headers for the file with the statistics
 void write_stats_headers(std::ofstream &data_file)
 {
-    data_file << "generation;sr1;sr2;varsr1;varsr2;b;varb;df;dm;vardf;vardm" << std::endl;
+    data_file << "generation;sr1;sr2;varsr1;varsr2;b;varb;df;dm;vardf;vardm;freq1;varfreq1" << std::endl;
 } // end write_stats_headers
 
 // write statistics to file data_file
@@ -234,10 +234,17 @@ void write_stats_per_timestep(int time_step, std::ofstream &data_file)
 
     double z;
 
+    double mean_freq1 = 0.0;
+    double ss_freq1 = 0.0;
+
     for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
         assert(meta_population[patch_idx].breedersF.size() == n[Female]);
         assert(meta_population[patch_idx].breedersM.size() == n[Male]);
+
+        z = meta_population[patch_idx].envt_hi;
+        mean_freq1 += z;
+        ss_freq1 += z*z;
 
         for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
@@ -311,6 +318,10 @@ void write_stats_per_timestep(int time_step, std::ofstream &data_file)
     mean_d[Male] /= (n[Male] + n[Female]) * n_patches;
     mean_b /= (n[Male] + n[Female]) * n_patches;
 
+    mean_freq1 /= n_patches;
+
+    double var_freq1 = ss_freq1 / n_patches - mean_freq1 * mean_freq1;
+
     double var_sr[2];
 
     var_sr[0] = ss_sr[0] / ((n[Male] + n[Female]) * n_patches) 
@@ -343,7 +354,10 @@ void write_stats_per_timestep(int time_step, std::ofstream &data_file)
         << mean_d[Female] <<  ";"
         << mean_d[Male] <<  ";"
         << var_d[Female] <<  ";"
-        << var_d[Male] << std::endl;
+        << var_d[Male] << ";"
+        << mean_freq1 <<  ";"
+        << var_freq1 
+        << std::endl;
 } // end void write_stats_per_timestep()
 
 // mutational probability
@@ -364,7 +378,7 @@ void create_offspring(
         Individual &offspring,
         Individual const &mother,
         Individual const &father,
-        bool const natal_envt // current environment
+        bool const natal_envt // environment at birth in absence of burrowing
         )
 {
     std::normal_distribution<double> mutational_distribution(0.0, sdmu);
@@ -447,6 +461,9 @@ void create_offspring(
 
     bool current_envt = natal_envt;
 
+    // if in envt 2, burrowing matters
+    // so any nonzero borrowing depth 
+    // may switch environment back to 1
     if (natal_envt && uniform(rng_r) < mother.b[0] + mother.b[1])
     {
         current_envt = !natal_envt;
@@ -455,13 +472,13 @@ void create_offspring(
     // sex determination - note that sr measures proportions sons 
     // as in most sex allocation papers - so that if any uniform number
     // is larger than the sr expression loci, it must be a daughter
-    offspring.sex = Male;
+    offspring.sex = Female;
 
     // sex allocation decision making 
-    if (uniform(rng_r) > 
+    if (uniform(rng_r) < 
             offspring.sr[current_envt][0] + offspring.sr[current_envt][1])
     {
-        offspring.sex = Female;
+        offspring.sex = Male;
     }
 
     offspring.viability = v[offspring.sex][
@@ -528,6 +545,7 @@ void mate_produce_offspring()
                         ,meta_population[patch_idx].envt_hi
                         );
 
+                // offspring does not survive, create the next
                 if (uniform(rng_r) > Kid.viability)
                 {
                     continue;

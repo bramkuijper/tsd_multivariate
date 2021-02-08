@@ -1,4 +1,3 @@
-#include "tsd_turtle.hpp"
 #include <cstdlib>
 #include <cmath>
 #include <gsl/gsl_eigen.h>
@@ -6,8 +5,9 @@
 #include <gsl/gsl_vector.h>
 
 
+#include "tsd_multivariate.hpp"
 
-TSDTurtle::TSDTurtle() :
+TSD_Multivariate::TSD_Multivariate() :
     surv{{0.0,0.0},{0.0,0.0}}
     ,d{0.0,0.0}
     ,b{0.0}
@@ -19,34 +19,37 @@ TSDTurtle::TSDTurtle() :
     ,u{{0.0,0.0},{0.0,0.0}}
     ,base{}
 {
-} // end void TSDTurtle::TSDTurtle
+} // end void TSD_Multivariate::TSD_Multivariate
 
-
-TSDTurtle::TSDTurtle(
-        double surv[2][2]
-        ,double d[2]
-        ,double b
-        ,double s[2]
-        ,double sigma[2][2]
-        ,double p[2]
-        ,double v[2][2]
-        ,double u[2][2]
-        ,std::string base) :
-    surv{{0.0,0.0},{0.0,0.0}}
-    ,d{0.0,0.0}
-    ,b{0.0}
-    ,s{0.0,0.0}
-    ,sigma{{0.0,0.0},{0.0,0.0}}
-    ,p{0.0,0.0}
-    ,lambda{0.0}
-    ,v{{0.0,0.0},{0.0,0.0}}
-    ,u{{0.0,0.0},{0.0,0.0}}
-    ,base{}
+// constructor with arguments
+TSD_Multivariate::TSD_Multivariate(
+        parstruct const &pstruct) :
+            surv{{pstruct.surv[0][0],
+                    pstruct.surv[0][1]},
+                {pstruct.surv[1][0],
+                    pstruct.surv[1][1]}}
+            ,d{pstruct.d[0],d[1]}
+            ,b{pstruct.b}
+            ,s{pstruct.s[0],pstruct.s[1]}
+            ,sigma{
+                {pstruct.sigma[0][0]
+                    ,pstruct.sigma[0][1]},
+                {pstruct.sigma[1][0]
+                    ,pstruct.sigma[1][1]}}
+        ,p{pstruct.p[0],pstruct.p[1]}
+        ,lambda{1.0}
+        ,v{
+            {pstruct.v[0][0],pstruct.v[0][1]}
+            ,{pstruct.v[1][0],pstruct.v[1][1]}}
+        ,u{
+            {pstruct.u[0][0],pstruct.u[0][1]}
+            ,{pstruct.u[1][0],pstruct.u[1][1]}}
+        ,base{pstruct.base}
 {
 }
 
 // initialize arguments
-void TSDTurtle::init_arguments(int argc, char **argv)
+void TSD_Multivariate::init_arguments(int argc, char **argv)
 {
     surv[Male][0] = std::atof(argv[1]);
     surv[Male][1] = std::atof(argv[2]);
@@ -65,12 +68,10 @@ void TSDTurtle::init_arguments(int argc, char **argv)
     base = argv[7];
     p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
     p[1] = 1.0 - p[0];
-
-    // TODO
-}
+} // end init_arguments()
 
 // run the iteration
-void TSDTurtle::run()
+void TSD_Multivariate::run()
 {
     double b_tplus1 = 0.0;
     double s_tplus1[2] = {0.0,0.0};
@@ -78,11 +79,11 @@ void TSDTurtle::run()
     for (long int time_step = 0; time_step < max_time; ++time_step)
     {
     }
-}
+} // end run()
 
 // total fecundity * survival of offsprign born in envt_t1 and
 // of sex sex_t1
-double TSDTurtle::fecundity_survival(bool const envt_t1, Sex const sex_t1) 
+double TSD_Multivariate::fecundity_survival(bool const envt_t1, Sex const sex_t1) 
 {
     if (sex_t1 == Male) 
     {
@@ -101,7 +102,7 @@ double TSDTurtle::fecundity_survival(bool const envt_t1, Sex const sex_t1)
 }
 
 // total number of competing offspring
-double TSDTurtle::C(Sex const sex_t1, bool const envt_t1)
+double TSD_Multivariate::C(Sex const sex_t1, bool const envt_t1)
 {
     return((1.0 - d[sex_t1]) * fecundity_survival(envt_t1, sex_t1) 
             + d[sex_t1] * 
@@ -111,7 +112,7 @@ double TSDTurtle::C(Sex const sex_t1, bool const envt_t1)
 
 
 // get entries of the resident transition matrix
-double TSDTurtle::A_resident(
+double TSD_Multivariate::A_resident(
         bool const envt_t
         ,Sex const sex_t
         ,bool const envt_t1
@@ -132,7 +133,7 @@ double TSDTurtle::A_resident(
 
 // calculate left and right eigenvectors
 //
-void TSDTurtle::eigenvectors(bool const output)
+void TSD_Multivariate::eigenvectors(bool const output)
 {
     size_t ndim = 4;
 
