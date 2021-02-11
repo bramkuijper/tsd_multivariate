@@ -1,5 +1,5 @@
 CPP=tsd_multivariate.cpp main.cpp
-TEST_CPP=tsd_multivariate.cpp testsuite.cpp
+TEST_CPP=tsd_multivariate.cpp tsd_testsuite.cpp
 
 HPP=tsd_multivariate.hpp
 EXE=tsd_multivariate.exe

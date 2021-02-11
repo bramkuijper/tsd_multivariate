@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
@@ -17,6 +18,7 @@ TSD_Multivariate::TSD_Multivariate() :
     ,lambda{0.0}
     ,v{{0.0,0.0},{0.0,0.0}}
     ,u{{0.0,0.0},{0.0,0.0}}
+    ,delta_surv{false}
     ,base{}
 {
 } // end void TSD_Multivariate::TSD_Multivariate
@@ -44,6 +46,7 @@ TSD_Multivariate::TSD_Multivariate(
         ,u{
             {pstruct.u[0][0],pstruct.u[0][1]}
             ,{pstruct.u[1][0],pstruct.u[1][1]}}
+        ,delta_surv{pstruct.delta_surv}
         ,base{pstruct.base}
 {
 }
@@ -65,6 +68,7 @@ void TSD_Multivariate::init_arguments(int argc, char **argv)
     sigma[1][0] = std::atof(argv[5]);
     sigma[1][0] = 1.0 - sigma[1][0];
     lambda = std::atof(argv[6]);
+    delta_surv = std::atoi(argv[6]);
     base = argv[7];
     p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
     p[1] = 1.0 - p[0];
@@ -76,10 +80,83 @@ void TSD_Multivariate::run()
     double b_tplus1 = 0.0;
     double s_tplus1[2] = {0.0,0.0};
 
+    base = base + ".csv";
+
+    // initialize the file only when you run the thing
+    std::ofstream output_file{base};
+
+    write_parameters(output_file);
+
+
     for (long int time_step = 0; time_step < max_time; ++time_step)
     {
+        // update the eigenvectors during every time step
+        eigenvectors(true);
     }
 } // end run()
+
+void TSD_Multivariate::write_data_headers(std::ofstream &output_file)
+{
+    output_file << "generation;b;lambda;";
+
+    for (int iter_i = 0; iter_i < 2; ++iter_i)
+    {
+        output_file << "d" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") << ";";
+        output_file << "sr" << iter_i + 1 << ";";
+
+        for (int iter_j = 0; iter_j < 2; ++iter_j)
+        {
+            output_file << "v" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << iter_j + 1 << ";"; 
+
+            output_file << "u" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") << iter_j + 1
+                << iter_j + 1 << ";";
+        }
+    }
+}
+
+void TSD_Multivariate::write_data(std::ofstream &output_file, int const generation)
+{
+    output_file << generation << ";" << b << ";" << lambda << ";";
+
+    for (int iter_i = 0; iter_i < 2; ++iter_i)
+    {
+        output_file << d[iter_i] << ";";
+        output_file << s[iter_i] << ";";
+
+        for (int iter_j = 0; iter_j < 2; ++iter_j)
+        {
+            output_file << v[iter_i][iter_j] << ";" << u[iter_i][iter_j] << ";";
+        }
+    }
+}
+
+void TSD_Multivariate::write_parameters(std::ofstream &output_file)
+{
+    output_file << std::endl
+        << std::endl
+        << "p1;" << p[0] << std::endl;
+
+    for (int iter_i = 0; iter_i < 2; ++iter_i)
+    {
+        for (int iter_j = 0; iter_j < 2; ++iter_j)
+        {
+            output_file << "surv" 
+                << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << (iter_j + 1) 
+                << ";"
+                << surv[iter_i][iter_j] 
+                << std::endl;
+            
+            output_file << "sigma" 
+                << (iter_i + 1) 
+                << (iter_j + 1) 
+                << ";"
+                << sigma[iter_i][iter_j]
+                << std::endl;
+        }
+    }
+}
 
 // total fecundity * survival of offsprign born in envt_t1 and
 // of sex sex_t1
@@ -90,14 +167,17 @@ double TSD_Multivariate::fecundity_survival(bool const envt_t1, Sex const sex_t1
         return(envt_t1 == 0 ? 
                 s[envt_t1] * surv[sex_t1][envt_t1]
                 :
-                (1.0 - b) * s[envt_t1] * surv[sex_t1][envt_t1] + b * s[!envt_t1] * surv[sex_t1][!envt_t1]);
+                (1.0 - b) * s[envt_t1] * surv[sex_t1][envt_t1] + 
+                    b * s[!envt_t1] * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
     }
 
     return(envt_t1 == 0 ?
             (1.0 - s[envt_t1]) * surv[sex_t1][envt_t1]
             :
             (1.0 - b) * (1.0 - s[envt_t1]) * surv[sex_t1][envt_t1] + 
-                    b * (1.0 - s[!envt_t1]) * surv[sex_t1][!envt_t1]);
+                    b * (1.0 - s[!envt_t1]) * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
             
 }
 
@@ -110,6 +190,17 @@ double TSD_Multivariate::C(Sex const sex_t1, bool const envt_t1)
                      + (1.0 - p[1]) * fecundity_survival(1, sex_t1)));
 }
 
+// transition matrix for a rare sex allocation mutant
+double TSD_Multivariate::Bsr(
+        bool const envt_t
+        ,Sex const sex_t
+        ,bool const envt_t1
+        ,Sex const sex_t1)
+{
+    double bij = sigma[envt_t][envt_t1] * (1.0 - d[sex_t]) *
+        dfecundity_sur
+}
+
 
 // get entries of the resident transition matrix
 double TSD_Multivariate::A_resident(
@@ -118,10 +209,11 @@ double TSD_Multivariate::A_resident(
         ,bool const envt_t1
         ,Sex const sex_t1)
 {
-    // philopatric component
+    // philopatric fitness component
     double aij = sigma[envt_t][envt_t1] * (1.0 - d[sex_t]) * 
                                 fecundity_survival(envt_t1, sex_t1) / C(sex_t1, envt_t1)
-                + (
+               // remote fitness component 
+                    + (
                         p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) 
                         + 
                         p[!envt_t1] * sigma[!envt_t1][envt_t1]
@@ -132,7 +224,6 @@ double TSD_Multivariate::A_resident(
 }
 
 // calculate left and right eigenvectors
-//
 void TSD_Multivariate::eigenvectors(bool const output)
 {
     size_t ndim = 4;
@@ -168,7 +259,8 @@ void TSD_Multivariate::eigenvectors(bool const output)
 
     size_t row_i, col_j;
         
-    // now iterate the eigenvectors
+    // now calculate solutions of the eigenvectors
+    // until convergence
     for (long int iter_time_step = 0; 
             iter_time_step < max_time;
             ++iter_time_step)

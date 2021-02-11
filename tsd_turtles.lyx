@@ -151,7 +151,8 @@ dispersal
 \end_layout
 
 \begin_layout Itemize
-maternal nest site choice
+maternal nest site choice, we need to not only make this sex-dependent but
+ also environment-dependent (but later...)
 \end_layout
 
 \begin_layout Itemize
@@ -262,14 +263,18 @@ The number of surviving daughters
  is given by
 \begin_inset Formula 
 \begin{align*}
-f_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)\left(1-s_{2}\right)v_{\mathrm{f2}}+b\left(1-s_{1}\right)\left[kv_{\mathrm{f1}}+\left(1-k\right)v_{\mathrm{f2}}\right]\right]\\
-m_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)s_{2}v_{\mathrm{m2}}+bs_{1}\left[kv_{\mathrm{m1}}+\left(1-k\right)v_{\mathrm{m2}}\right]\right]
+f_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)\left(1-s_{2}\right)v_{\mathrm{f2}}+b\left(1-s_{1}\right)\left[\delta v_{\mathrm{f1}}+\left(1-\delta\right)v_{\mathrm{f2}}\right]\right]\\
+m_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)s_{2}v_{\mathrm{m2}}+bs_{1}\left[\delta v_{\mathrm{m1}}+\left(1-\delta\right)v_{\mathrm{m2}}\right]\right]
 \end{align*}
 
 \end_inset
 
-When we census right after offspring survival on the patch of birth, we
- have
+When we census right after offspring survival on the patch of birth, the
+ expected number of female offspring living in a type 
+\begin_inset Formula $1$
+\end_inset
+
+ environment 
 \end_layout
 
 \begin_layout Standard
@@ -284,6 +289,37 @@ w_{\mathrm{f1\rightarrow f2}} & =\sigma_{12}\frac{\left(1-d_{\mathrm{f}}^{\text{
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsection
+Selection gradients
+\end_layout
+
+\begin_layout Standard
+We then calculate the selection gradients in the sex allocation loci 
+\begin_inset Formula $s_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $s_{2}$
+\end_inset
+
+, the digging trait 
+\begin_inset Formula $b$
+\end_inset
+
+ and the philopatry traits 
+\begin_inset Formula $d_{\mathrm{f}}$
+\end_inset
+
+ and 
+\begin_inset Formula $d_{\mathrm{m}}$
+\end_inset
+
+ as follows:
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 btprint "btPrintCited"

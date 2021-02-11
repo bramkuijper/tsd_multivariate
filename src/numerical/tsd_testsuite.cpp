@@ -13,10 +13,25 @@ struct TestStructure
         parameters.surv[1][0] = 0.5;
         parameters.surv[0][1] = 0.5;
         parameters.surv[1][1] = 0.5;
-//
-//        double df = 0.1;
-//        double dm = 0.8;
-//
+        parameters.d[0] = 0.2;
+        parameters.d[1] = 0.8;
+        parameters.b = 0.25;
+        parameters.s[0] = 0.25;
+        parameters.s[1] = 0.25;
+        parameters.p[0] = 0.5;
+        parameters.p[1] = 0.5;
+        parameters.sigma[0][0] = 0.5;
+        parameters.sigma[1][0] = 0.5;
+        parameters.sigma[0][1] = 0.5;
+        parameters.sigma[1][1] = 0.5;
+        parameters.v[0][0] = 1.0;
+        parameters.v[1][0] = 1.0;
+        parameters.v[0][1] = 1.0;
+        parameters.v[1][1] = 1.0;
+        parameters.u[0][0] = 0.25;
+        parameters.u[1][0] = 0.25;
+        parameters.u[0][1] = 0.25;
+        parameters.u[1][1] = 0.25;
 //        double burying_depth = 0.3;
 //
 //        double s01 = 0.3;
