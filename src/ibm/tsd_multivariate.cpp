@@ -542,7 +542,7 @@ void mate_produce_offspring()
                 create_offspring(Kid, 
                         meta_population[patch_idx].breedersF[female_idx]
                         ,meta_population[patch_idx].breedersM[father_idx]
-                        ,meta_population[patch_idx].envt_hi
+                        ,local_envt_hi
                         );
 
                 // offspring does not survive, create the next
