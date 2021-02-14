@@ -28,7 +28,10 @@ void Individual::operator=(Individual const &other)
         sr[1][allele_idx] = other.sr[1][allele_idx];
         d[0][allele_idx] = other.d[0][allele_idx];
         d[1][allele_idx] = other.d[1][allele_idx];
+
+        b[allele_idx] = other.b[allele_idx];
     }
+
 
     viability = other.viability;
     sex = other.sex;
