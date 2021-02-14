@@ -17,7 +17,7 @@ init_d = [[0.2,0.2]]
 
 init_b = [0]
 
-init_sr = [[0.8,0.1]]
+init_sr = [[0.5,0.5]]
 
 vf = [[0.5,1.0]]
 
@@ -37,7 +37,7 @@ mu_d = [[0,0]]
 
 sdmu = 0.01
 
-burrow_mod_survival = [0]
+burrow_mod_survival = [0,1]
 
 date = datetime.datetime.now()
 base_name = "sim_tsd_multivariate_" +\
