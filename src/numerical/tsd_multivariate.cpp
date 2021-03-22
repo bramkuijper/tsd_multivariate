@@ -1,6 +1,9 @@
 #include <cstdlib>
 #include <cmath>
 #include <fstream>
+#include <iostream>
+#include <algorithm>
+#include <cassert>
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
@@ -18,7 +21,9 @@ TSD_Multivariate::TSD_Multivariate() :
     ,lambda{0.0}
     ,v{{0.0,0.0},{0.0,0.0}}
     ,u{{0.0,0.0},{0.0,0.0}}
+    ,n{0.0,0.0}
     ,delta_surv{false}
+    ,eul{0.0}
     ,base{}
 {
 } // end void TSD_Multivariate::TSD_Multivariate
@@ -46,7 +51,9 @@ TSD_Multivariate::TSD_Multivariate(
         ,u{
             {pstruct.u[0][0],pstruct.u[0][1]}
             ,{pstruct.u[1][0],pstruct.u[1][1]}}
+        ,n{pstruct.n[0],pstruct.n[1]}
         ,delta_surv{pstruct.delta_surv}
+        ,eul{pstruct.eul}
         ,base{pstruct.base}
 {
 }
@@ -59,27 +66,33 @@ void TSD_Multivariate::init_arguments(int argc, char **argv)
     surv[Female][0] = std::atof(argv[3]);
     surv[Female][1] = std::atof(argv[4]);
     d[Male] = std::atof(argv[5]);
-    d[Female] = std::atof(argv[5]);
-    b = std::atof(argv[5]);
-    s[0] = std::atof(argv[5]);
-    s[1] = std::atof(argv[5]);
-    sigma[0][1] = std::atof(argv[5]);
+    d[Female] = std::atof(argv[6]);
+    b = std::atof(argv[7]);
+    s[0] = std::atof(argv[8]);
+    s[1] = std::atof(argv[9]);
+
+    sigma[0][1] = std::atof(argv[10]);
     sigma[0][0] = 1.0 - sigma[0][1];
-    sigma[1][0] = std::atof(argv[5]);
+
+    sigma[1][0] = std::atof(argv[11]);
     sigma[1][0] = 1.0 - sigma[1][0];
-    lambda = std::atof(argv[6]);
-    delta_surv = std::atoi(argv[6]);
-    base = argv[7];
+
+    lambda = std::atof(argv[12]);
+    delta_surv = std::atoi(argv[13]);
+
+    n[Female] = std::atof(argv[14]);
+    n[Male] = std::atof(argv[15]);
+
+    base = argv[16];
     p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
     p[1] = 1.0 - p[0];
+
+    eul = atof(argv[17]);
 } // end init_arguments()
 
 // run the iteration
 void TSD_Multivariate::run()
 {
-    double b_tplus1 = 0.0;
-    double s_tplus1[2] = {0.0,0.0};
-
     base = base + ".csv";
 
     // initialize the file only when you run the thing
@@ -87,11 +100,18 @@ void TSD_Multivariate::run()
 
     write_parameters(output_file);
 
-
     for (long int time_step = 0; time_step < max_time; ++time_step)
     {
         // update the eigenvectors during every time step
         eigenvectors(true);
+
+        // update relatedness coefficients
+        iterate_relatedness();
+
+        if (update_traits()) 
+        {
+          break;
+        }  
     }
 } // end run()
 
@@ -123,10 +143,15 @@ void TSD_Multivariate::write_data(std::ofstream &output_file, int const generati
     {
         output_file << d[iter_i] << ";";
         output_file << s[iter_i] << ";";
+        output_file << Qff[iter_i] << ";";
+        output_file << Qmm[iter_i] << ";";
+        output_file << Qfm[iter_i] << ";";
 
         for (int iter_j = 0; iter_j < 2; ++iter_j)
         {
-            output_file << v[iter_i][iter_j] << ";" << u[iter_i][iter_j] << ";";
+            output_file << v[iter_i][iter_j] 
+                << ";" << u[iter_i][iter_j] << ";"
+                << ";" << rj[iter_i][iter_j] << ";";
         }
     }
 }
@@ -134,11 +159,18 @@ void TSD_Multivariate::write_data(std::ofstream &output_file, int const generati
 void TSD_Multivariate::write_parameters(std::ofstream &output_file)
 {
     output_file << std::endl
-        << std::endl
-        << "p1;" << p[0] << std::endl;
+        << std::endl;
 
     for (int iter_i = 0; iter_i < 2; ++iter_i)
     {
+        // output p_i
+        output_file << "p" << iter_i << ";" << p[iter_i] << std::endl;
+
+        // output nf, nm
+        output_file << "n" << 
+                (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << ";" << n[iter_i] << std::endl;
+
         for (int iter_j = 0; iter_j < 2; ++iter_j)
         {
             output_file << "surv" 
@@ -156,7 +188,83 @@ void TSD_Multivariate::write_parameters(std::ofstream &output_file)
                 << std::endl;
         }
     }
-}
+} // end write_parameters
+
+/*
+ * derivative of fecundity/survival function relative to b
+ *
+ * \param envt_t1  a boolean specifying environment in which offspring is born
+ *
+ * \param sex_t1 Sex enum specifying sex of offspring
+ */
+
+double TSD_Multivariate::dfecundity_survival_db(
+        bool const envt_t1
+        ,Sex const sex_t1
+        ) 
+{
+    if (sex_t1 == Male) 
+    {
+        return(envt_t1 == 0 ? 
+                0.0
+                :
+                -1.0 * s[envt_t1] * surv[sex_t1][envt_t1] + 
+                    1.0 * s[!envt_t1] * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
+    }
+
+    // fecundity / survival in terms of 
+    // expected numbers of daughters produced
+    return(envt_t1 == 0 ?
+            0.0
+            :
+            -1.0 * (1.0 - s[envt_t1]) * surv[sex_t1][envt_t1] + 
+                    1.0 * (1.0 - s[!envt_t1]) * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
+} // end d fecundity_survival dsr
+
+/*
+ * derivative of fecundity/survival function relative to sex ratio trait i
+ *
+ * \param envt_t1  a boolean specifying environment in which offspring is born
+ *
+ * \param sex_t1 Sex enum specifying sex of offspring
+ *
+ * \param envt_dsr a boolean specifying over which two of the sex ratio traits 
+ * the derivative is taken
+ */
+
+double TSD_Multivariate::dfecundity_survival_ds(
+        bool const envt_t1
+        ,Sex const sex_t1
+        ,bool const envt_dsr // 
+        ) 
+{
+    // set up the derivatives
+    double ds[2] = {0.0,0.0};
+  
+    // set the 'correct' derivative to 1
+    ds[envt_dsr] = 1.0;
+
+    if (sex_t1 == Male) 
+    {
+        return(envt_t1 == 0 ? 
+                ds[envt_t1] * surv[sex_t1][envt_t1]
+                :
+                (1.0 - b) * ds[envt_t1] * surv[sex_t1][envt_t1] + 
+                    b * ds[!envt_t1] * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
+    }
+
+    // fecundity / survival in terms of 
+    // expected numbers of daughters produced
+    return(envt_t1 == 0 ?
+            - ds[envt_t1] * surv[sex_t1][envt_t1]
+            :
+            (1.0 - b) * (- ds[envt_t1]) * surv[sex_t1][envt_t1] + 
+                    b * (- ds[!envt_t1]) * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
+} // end d fecundity_survival dsr
 
 // total fecundity * survival of offsprign born in envt_t1 and
 // of sex sex_t1
@@ -179,7 +287,41 @@ double TSD_Multivariate::fecundity_survival(bool const envt_t1, Sex const sex_t1
                     b * (1.0 - s[!envt_t1]) * (delta_surv * surv[sex_t1][!envt_t1] 
                                         + (1 - delta_surv) * surv[sex_t1][envt_t1]));
             
-}
+} // end fecundity_survival
+
+
+// derivative of the local competition function wrt to 
+// the mutant dispersal trait d[sex_d]
+double TSD_Multivariate::dCdsrlocal(Sex const sex_t1
+        ,bool const envt_t1
+        ,bool const envt_d
+        )
+{
+    return((1.0 - d[sex_t1]) * dfecundity_survival_ds(envt_t1, sex_t1, envt_d));
+} // end TSD_Multivariate::dCdsrlocal()
+
+// derivative of the local competition function wrt to 
+// the mutant burrowing trait 
+double TSD_Multivariate::dCdblocal(Sex const sex_t1
+        ,bool const envt_t1
+        )
+{
+    return((1.0 - d[sex_t1]) * dfecundity_survival_db(envt_t1, sex_t1));
+} // end TSD_Multivariate::dCddlocal()
+// derivative of the local competition function wrt to 
+// the mutant dispersal trait d[sex_d]
+double TSD_Multivariate::dCddlocal(Sex const sex_t1
+        ,bool const envt_t1
+        ,Sex const sex_d
+        )
+{
+    if (sex_t1 != sex_d)
+    {
+        return(0.0);
+    }
+
+    return(-1.0 * fecundity_survival(envt_t1, sex_t1)); 
+} // end TSD_Multivariate::dCddlocal()
 
 // total number of competing offspring
 double TSD_Multivariate::C(Sex const sex_t1, bool const envt_t1)
@@ -188,19 +330,344 @@ double TSD_Multivariate::C(Sex const sex_t1, bool const envt_t1)
             + d[sex_t1] * 
                     (p[0] * fecundity_survival(0, sex_t1)
                      + (1.0 - p[1]) * fecundity_survival(1, sex_t1)));
-}
+} // endl TSD_Multivariate::C()
 
-// transition matrix for a rare sex allocation mutant
-double TSD_Multivariate::Bsr(
+/**
+ * iterate relatedness coefficients
+ * and coefficients of consanguinity
+ **/
+void TSD_Multivariate::iterate_relatedness()
+{
+    double Qmmtplus1[2] = {0.0,0.0};
+    double Qfftplus1[2] = {0.0,0.0};
+    double Qfmtplus1[2] = {0.0,0.0};
+
+    // aux variable to store inner sum of coeffs
+    // of consanguinity
+    double Qxksum = 0.0;
+
+    // probability that individual establishes
+    // breeding position in natal patch of envt_k
+    double g_male[2] = {
+        (1.0 - d[Male]) * fecundity_survival(0, Male) / C(Male, 0),
+        (1.0 - d[Male]) * fecundity_survival(1, Male) / C(Male, 1)
+    };
+
+    double g_female[2] = {
+        (1.0 - d[Female]) * fecundity_survival(0, Female) / C(Female, 0),
+        (1.0 - d[Female]) * fecundity_survival(1, Female) / C(Female, 1)
+    };
+            
+    // total probability environment is in state j
+    double sum_lj[2] = {
+        p[0] * sigma[0][0] + p[1] * sigma[1][0],
+        p[0] * sigma[0][1] + p[1] * sigma[1][1]
+    };
+
+    bool converged = false;
+
+    // variable to store value of iterator
+    int iter_t;
+
+    for (iter_t = 0; iter_t <= max_time; ++iter_t)
+    {
+        converged = true;
+
+        for (int envt_j = 0; envt_j < 2; ++envt_j)
+        {
+            Qmmtplus1[envt_j] = 0.0;
+            Qfftplus1[envt_j] = 0.0;
+            Qfmtplus1[envt_j] = 0.0;
+
+            for (int envt_k = 0; envt_k < 2; ++envt_k)
+            {
+                Qxksum = 0.25 *(1.0/n[Female] + (n[Female] - 1.0) / n[Female] * Qff[envt_k])
+                         + 0.5 * Qfm[envt_k]
+                         + 0.25 * (1.0 / n[Male] + (n[Male] - 1.0) / n[Male]  * Qmm[envt_k]);
+
+                Qmmtplus1[envt_j] += p[envt_k] * sigma[envt_k][envt_j] * 
+                    pow(g_male[envt_k],2.0) / sum_lj[envt_j] * Qxksum;
+
+                Qfftplus1[envt_j] += p[envt_k] * sigma[envt_k][envt_j] * 
+                    pow(g_female[envt_k],2.0) / sum_lj[envt_j] * Qxksum;
+
+                Qfmtplus1[envt_j] += p[envt_k] * sigma[envt_k][envt_j] * 
+                    g_female[envt_k] * g_male[envt_k] / sum_lj[envt_j] * Qxksum;
+
+                assert(isnan(Qmmtplus1[envt_j]) == 0);
+                assert(isinf(Qmmtplus1[envt_j]) == 0);
+
+                assert(isnan(Qfftplus1[envt_j]) == 0);
+                assert(isinf(Qfftplus1[envt_j]) == 0);
+
+                assert(isnan(Qfmtplus1[envt_j]) == 0);
+                assert(isinf(Qfmtplus1[envt_j]) == 0);
+            } // end for int envt_k
+        } // end for (int envt_j = 0; envt_j < 2; ++envt_j)
+
+        for (int envt_j = 0; envt_j < 2; ++envt_j)
+        {
+            if (fabs(Qmmtplus1[envt_j] - Qmm[envt_j]) > vanish_bound)
+            {
+                converged = false;
+            }
+            
+            if (fabs(Qfmtplus1[envt_j] - Qfm[envt_j]) > vanish_bound)
+            {
+                converged = false;
+            }
+            
+            if (fabs(Qfftplus1[envt_j] - Qff[envt_j]) > vanish_bound)
+            {
+                converged = false;
+            }
+
+            Qmm[envt_j] = Qmmtplus1[envt_j];
+            Qff[envt_j] = Qfftplus1[envt_j];
+            Qfm[envt_j] = Qfmtplus1[envt_j];
+        }
+
+        if (converged)
+        {
+            break;
+        }
+    } // end for (int iter_t = 0; iter_t <= max_time; ++iter_t)
+
+    if (iter_t == max_time - 1)
+    {
+        std::cout << "relatedness coefficients did not converge" << std::endl;
+    }
+
+    for (int envt_j = 0; envt_j < 2; ++envt_j)
+    {
+        rj[Male][envt_j] = 0.5 * Qfm[envt_j] + 
+            0.5 * (1.0 / n[Male] + (n[Male] - 1.0)/n[Male] * Qmm[envt_j]);
+        
+        rj[Female][envt_j] = 0.5 * Qfm[envt_j] + 
+            0.5 * (1.0 / n[Female] + (n[Female] - 1.0)/n[Female] * Qff[envt_j]);
+    }
+} // end iterate_relatedness()
+
+// partial derivative of mutant transition matrix
+// wrt burrowing depth
+double TSD_Multivariate::dB_db(
         bool const envt_t
         ,Sex const sex_t
         ,bool const envt_t1
         ,Sex const sex_t1)
 {
-    double bij = sigma[envt_t][envt_t1] * (1.0 - d[sex_t]) *
-        dfecundity_sur
-}
+    double dbij_db_focal = 0.0;
+    double dbij_db_local = 0.0;
 
+    if (sex_t == Female)
+    {
+        dbij_db_focal = sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) *
+            dfecundity_survival_db(envt_t, sex_t1) / C(sex_t1, envt_t)
+            + (
+                p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) / C(sex_t1, envt_t1) 
+                + 
+                p[!envt_t1] * sigma[!envt_t1][envt_t1] / C(sex_t1, !envt_t1)
+            ) * d[sex_t1] *
+                        dfecundity_survival_db(envt_t, sex_t1); 
+    }
+    else
+    {
+        // if focal is a male, only local derivatives matter
+        dbij_db_local = sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) *
+            dfecundity_survival_db(envt_t, sex_t1) / C(sex_t1, envt_t)
+            + (
+                p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) / C(sex_t1, envt_t1) 
+                + 
+                p[!envt_t1] * sigma[!envt_t1][envt_t1] / C(sex_t1, !envt_t1)
+            ) * d[sex_t1] *
+                        dfecundity_survival_db(envt_t, sex_t1); 
+    }
+
+    // derivative of the local traits in the denominator
+    dbij_db_local += sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) * 
+                                -fecundity_survival(envt_t, sex_t1) * 
+                                    dCdblocal(sex_t1, envt_t) / 
+                                        (C(sex_t1, envt_t) * C(sex_t1, envt_t));
+               // remote fitness component 0 for bij_local
+
+    return((0.5 + 0.5 * Qfm[envt_t]) * dbij_db_focal 
+            + rj[sex_t][envt_t] * dbij_db_local);
+} // end TSD_Multivariate::dB_db
+
+
+// partial derivative of mutant transition matrix
+// wrt to the mutant dispersal trait of sex_d
+double TSD_Multivariate::dB_dd(
+        bool const envt_t
+        ,Sex const sex_t
+        ,bool const envt_t1
+        ,Sex const sex_t1
+        ,Sex const sex_d)
+{
+    double dbij_dd_focal = 0.0;
+    double dbij_dd_local = 0.0;
+
+    double dsexd[2] = {0.0,0.0};
+
+    dsexd[sex_d] = 1.0;
+
+    dbij_dd_focal = sigma[envt_t][envt_t1] * (-dsexd[sex_t1]) *
+        fecundity_survival(envt_t, sex_t1) / C(sex_t1, envt_t)
+        + (
+            p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) / C(sex_t1, envt_t1) 
+            + 
+            p[!envt_t1] * sigma[!envt_t1][envt_t1] / C(sex_t1, !envt_t1)
+        ) * dsexd[sex_t1] * fecundity_survival(envt_t, sex_t1); 
+        
+    dbij_dd_local = -sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) *
+            fecundity_survival(envt_t, sex_t1) * dCddlocal(sex_t1, envt_t, sex_d) / 
+                (C(sex_t1, envt_t) * C(sex_t1, envt_t));
+
+    return((0.5 + 0.5 * Qfm[envt_t]) * dbij_dd_focal 
+            + rj[sex_t][envt_t] * dbij_dd_local);
+} // end TSD_Multivariate::dB_db
+
+// partial derivatives of the mutant transition matrix
+// wrt to mutant sex ratio trait used in environment envt_dsr in {0,1}
+double TSD_Multivariate::dB_dsr(
+        bool const envt_t
+        ,Sex const sex_t
+        ,bool const envt_t1
+        ,Sex const sex_t1
+        ,bool const envt_dsr)
+{
+    double dbij_dsr_focal = 0.0;
+    double dbij_dsr_local = 0.0;
+
+    if (sex_t == Female)
+    {
+         dbij_dsr_focal = sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) *
+            dfecundity_survival_ds(envt_t, sex_t1, envt_dsr) / C(sex_t1, envt_t)
+            + (
+                p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) / C(sex_t1, envt_t1) 
+                + 
+                p[!envt_t1] * sigma[!envt_t1][envt_t1] / C(sex_t1, !envt_t1)
+            ) * d[sex_t1] *
+                        dfecundity_survival_ds(envt_t, sex_t1, envt_dsr); 
+    }
+    else // sex_t == Male
+    {
+        // if focal is a male, only local derivatives matter
+        dbij_dsr_local = sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) *
+            dfecundity_survival_ds(envt_t, sex_t1, envt_dsr) / C(sex_t1, envt_t)
+            + (
+                p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) / C(sex_t1, envt_t1) 
+                + 
+                p[!envt_t1] * sigma[!envt_t1][envt_t1] / C(sex_t1, !envt_t1)
+            ) * d[sex_t1] *
+                        dfecundity_survival_ds(envt_t, sex_t1, envt_dsr); 
+    }
+
+    // derivative of the local traits in the denominator
+    dbij_dsr_local += sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) * 
+                                -fecundity_survival(envt_t, sex_t1) * 
+                                    dCdsrlocal(sex_t1, envt_t, envt_dsr) / 
+                                        (C(sex_t1, envt_t) * C(sex_t1, envt_t));
+               // remote fitness component 0 for bij_local
+
+    return((0.5 + 0.5 * Qfm[envt_t]) * dbij_dsr_focal 
+            + rj[sex_t][envt_t] * dbij_dsr_local);
+} // end dB_dsr
+
+// update the trait values
+// due to successive mutations of small effect
+bool TSD_Multivariate::update_traits() 
+{
+    // total selection gradient on sex ratio loci
+    double delta_sr[2] = {0.0,0.0};
+    // total selection gradient on philopatry loci
+    double delta_d[2] = {0.0,0.0};
+    // total selection gradient on burrowing depth locus
+    double delta_b = 0.0;
+
+    bool converged = true;
+
+    Sex Sex_t1;
+    Sex Sex_t;
+
+    // go through all entries of mutant transition matrix
+    for (int envt_t = 0; envt_t < 2; ++envt_t)
+    {
+        for (int sex_t = 0; sex_t < 2; ++sex_t)
+        {
+            Sex_t = static_cast<Sex>(sex_t);
+            for (int envt_t1 = 0; envt_t1 < 2; ++envt_t1)
+            {
+                for (int sex_t1 = 0; sex_t1 < 2; ++sex_t1)
+                {
+                    Sex_t1 = static_cast<Sex>(sex_t1);
+
+                    for (int envt_dsr = 0; envt_dsr < 2; ++envt_dsr)
+                    {
+                        delta_sr[envt_dsr] += v[Sex_t1][envt_t1] * u[Sex_t][envt_t] *
+                            dB_dsr(envt_t, Sex_t, envt_t1, Sex_t1, envt_dsr);
+
+                        assert(isnan(delta_sr[envt_dsr]) == 0); 
+                        assert(isinf(delta_sr[envt_dsr]) == 0); 
+                    }
+
+
+                    for (int sex_d = 0; sex_d < 2; ++sex_d)
+                    {
+                        delta_d[sex_d] += v[Sex_t1][envt_t1] * u[Sex_t][envt_t] *
+                            dB_dd(envt_t, Sex_t, envt_t1, Sex_t1, static_cast<Sex>(sex_d));
+                        
+                        assert(isnan(delta_d[sex_d]) == 0); 
+                        assert(isinf(delta_d[sex_d]) == 0); 
+                    }
+
+                    delta_b += v[Sex_t1][envt_t1] * u[Sex_t][envt_t] *
+                            dB_db(envt_t, Sex_t, envt_t1, Sex_t1); 
+                        
+                    assert(isinf(delta_b) == 0); 
+                    assert(isnan(delta_b) == 0); 
+                }
+            }
+        }
+    }
+
+    double ztplus1;
+
+    for (int envt_dsr = 0; envt_dsr < 2; ++envt_dsr)
+    {
+        ztplus1 = std::clamp(s[envt_dsr] + eul * delta_sr[envt_dsr]/lambda,0.0,1.0);
+
+        if (fabs(ztplus1 - s[envt_dsr]) > vanish_bound)
+        {
+            converged = false;
+        }
+
+        s[envt_dsr] = ztplus1;
+    }
+    
+    for (int sex_d = 0; sex_d < 2; ++sex_d)
+    {
+        ztplus1 = std::clamp(d[sex_d] + eul * delta_d[sex_d]/lambda,0.0,1.0);
+
+        if (fabs(ztplus1 - d[sex_d]) > vanish_bound)
+        {
+            converged = false;
+        }
+
+        d[sex_d] = ztplus1;
+    }
+
+    ztplus1 = std::clamp(b + eul * delta_b/lambda,0.0,1.0);
+
+    if (fabs(ztplus1 - b) > vanish_bound)
+    {
+        converged = false;
+    }
+
+    b = ztplus1;
+
+    return(converged);
+} // end TSD_Multivariate::update_traits()
 
 // get entries of the resident transition matrix
 double TSD_Multivariate::A_resident(
@@ -210,18 +677,18 @@ double TSD_Multivariate::A_resident(
         ,Sex const sex_t1)
 {
     // philopatric fitness component
-    double aij = sigma[envt_t][envt_t1] * (1.0 - d[sex_t]) * 
-                                fecundity_survival(envt_t1, sex_t1) / C(sex_t1, envt_t1)
+    double aij = sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) * 
+                                fecundity_survival(envt_t, sex_t1) / C(sex_t1, envt_t)
                // remote fitness component 
                     + (
-                        p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) 
+                        p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) / C(sex_t1, envt_t1)
                         + 
-                        p[!envt_t1] * sigma[!envt_t1][envt_t1]
-                    ) * d[sex_t] *
-                                fecundity_survival(envt_t1, sex_t1) / C(sex_t1, envt_t1);
+                        p[!envt_t1] * sigma[!envt_t1][envt_t1] / C(sex_t1, !envt_t1)
+                    ) * d[sex_t1] *
+                            fecundity_survival(envt_t, sex_t1); 
 
     return(aij);                                        
-}
+} // end A_resident
 
 // calculate left and right eigenvectors
 void TSD_Multivariate::eigenvectors(bool const output)
