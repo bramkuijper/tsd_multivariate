@@ -65,8 +65,8 @@ void TSD_Multivariate::init_arguments(int argc, char **argv)
     surv[Male][1] = std::atof(argv[2]);
     surv[Female][0] = std::atof(argv[3]);
     surv[Female][1] = std::atof(argv[4]);
-    d[Male] = std::atof(argv[5]);
-    d[Female] = std::atof(argv[6]);
+    d[Female] = std::atof(argv[5]);
+    d[Male] = std::atof(argv[6]);
     b = std::atof(argv[7]);
     s[0] = std::atof(argv[8]);
     s[1] = std::atof(argv[9]);
@@ -75,7 +75,7 @@ void TSD_Multivariate::init_arguments(int argc, char **argv)
     sigma[0][0] = 1.0 - sigma[0][1];
 
     sigma[1][0] = std::atof(argv[11]);
-    sigma[1][0] = 1.0 - sigma[1][0];
+    sigma[1][1] = 1.0 - sigma[1][0];
 
     lambda = std::atof(argv[12]);
     delta_surv = std::atoi(argv[13]);
@@ -83,11 +83,13 @@ void TSD_Multivariate::init_arguments(int argc, char **argv)
     n[Female] = std::atof(argv[14]);
     n[Male] = std::atof(argv[15]);
 
-    base = argv[16];
+    eul = atof(argv[16]);
+    base = argv[17];
+
+
     p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
     p[1] = 1.0 - p[0];
 
-    eul = atof(argv[17]);
 } // end init_arguments()
 
 // run the iteration
@@ -99,6 +101,8 @@ void TSD_Multivariate::run()
     std::ofstream output_file{base};
 
     write_parameters(output_file);
+
+    write_data_headers(output_file);
 
     for (long int time_step = 0; time_step < max_time; ++time_step)
     {
@@ -112,6 +116,8 @@ void TSD_Multivariate::run()
         {
           break;
         }  
+
+        write_data(output_file, time_step);
     }
 } // end run()
 
@@ -123,16 +129,24 @@ void TSD_Multivariate::write_data_headers(std::ofstream &output_file)
     {
         output_file << "d" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") << ";";
         output_file << "sr" << iter_i + 1 << ";";
+        output_file << "Qff" << iter_i + 1 << ";";
+        output_file << "Qmm" << iter_i + 1 << ";";
+        output_file << "Qfm" << iter_i + 1 << ";";
 
         for (int iter_j = 0; iter_j < 2; ++iter_j)
         {
             output_file << "v" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
                 << iter_j + 1 << ";"; 
 
-            output_file << "u" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") << iter_j + 1
+            output_file << "u" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << iter_j + 1 << ";";
+            
+            output_file << "r" << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
                 << iter_j + 1 << ";";
         }
     }
+
+    output_file << std::endl;
 }
 
 void TSD_Multivariate::write_data(std::ofstream &output_file, int const generation)
@@ -150,16 +164,20 @@ void TSD_Multivariate::write_data(std::ofstream &output_file, int const generati
         for (int iter_j = 0; iter_j < 2; ++iter_j)
         {
             output_file << v[iter_i][iter_j] 
-                << ";" << u[iter_i][iter_j] << ";"
+                << ";" << u[iter_i][iter_j] 
                 << ";" << rj[iter_i][iter_j] << ";";
         }
     }
+
+    output_file << std::endl;
 }
 
 void TSD_Multivariate::write_parameters(std::ofstream &output_file)
 {
     output_file << std::endl
-        << std::endl;
+        << std::endl
+        << "burrow_surv;" << delta_surv << std::endl
+        << "eul;" << eul << std::endl;
 
     for (int iter_i = 0; iter_i < 2; ++iter_i)
     {
@@ -186,8 +204,8 @@ void TSD_Multivariate::write_parameters(std::ofstream &output_file)
                 << ";"
                 << sigma[iter_i][iter_j]
                 << std::endl;
-        }
-    }
+        } // end for iter_i
+    } // end for iter_i
 } // end write_parameters
 
 /*
