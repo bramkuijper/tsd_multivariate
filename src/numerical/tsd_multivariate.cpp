@@ -103,6 +103,8 @@ void TSD_Multivariate::run()
 {
     base = base + ".csv";
 
+    int skip_rows = 10;
+
     // initialize the file only when you run the thing
     std::ofstream output_file{base};
 
@@ -110,7 +112,7 @@ void TSD_Multivariate::run()
 
     write_data_headers(output_file);
 
-    for (long int time_step = 0; time_step < max_time; ++time_step)
+    for (int time_step = 0; time_step < max_time; ++time_step)
     {
         // update the eigenvectors during every time step
         eigenvectors(true);
@@ -120,10 +122,14 @@ void TSD_Multivariate::run()
 
         if (update_traits()) 
         {
-          break;
-        }  
+            write_data(output_file, time_step);
+            break;
+        }
 
-        write_data(output_file, time_step);
+        if (time_step %% skip_rows == 0)
+        {
+            write_data(output_file, time_step);
+        }
     }
 } // end run()
 

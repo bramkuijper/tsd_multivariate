@@ -16,7 +16,9 @@ LFLAGS=-L /usr/local/lib/
 lFlags=/usr/local/lib/libboost_unit_test_framework-mt.a
 
 # build everything
-all : $(EXE) $(TEST_EXE)
+#all : $(EXE) $(TEST_EXE)
+all : $(EXE)
+
 
 # build the normal executable
 $(EXE) : $(CPP) $(HPP)
