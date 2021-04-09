@@ -126,7 +126,7 @@ void TSD_Multivariate::run()
             break;
         }
 
-        if (time_step %% skip_rows == 0)
+        if (time_step % skip_rows == 0)
         {
             write_data(output_file, time_step);
         }
