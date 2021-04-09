@@ -469,21 +469,91 @@ g_{xk} & =\begin{cases}
 
 \end_layout
 
+\begin_layout Subsubsection
+Relatedness coefficients when offspring control trait
+\end_layout
+
 \begin_layout Standard
-Then, the relatedness 
-\begin_inset Formula $r_{\mathrm{\mathrm{off\rightarrow f}},j}$
+Due to the structure of our fitness function, our focal recipient is either
+ an adult male or female breeder.
+ The relatedness coefficient 
+\begin_inset Formula $r_{\mathrm{f},j\rightarrow\text{own}}$
 \end_inset
 
- between a focal mutant mother and a mutant actor offspring in environment
- 
-\begin_inset Formula $j$
+ (or 
+\begin_inset Formula $r_{\mathrm{m},j\rightarrow\text{own}}$
 \end_inset
 
+) between an adult female (or male) breeder and her/his own mutant offspring
  is given by
 \begin_inset Formula 
 \begin{align*}
-r_{\mathrm{\mathrm{off\rightarrow f}},j} & =\frac{1}{2}\left(\frac{1}{n_{\mathrm{f}}}+\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}\hat{Q}_{\mathrm{ff},j}\right)+\frac{1}{2}\hat{Q}_{\mathrm{fm},j}\\
-r_{\mathrm{off}\rightarrow\mathrm{m},j} & =\frac{1}{2}\hat{Q}_{\mathrm{fm},j}+\frac{1}{2}\left(\frac{1}{n_{\mathrm{m}}}+\frac{n_{\mathrm{m}}-1}{n_{\mathrm{m}}}\hat{Q}_{\mathrm{mm},j}\right)
+r_{\mathrm{f},j\rightarrow\text{own}} & =r_{\mathrm{m,}j\rightarrow\text{own}}=\hat{Q}_{j},
+\end{align*}
+
+\end_inset
+
+where 
+\begin_inset Formula $\hat{Q}_{j}$
+\end_inset
+
+ is Wright's equilibrium coefficient of inbreeding in adults who breed in
+ environment 
+\begin_inset Formula $j$
+\end_inset
+
+ or
+\begin_inset Formula 
+\begin{align*}
+\hat{Q}_{j} & =\frac{1}{2}\left(1+\hat{Q}_{\mathrm{fm},j}\right).
+\end{align*}
+
+\end_inset
+
+Then, the relatedness coefficients 
+\begin_inset Formula $r_{\mathrm{\mathrm{f}},j\rightarrow\text{off}}$
+\end_inset
+
+ (or 
+\begin_inset Formula $r_{\mathrm{\mathrm{m}},j\rightarrow\text{off}}$
+\end_inset
+
+) between a focal recipient who is a mutant mother (or father) and a randomly
+ chosen offspring actor in environment 
+\begin_inset Formula $j$
+\end_inset
+
+ (sampled prior to juvenile survival) are given by
+\begin_inset Formula 
+\begin{align*}
+r_{\mathrm{\mathrm{f}},j\rightarrow\text{local,off}} & =\frac{1}{2}\frac{1}{n_{\mathrm{f}}}\left(\hat{Q}_{j}+\hat{Q}_{\mathrm{fm},j}\right)+\frac{1}{2}\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}\left(\text{\hat{Q}}_{\mathrm{ff},j}+\hat{Q}_{\mathrm{fm},j}\right)\\
+r_{\mathrm{\mathrm{m}},j\rightarrow\text{local,off}} & =\frac{1}{2}\frac{1}{n_{\mathrm{m}}}\left(\hat{Q}_{j}+\hat{Q}_{\mathrm{fm},j}\right)+\frac{1}{2}\frac{n_{\mathrm{m}}-1}{n_{\mathrm{m}}}\left(\text{\hat{Q}}_{\mathrm{mm},j}+\hat{Q}_{\mathrm{fm},j}\right).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Relatedness coefficients when mothers control trait
+\end_layout
+
+\begin_layout Standard
+In case the trait is a maternal effect, we have
+\begin_inset Formula 
+\begin{align*}
+r_{\mathrm{f},j\rightarrow\mathrm{own}}^{\mathrm{M}} & =\hat{Q}_{j}\\
+r_{\mathrm{m},j\rightarrow\mathrm{own}}^{\mathrm{M}} & =\hat{Q}_{\mathrm{fm},j}.
+\end{align*}
+
+\end_inset
+
+and
+\begin_inset Formula 
+\begin{align*}
+r_{\mathrm{\mathrm{f}},j\rightarrow\text{local,off}} & =\frac{1}{n_{\mathrm{f}}}\hat{Q}_{j}+\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}\hat{Q}_{\mathrm{ff},j}\\
+r_{\mathrm{\mathrm{m}},j\rightarrow\text{local,off}} & =\hat{Q}_{\mathrm{fm},j}
 \end{align*}
 
 \end_inset

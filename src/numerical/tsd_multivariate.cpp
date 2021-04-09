@@ -23,7 +23,9 @@ TSD_Multivariate::TSD_Multivariate() :
     ,u{{0.0,0.0},{0.0,0.0}}
     ,n{0.0,0.0}
     ,delta_surv{false}
-    ,eul{0.0}
+    ,eul_b{0.0}
+    ,eul_sr{0.0}
+    ,eul_d{0.0}
     ,base{}
 {
 } // end void TSD_Multivariate::TSD_Multivariate
@@ -53,7 +55,9 @@ TSD_Multivariate::TSD_Multivariate(
             ,{pstruct.u[1][0],pstruct.u[1][1]}}
         ,n{pstruct.n[0],pstruct.n[1]}
         ,delta_surv{pstruct.delta_surv}
-        ,eul{pstruct.eul}
+        ,eul_d{pstruct.eul_d}
+        ,eul_sr{pstruct.eul_sr}
+        ,eul_b{pstruct.eul_b}
         ,base{pstruct.base}
 {
 }
@@ -83,8 +87,10 @@ void TSD_Multivariate::init_arguments(int argc, char **argv)
     n[Female] = std::atof(argv[14]);
     n[Male] = std::atof(argv[15]);
 
-    eul = atof(argv[16]);
-    base = argv[17];
+    eul_d = atof(argv[16]);
+    eul_sr = atof(argv[17]);
+    eul_b = atof(argv[18]);
+    base = argv[19];
 
 
     p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
@@ -177,17 +183,22 @@ void TSD_Multivariate::write_parameters(std::ofstream &output_file)
     output_file << std::endl
         << std::endl
         << "burrow_surv;" << delta_surv << std::endl
-        << "eul;" << eul << std::endl;
+        << "eul_d;" << eul_d << std::endl
+        << "eul_b;" << eul_b << std::endl
+        << "eul_sr;" << eul_sr << std::endl;
 
     for (int iter_i = 0; iter_i < 2; ++iter_i)
     {
         // output p_i
-        output_file << "p" << iter_i << ";" << p[iter_i] << std::endl;
+        output_file << "p" << (iter_i + 1) << ";" << p[iter_i] << std::endl;
 
         // output nf, nm
         output_file << "n" << 
                 (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
                 << ";" << n[iter_i] << std::endl;
+        output_file << "d" << 
+                (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << ";" << d[iter_i] << std::endl;
 
         for (int iter_j = 0; iter_j < 2; ++iter_j)
         {
@@ -347,7 +358,7 @@ double TSD_Multivariate::C(Sex const sex_t1, bool const envt_t1)
     return((1.0 - d[sex_t1]) * fecundity_survival(envt_t1, sex_t1) 
             + d[sex_t1] * 
                     (p[0] * fecundity_survival(0, sex_t1)
-                     + (1.0 - p[1]) * fecundity_survival(1, sex_t1)));
+                     +  p[1] * fecundity_survival(1, sex_t1)));
 } // endl TSD_Multivariate::C()
 
 /**
@@ -456,13 +467,20 @@ void TSD_Multivariate::iterate_relatedness()
         std::cout << "relatedness coefficients did not converge" << std::endl;
     }
 
+    // Wrights equilibrium inbreeding coefficient
+    double Qj;
+
     for (int envt_j = 0; envt_j < 2; ++envt_j)
     {
-        rj[Male][envt_j] = 0.5 * Qfm[envt_j] + 
-            0.5 * (1.0 / n[Male] + (n[Male] - 1.0)/n[Male] * Qmm[envt_j]);
+        Qj = 0.5 * (1 + Qfm[envt_j]);
+
+        // relatedness between a focal adult female and any local offspring of 
+        // a particular sex
+        rj[Male][envt_j] = 0.5 * 1.0 / n[Male] * (Qj + Qfm[envt_j]) +
+                0.5 * (n[Male] - 1.0) / n[Male] * (Qmm[envt_j] + Qfm[envt_j]);
         
-        rj[Female][envt_j] = 0.5 * Qfm[envt_j] + 
-            0.5 * (1.0 / n[Female] + (n[Female] - 1.0)/n[Female] * Qff[envt_j]);
+        rj[Female][envt_j] = 0.5 * 1.0 / n[Female] * (Qj + Qfm[envt_j]) +
+            0.5 * (n[Female] - 1.0)/n[Female] * (Qff[envt_j] + Qfm[envt_j]);
     }
 } // end iterate_relatedness()
 
@@ -476,6 +494,13 @@ double TSD_Multivariate::dB_db(
 {
     double dbij_db_focal = 0.0;
     double dbij_db_local = 0.0;
+
+    double rx_own = sex_t == Male ? Qfm[envt_t] : 0.5 * (1.0 + Qfm[envt_t]);
+    double rx_local = sex_t == Male ? 
+        Qfm[envt_t] 
+        : 
+        1.0 / n[Female] * 0.5 * (1.0 + Qfm[envt_t]) + 
+            (n[Female] - 1.0) / n[Female] * Qff[envt_t];
 
     if (sex_t == Female)
     {
@@ -506,10 +531,8 @@ double TSD_Multivariate::dB_db(
                                 -fecundity_survival(envt_t, sex_t1) * 
                                     dCdblocal(sex_t1, envt_t) / 
                                         (C(sex_t1, envt_t) * C(sex_t1, envt_t));
-               // remote fitness component 0 for bij_local
-
-    return((0.5 + 0.5 * Qfm[envt_t]) * dbij_db_focal 
-            + rj[sex_t][envt_t] * dbij_db_local);
+    // remote fitness component 0 for bij_local
+    return(rx_own * dbij_db_focal + rx_local * dbij_db_local);
 } // end TSD_Multivariate::dB_db
 
 
@@ -625,6 +648,17 @@ bool TSD_Multivariate::update_traits()
                         delta_sr[envt_dsr] += v[Sex_t1][envt_t1] * u[Sex_t][envt_t] *
                             dB_dsr(envt_t, Sex_t, envt_t1, Sex_t1, envt_dsr);
 
+//                        std::cout  
+//                           << " v_" << (Sex_t1 == Male ? "m" : "f")
+//                           << "_" << (envt_t1 + 1) 
+//                           << " " << v[Sex_t1][envt_t1] << "   "
+//                           << " u_" << (Sex_t == Male ? "m" : "f")
+//                           << "_" << (envt_t + 1) 
+//                            << " " <<  u[Sex_t][envt_t]
+//                            << " deriv over "  << (envt_dsr + 1) << " "
+//                            << dB_dsr(envt_t, Sex_t, envt_t1, Sex_t1, envt_dsr) << std::endl;
+
+
                         assert(isnan(delta_sr[envt_dsr]) == 0); 
                         assert(isinf(delta_sr[envt_dsr]) == 0); 
                     }
@@ -638,6 +672,16 @@ bool TSD_Multivariate::update_traits()
                         assert(isnan(delta_d[sex_d]) == 0); 
                         assert(isinf(delta_d[sex_d]) == 0); 
                     }
+
+//                    std::cout  
+//                       << " u_" << (Sex_t == Male ? "m" : "f")
+//                       << "_" << (envt_t + 1) 
+//                        << ": " <<  u[Sex_t][envt_t]
+//                       << " v_" << (Sex_t1 == Male ? "m" : "f")
+//                       << "_" << (envt_t1 + 1) 
+//                       << ": " << v[Sex_t1][envt_t1] << "   "
+//                        << " dB_db: "
+//                        << dB_db(envt_t, Sex_t, envt_t1, Sex_t1) << std::endl;
 
                     delta_b += v[Sex_t1][envt_t1] * u[Sex_t][envt_t] *
                             dB_db(envt_t, Sex_t, envt_t1, Sex_t1); 
@@ -653,7 +697,8 @@ bool TSD_Multivariate::update_traits()
 
     for (int envt_dsr = 0; envt_dsr < 2; ++envt_dsr)
     {
-        ztplus1 = std::clamp(s[envt_dsr] + eul * delta_sr[envt_dsr]/lambda,0.0,1.0);
+        ztplus1 = std::clamp(s[envt_dsr] + eul_sr * delta_sr[envt_dsr]/lambda,0.0,1.0);
+
 
         if (fabs(ztplus1 - s[envt_dsr]) > vanish_bound)
         {
@@ -665,7 +710,7 @@ bool TSD_Multivariate::update_traits()
     
     for (int sex_d = 0; sex_d < 2; ++sex_d)
     {
-        ztplus1 = std::clamp(d[sex_d] + eul * delta_d[sex_d]/lambda,0.0,1.0);
+        ztplus1 = std::clamp(d[sex_d] + eul_d * delta_d[sex_d]/lambda,0.0,1.0);
 
         if (fabs(ztplus1 - d[sex_d]) > vanish_bound)
         {
@@ -675,7 +720,7 @@ bool TSD_Multivariate::update_traits()
         d[sex_d] = ztplus1;
     }
 
-    ztplus1 = std::clamp(b + eul * delta_b/lambda,0.0,1.0);
+    ztplus1 = std::clamp(b + eul_b * delta_b/lambda,0.0,1.0);
 
     if (fabs(ztplus1 - b) > vanish_bound)
     {
@@ -767,6 +812,12 @@ void TSD_Multivariate::eigenvectors(bool const output)
                                 ,envt_j
                                 ,static_cast<Sex>(sex_j));
 
+//                        std::cout << "Atmp_" <<  
+//                                (static_cast<Sex>(sex_i) == Male ? "m" : "f")
+//                                << "_" << (envt_i + 1) << "_" <<
+//                                (static_cast<Sex>(sex_j) == Male ? "m" : "f")
+//                                << "_" << (envt_j + 1) << " " << Atmp << " " << std::endl;
+                        
                         gsl_matrix_set(m, row_i, col_j, Atmp);
                         gsl_matrix_set(mT, col_j, row_i, Atmp);
                         gsl_matrix_set(m_stats, row_i, col_j, Atmp);
@@ -796,7 +847,7 @@ void TSD_Multivariate::eigenvectors(bool const output)
                 }
             } // end for envt_i
         } //end for sex_i
-        
+    
         // now calculate evs
         // set up the workspaces
         gsl_eigen_nonsymmv(m, eval, evec, workspace_w);
@@ -804,8 +855,8 @@ void TSD_Multivariate::eigenvectors(bool const output)
                 
         
 
-        gsl_eigen_nonsymmv_sort (eval, evec, 
-                                GSL_EIGEN_SORT_ABS_DESC);
+        gsl_eigen_nonsymmv_sort(eval, evec, 
+                GSL_EIGEN_SORT_ABS_DESC);
             
         // get the first column from the eigenvector matrix
         // giving us the right eigenvector
@@ -830,15 +881,14 @@ void TSD_Multivariate::eigenvectors(bool const output)
         {
             // norm for right ev
             total_u += fabs(GSL_REAL(
-                   gsl_vector_complex_get(&evec_i.vector,iter1)));
+                   gsl_vector_complex_get(&evec_i.vector, iter1)));
 
             // norm for left ev
             product_vu += fabs(GSL_REAL(
-                   gsl_vector_complex_get(&evec_i.vector,iter1)))
+                   gsl_vector_complex_get(&evec_i.vector, iter1)))
                    * fabs(GSL_REAL(
-                   gsl_vector_complex_get(&evecT_i.vector,iter1)));
+                   gsl_vector_complex_get(&evecT_i.vector, iter1)));
         }
-
 
         product_vu /= total_u;
        
@@ -865,7 +915,7 @@ void TSD_Multivariate::eigenvectors(bool const output)
             // envt sex, with
             // 0: envt = 0, sex = 0 
             sex_idx = static_cast<Sex>(dim_i % 2);
-            envt_idx = static_cast<Sex>(std::floor(dim_i/2));
+            envt_idx = static_cast<Sex>(std::floor(dim_i/2.0));
 
             if (fabs(u[sex_idx][envt_idx] - u_i_tplus1) > vanish_bound)
             {
@@ -898,8 +948,22 @@ void TSD_Multivariate::eigenvectors(bool const output)
         {
             break;
         }
+
     } // end iteration
 
+//    for (size_t envt_idx = 0; envt_idx < 2; ++envt_idx)
+//    {
+//        for (size_t sex_idx = 0; sex_idx < 2; ++sex_idx)
+//        {
+//            std::cout << "v_" <<  
+//                   (static_cast<Sex>(sex_idx) == Male ? "m" : "f")
+//                   << "_" << (envt_idx + 1) << " " << v[sex_idx][envt_idx] << std::endl;
+//            
+//            std::cout << "u_" <<  
+//                   (static_cast<Sex>(sex_idx) == Male ? "m" : "f")
+//                   << "_" << (envt_idx + 1) << " " << u[sex_idx][envt_idx] << std::endl;
+//        }
+//    }
 
     // free all the stuff we've used
     gsl_eigen_nonsymmv_free (workspace_w);

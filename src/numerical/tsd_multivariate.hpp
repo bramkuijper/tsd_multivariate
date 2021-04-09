@@ -18,7 +18,9 @@ struct parstruct{
     double v[2][2];
     double u[2][2];
     double n[2];
-    double eul;
+    double eul_d;
+    double eul_sr;
+    double eul_b;
     bool delta_surv;
     std::string base;
 };
@@ -53,7 +55,9 @@ class TSD_Multivariate
         double lambda;
 
         // euler's constant
-        double eul;
+        double eul_d;
+        double eul_sr;
+        double eul_b;
 
         // reproductive values
         // first index sex

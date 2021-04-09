@@ -120,6 +120,9 @@ p2 <- ggplot(data=the.data.t
 names.q <- grep("^v",names(the.data),value=T)
 print(names.q)
 
+the.data[,"vm1"] <- the.data[,"vm1"] - 0.0025
+the.data[,"vm2"] <- the.data[,"vm2"] - 0.0025
+
 the.data.t <- pivot_longer(the.data
         ,cols=all_of(names.q)
         ,names_to="RV"
