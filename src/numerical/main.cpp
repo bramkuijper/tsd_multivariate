@@ -7,5 +7,4 @@ int main(int argc, char **argv)
     simulation.init_arguments(argc, argv);
 
     simulation.run();
-
 }

@@ -177,6 +177,38 @@ We consider two environments, environment 1 (e.g., a cold environment) and
 Numbers of surviving daughters and sons
 \end_layout
 
+\begin_layout Standard
+Let 
+\begin_inset Formula $f_{i}\left(s_{1},s_{2},b\right)$
+\end_inset
+
+ and 
+\begin_inset Formula $m_{i}\left(s_{1},s_{2},b\right)$
+\end_inset
+
+ reflect the number of surviving daughters and sons produced in site 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ We then have
+\begin_inset Formula 
+\begin{align*}
+f_{i}\left(s_{1},s_{2},b\right) & =\begin{cases}
+K\left(1-s_{1}\right)v_{\mathrm{f1}} & i=1\\
+K\left\{ (1-b)\left(1-s_{2}\right)v_{\mathrm{f2}}+b\left(1-s_{1}\right)\left[\delta v_{\mathrm{f1}}+\left(1-\delta\right)v_{\mathrm{f2}}\right]\right\}  & i=2
+\end{cases}\\
+m_{i}\left(s_{1},s_{2},b\right) & =\begin{cases}
+Ks_{1}v_{\mathrm{m}1} & i=1\\
+K\left\{ (1-b)s_{2}v_{\mathrm{m2}}+bs_{1}\left[\delta v_{\mathrm{m1}}+\left(1-\delta\right)v_{\mathrm{m2}}\right]\right\}  & i=2
+\end{cases}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Paragraph
 Environment 1
 \end_layout
@@ -197,7 +229,7 @@ The number of surviving daughters
  is given by
 \begin_inset Formula 
 \begin{align*}
-f_{1}\left(s_{1}\right) & =K\left(1-s_{1}\right)v_{\mathrm{f1}}\\
+f_{1}\left(s_{1}\right) & =\\
 m_{1}\left(s_{1}\right) & =Ks_{1}v_{\mathrm{m}1}.
 \end{align*}
 
@@ -263,28 +295,265 @@ The number of surviving daughters
  is given by
 \begin_inset Formula 
 \begin{align*}
-f_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)\left(1-s_{2}\right)v_{\mathrm{f2}}+b\left(1-s_{1}\right)\left[\delta v_{\mathrm{f1}}+\left(1-\delta\right)v_{\mathrm{f2}}\right]\right]\\
-m_{2}\left(s_{1},s_{2};b\right) & =K\left[(1-b)s_{2}v_{\mathrm{m2}}+bs_{1}\left[\delta v_{\mathrm{m1}}+\left(1-\delta\right)v_{\mathrm{m2}}\right]\right]
+f_{2}\left(s_{1},s_{2};b\right) & =\\
+m_{2}\left(s_{1},s_{2};b\right) & =
 \end{align*}
 
 \end_inset
 
-When we census right after offspring survival on the patch of birth, the
- expected number of female offspring living in a type 
-\begin_inset Formula $1$
+The life cycle starts upon the birth of an expected number of 
+\begin_inset Formula $f_{i}$
 \end_inset
 
- environment 
+ and 
+\begin_inset Formula $m_{i}$
+\end_inset
+
+ daughters and sons from a parent who lives in a patch in environmental
+ state 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ Subsequent to birth, survival occurs, after which the environment potentially
+ changes to a different state (at rate 
+\begin_inset Formula $\sigma_{ij}$
+\end_inset
+
+ where 
+\begin_inset Formula $j\neq i$
+\end_inset
+
+).
+ Subsequently, juveniles individuals of sex 
+\begin_inset Formula $x$
+\end_inset
+
+ either disperse with probability 
+\begin_inset Formula $d_{x}$
+\end_inset
+
+, or they return to breed the natal patch with probability 
+\begin_inset Formula $h_{x}=1-d_{x}$
+\end_inset
+
+.
+ Upon return to the breeding site, adults compete with a total number 
+\begin_inset Formula $C_{i}(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}};\mathbf{s},b)$
+\end_inset
+
+ of philopatric and immigrant adults for breeding positions, which is given
+ by
+\begin_inset Formula 
+\begin{align*}
+C_{\mathrm{f},i}\left(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}},\mathbf{d}^{\mathrm{local}}\right) & =\left(1-d_{\mathrm{f}i}^{\mathrm{local}}\right)f_{i}\left(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}}\right)+\sum_{k=\{1,2\}}d_{\mathrm{f}k}p_{k}f_{k}\left(\mathbf{s},b\right).\\
+C_{\mathrm{m},i}\left(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}},\mathbf{d}^{\mathrm{local}}\right) & =\left(1-d_{\mathrm{m}i}^{\mathrm{local}}\right)m_{i}\left(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}}\right)+\sum_{k=\{1,2\}}d_{\mathrm{m}k}p_{k}m_{k}\left(\mathbf{s},b\right).
+\end{align*}
+
+\end_inset
+
+Hence, the expected number 
+\begin_inset Formula $w_{\mathrm{f}i\rightarrow xj}$
+\end_inset
+
+ of offspring of sex 
+\begin_inset Formula $x$
+\end_inset
+
+ who establish themselves as a successful breeder in environment 
+\begin_inset Formula $j$
+\end_inset
+
+ produced by a focal mutant mother living in environment 
+\begin_inset Formula $i$
+\end_inset
+
+ is given by
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-w_{\mathrm{f1\rightarrow f1}} & =\left(1-\sigma_{12}\right)\frac{\left(1-d_{\mathrm{f}}^{\text{focal}}\right)f_{1}\left(s_{1}^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f\left(s_{1}^{\text{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}\\
- & +\frac{\left[p_{1}\left(1-\sigma_{12}\right)+p_{2}\sigma_{21}\right]d_{\mathrm{f}}^{\mathrm{focal}}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f\left(s_{1}^{\text{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}\\
-w_{\mathrm{f1\rightarrow f2}} & =\sigma_{12}\frac{\left(1-d_{\mathrm{f}}^{\text{focal}}\right)f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f_{2}\left(s_{1}^{\mathrm{local}},s_{2}^{\mathrm{local}};b^{\mathrm{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}\\
- & +\frac{\left[p_{1}\sigma_{12}+p_{2}\left(1-\sigma_{21}\right)\right]d_{\mathrm{f}}^{\mathrm{focal}}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}{\left(1-d_{\mathrm{f}}^{\text{local}}\right)f\left(s_{1}^{\text{local}}\right)+d_{\mathrm{f}}\left[\text{p_{1}f_{1}\left(s_{1}^{\mathrm{focal}}\right)}+p_{2}f_{2}\left(s_{1}^{\mathrm{focal}},s_{2}^{\mathrm{focal}};b^{\mathrm{focal}}\right)\right]}\\
-w_{\mathrm{f2\rightarrow f}}\\
+w_{\mathrm{f1\rightarrow f1}} & =\left(1-\sigma_{12}\right)\frac{\left(1-d_{\mathrm{f1}}\right)f_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{f}1}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f1}}f_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\left(1-\sigma_{12}\right)}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\sigma_{21}}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{f1\rightarrow f2}} & =\sigma_{12}\frac{\left(1-d_{\mathrm{f1}}\right)f_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{f}1}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f1}}f_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\sigma_{12}}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\left(1-\sigma_{21}\right)}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{f2\rightarrow f1}} & =\sigma_{21}\frac{\left(1-d_{\mathrm{f2}}\right)f_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{f}2}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f2}}f_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\left(1-\sigma_{12}\right)}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\sigma_{21}}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{f2\rightarrow f2}} & =\left(1-\sigma_{12}\right)\frac{\left(1-d_{\mathrm{f2}}\right)f_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{f}2}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f2}}f_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\sigma_{12}}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\left(1-\sigma_{21}\right)}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{f1\rightarrow m1}} & =\left(1-\sigma_{12}\right)\frac{\left(1-d_{\mathrm{f1}}\right)m_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{m}1}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f1}}m_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\left(1-\sigma_{12}\right)}{C_{\mathrm{m}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\sigma_{21}}{C_{\mathrm{m}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{f1\rightarrow m2}} & =\sigma_{12}\frac{\left(1-d_{\mathrm{f1}}\right)m_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{m}1}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f1}}f_{1}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\sigma_{12}}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\left(1-\sigma_{21}\right)}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{f2\rightarrow m1}} & =\sigma_{21}\frac{\left(1-d_{\mathrm{f2}}\right)m_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{m}2}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f2}}f_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\left(1-\sigma_{12}\right)}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\sigma_{21}}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{f2\rightarrow m2}} & =\left(1-\sigma_{12}\right)\frac{\left(1-d_{\mathrm{f2}}\right)f_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)}{C_{\mathrm{f}2}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f2}}f_{2}\left(\mathbf{s}^{\mathrm{focal}},b\right)\left[\frac{p_{1}\sigma_{12}}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\left(1-\sigma_{21}\right)}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]\\
+w_{\mathrm{m1}\rightarrow\mathrm{f1}} & =\left(1-\sigma_{12}\right)\frac{\left(1-d_{\mathrm{f1}}\right)f_{1}\left(\mathbf{s}^{\mathrm{local}},b\right)}{C_{\mathrm{f}1}\left(\mathbf{s}^{\mathrm{local}},b,\mathbf{d}\right)}+d_{\mathrm{f1}}f_{1}\left(\mathbf{s}^{\mathrm{local}},b\right)\left[\frac{p_{1}\left(1-\sigma_{12}\right)}{C_{\mathrm{f}1}\left(\mathbf{s},b,\mathbf{d}\right)}+\frac{p_{2}\sigma_{21}}{C_{\mathrm{f}2}\left(\mathbf{s},b;\mathbf{s},b\right)}\right]
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Relatedness coefficients
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $Q_{ijk,t}\left(t\right)$
+\end_inset
+
+ be the coefficient of consanguinity in generation 
+\begin_inset Formula $t$
+\end_inset
+
+ between two randomly sampled adults (sampled without replacement) who live
+ in environment 
+\begin_inset Formula $k$
+\end_inset
+
+.
+ We then have
+\begin_inset Formula 
+\begin{align}
+Q_{\mathrm{ff}j}\left(t+1\right) & =\sum_{k}\frac{p_{k}\sigma_{kj}}{\sum_{\ell}\sigma_{\ell j}p_{j}}g_{\mathrm{f}k}^{2}\left(\frac{1}{4}\left[\frac{1}{n_{\mathrm{f}}}+\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}Q_{\mathrm{ff}k}\left(t\right)\right]+\frac{1}{2}Q_{\mathrm{fm}k}+\frac{1}{4}\left[\frac{1}{n_{\mathrm{m}}}+\frac{n_{\mathrm{m}}-1}{n_{\mathrm{m}}}Q_{\mathrm{mm}k}\left(t\right)\right]\right)\label{eq:Qfftplus1}\\
+Q_{\mathrm{fm}j}\left(t+1\right) & =\sum_{k}\frac{p_{k}\sigma_{kj}}{\sum_{\ell}\sigma_{\ell j}p_{j}}g_{\mathrm{m}k}g_{\mathrm{f}k}\left(\frac{1}{4}\left[\frac{1}{n_{\mathrm{f}}}+\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}Q_{\mathrm{ff}k}\left(t\right)\right]+\frac{1}{2}Q_{\mathrm{fm}k}+\frac{1}{4}\left[\frac{1}{n_{\mathrm{m}}}+\frac{n_{\mathrm{m}}-1}{n_{\mathrm{m}}}Q_{\mathrm{mm}k}\left(t\right)\right]\right)\label{eq:Qfmtplus1}\\
+Q_{\mathrm{mm}j}\left(t+1\right) & =\sum_{k}\frac{p_{k}\sigma_{kj}}{\sum_{\ell}\sigma_{\ell j}p_{j}}g_{\mathrm{m}k}^{2}\left(\frac{1}{4}\left[\frac{1}{n_{\mathrm{f}}}+\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}Q_{\mathrm{ff}k}\left(t\right)\right]+\frac{1}{2}Q_{\mathrm{fm}k}+\frac{1}{4}\left[\frac{1}{n_{\mathrm{m}}}+\frac{n_{\mathrm{m}}-1}{n_{\mathrm{m}}}Q_{\mathrm{mm}k}\left(t\right)\right]\right),\label{eq:Qmmtplus1}
+\end{align}
+
+\end_inset
+
+where the first term in the summation is the probability that the environment
+ in the previous timestep is in a certain state 
+\begin_inset Formula $k$
+\end_inset
+
+ given that it is currently in state 
+\begin_inset Formula $j$
+\end_inset
+
+, which is a standard result from Bayes' theorem and the total law of probabilit
+y
+\begin_inset Formula 
+\begin{align*}
+\Pr(\text{envt}(t)=k\mid\text{envt}(t+1)=j) & =\frac{\Pr(\text{envt}(t+1)=j\mid\text{envt}(t)=k)\Pr\left(\text{envt}\left(t\right)=k\right)}{\text{Pr}\left(\text{envt}(t+1)=j\right)}\\
+ & =\frac{\Pr(\text{envt}(t+1)=j\mid\text{envt}(t)=k)\Pr\left(\text{envt}\left(t\right)=k\right)}{\sum_{k}\Pr(\text{envt}(t+1)=j\mid\text{envt}(t)=k)\Pr\left(\text{envt}\left(t\right)=k\right)},
+\end{align*}
+
+\end_inset
+
+where 
+\begin_inset Formula $\Pr(\text{envt}(t+1)=j\mid\text{envt}(t)=k)=\sigma_{kj}$
+\end_inset
+
+ and 
+\begin_inset Formula $\Pr\left(\text{envt}\left(t\right)=k\right)=p_{k}$
+\end_inset
+
+.
+ Next, 
+\begin_inset Formula $g_{xk}$
+\end_inset
+
+ is the probability that an offspring born in environment 
+\begin_inset Formula $k$
+\end_inset
+
+ survives and becomes an adult breeder at its natal patch
+\begin_inset Formula 
+\begin{align*}
+g_{xk} & =\begin{cases}
+\frac{\left(1-d_{\mathrm{f}k}\right)f_{k}\left(\mathbf{s},b\right)}{C_{\mathrm{f}k}\left(\mathbf{s},b,\mathbf{d}\right)} & \text{if }x\text{ is female}\\
+\frac{\left(1-d_{\mathrm{m}k}\right)m_{k}\left(\mathbf{s},b\right)}{C_{\mathrm{m}k}\left(\mathbf{s},b,\mathbf{d}\right)} & \text{if }x\text{ is male}
+\end{cases}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Relatedness coefficients when offspring control trait
+\end_layout
+
+\begin_layout Standard
+Due to the structure of our fitness function, our focal recipient is either
+ an adult male or female breeder.
+ The relatedness coefficient 
+\begin_inset Formula $r_{\mathrm{f},j\rightarrow\text{own}}$
+\end_inset
+
+ (or 
+\begin_inset Formula $r_{\mathrm{m},j\rightarrow\text{own}}$
+\end_inset
+
+) between an adult female (or male) breeder and her/his own mutant offspring
+ is given by
+\begin_inset Formula 
+\begin{align*}
+r_{\mathrm{f},j\rightarrow\text{own}} & =r_{\mathrm{m,}j\rightarrow\text{own}}=\hat{Q}_{j},
+\end{align*}
+
+\end_inset
+
+where 
+\begin_inset Formula $\hat{Q}_{j}$
+\end_inset
+
+ is Wright's equilibrium coefficient of inbreeding in adults who breed in
+ environment 
+\begin_inset Formula $j$
+\end_inset
+
+ or
+\begin_inset Formula 
+\begin{align*}
+\hat{Q}_{j} & =\frac{1}{2}\left(1+\hat{Q}_{\mathrm{fm},j}\right).
+\end{align*}
+
+\end_inset
+
+Then, the relatedness coefficients 
+\begin_inset Formula $r_{\mathrm{\mathrm{f}},j\rightarrow\text{off}}$
+\end_inset
+
+ (or 
+\begin_inset Formula $r_{\mathrm{\mathrm{m}},j\rightarrow\text{off}}$
+\end_inset
+
+) between a focal recipient who is a mutant mother (or father) and a randomly
+ chosen offspring actor in environment 
+\begin_inset Formula $j$
+\end_inset
+
+ (sampled prior to juvenile survival) are given by
+\begin_inset Formula 
+\begin{align*}
+r_{\mathrm{\mathrm{f}},j\rightarrow\text{local,off}} & =\frac{1}{2}\frac{1}{n_{\mathrm{f}}}\left(\hat{Q}_{j}+\hat{Q}_{\mathrm{fm},j}\right)+\frac{1}{2}\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}\left(\text{\hat{Q}}_{\mathrm{ff},j}+\hat{Q}_{\mathrm{fm},j}\right)\\
+r_{\mathrm{\mathrm{m}},j\rightarrow\text{local,off}} & =\frac{1}{2}\frac{1}{n_{\mathrm{m}}}\left(\hat{Q}_{j}+\hat{Q}_{\mathrm{fm},j}\right)+\frac{1}{2}\frac{n_{\mathrm{m}}-1}{n_{\mathrm{m}}}\left(\text{\hat{Q}}_{\mathrm{mm},j}+\hat{Q}_{\mathrm{fm},j}\right).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Relatedness coefficients when mothers control trait
+\end_layout
+
+\begin_layout Standard
+In case the trait is a maternal effect, we have
+\begin_inset Formula 
+\begin{align*}
+r_{\mathrm{f},j\rightarrow\mathrm{own}}^{\mathrm{M}} & =\hat{Q}_{j}\\
+r_{\mathrm{m},j\rightarrow\mathrm{own}}^{\mathrm{M}} & =\hat{Q}_{\mathrm{fm},j}.
+\end{align*}
+
+\end_inset
+
+and
+\begin_inset Formula 
+\begin{align*}
+r_{\mathrm{\mathrm{f}},j\rightarrow\text{local,off}} & =\frac{1}{n_{\mathrm{f}}}\hat{Q}_{j}+\frac{n_{\mathrm{f}}-1}{n_{\mathrm{f}}}\hat{Q}_{\mathrm{ff},j}\\
+r_{\mathrm{\mathrm{m}},j\rightarrow\text{local,off}} & =\hat{Q}_{\mathrm{fm},j}
 \end{align*}
 
 \end_inset
