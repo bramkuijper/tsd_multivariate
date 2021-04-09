@@ -105,6 +105,8 @@ void init_pars_from_cmd(int argc, char **argv)
     sdmu = atof(argv[22]);
     max_generations = atoi(argv[23]);
     file_basename = argv[24];
+
+    std::cout << max_generations << std::endl;
 } // end init_pars_from_cmd()
 
 
