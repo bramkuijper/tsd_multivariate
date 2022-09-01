@@ -13,9 +13,9 @@ import copy
 
 nf_nm = [[10,10]]
 
-init_d = [[0.5,0.5]]
+init_d = [[0.2,0.2]]
 
-init_b = [0]
+init_b = [0.0]
 
 init_sr = [[0.5,0.5]]
 
@@ -25,19 +25,19 @@ vm = [[1.0,1.0]]
 
 s = [[0.5,0.5]]
 
-spatial = [0]
+spatial = [1]
 
-clutch_max = 10
+clutch_max = 25
 
 mu_sr = 0.01
 
-mu_b = [ 0, 0.01]
+mu_b = [0, 0.01]
 
 mu_d = [[0,0]]
 
 sdmu = 0.01
 
-burrow_mod_survival = [0]
+burrow_mod_survival = [0,1]
 
 date = datetime.datetime.now()
 base_name = "sim_tsd_multivariate_" +\

@@ -140,10 +140,10 @@ def make_panel(title, gs, row_ctr, panel_dict, data):
     
 
 
-def plot_from_dict(plot_dict, data, sim_file):
+def plot_from_dict(plot_dict, data, sim_file, row_height=5, plot_width=8):
 
     # initialize the figure
-    fig = plt.figure(figsize=(5,5 * len(plot_dict)))
+    fig = plt.figure(figsize=(plot_width,row_height * len(plot_dict)))
     
     # generate the grid of the graph
     # see: 
@@ -205,6 +205,11 @@ traitdict = {
         "Digging" : {
             "x" : "generation",
             "y" : "b",
+            "ylim" : [-0.05,1.05]
+            },
+        "Freq1" : {
+            "x" : "generation",
+            "y" : "freq1",
             "ylim" : [-0.05,1.05],
             "xticks" : True,
             "xlabel" : "generation"
