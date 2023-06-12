@@ -36,7 +36,8 @@ for risk_i in risk:
         sigma += [[s12, s21]]
 
 # [eul_d, eul_sr, eul_b]
-euls = [[0,0.01,0],[0.01,0.01,0],[0.01,0.01,0.01]]
+#euls = [[0,0.01,0],[0.01,0.01,0],[0.01,0.01,0.01],[0,0.01,0.01]]
+euls = [[0,0.01,0.01]]
 
 
 survival_vf2 = [0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0]
@@ -49,8 +50,7 @@ for surv_i in survival_vf2:
 burrow_mod_survival = [1]
 
 date = datetime.datetime.now()
-base_name = "iter_tsd_multivariate_" +\
-        f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
+base_name = "iter_tsd_multivariate_" + f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
 ctr = 0
 

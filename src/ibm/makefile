@@ -8,7 +8,7 @@ HPP=individual.hpp patch.hpp
 LIBS=yaml-cpp
 LFLAGS=-L$(HOME)/usr/local/lib64
 IFLAGS=-I$(HOME)/usr/local/include
-CFLAGS=-ggdb -std=c++17 -Wall -O3
+CFLAGS=-std=c++17 -Wall -O3
 all : $(EXE)
 
 HOST=$(shell hostname | grep athena)

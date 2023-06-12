@@ -1,5 +1,5 @@
 // Temperature-dependent sex determination
-// coevolving with phylopatry and burrowing
+// coevolving with phylopatry, burrowing, phenology
 
 #include <iostream>
 #include <fstream>
@@ -25,7 +25,6 @@ std::bernoulli_distribution discrete01(0.5);
 
 // parameters -- just the initial values here, 
 // we set them later using argc, argv (command line)
-
 unsigned int clutch_max = 50; // maximum clutch size
 unsigned int n_patches = 50; // maximum clutch size
 unsigned int max_generations = 100;
@@ -33,8 +32,8 @@ unsigned int skip = 10;
 
 unsigned int n[2] = {10,10}; // n[Female], nm: females and males per patch
 
-double init_d[2] = {0.0,0.0}; // initialize 
-double init_b = 0.0; // initial value 
+double init_d[2] = {0.0,0.0}; // initialize dispersal
+double init_b = 0.0; // initial value of the burrowing trait
 double init_sr[2] = {0.0,0.0};
 
 // juvenile survival of males, 
@@ -74,39 +73,38 @@ std::vector <Patch> meta_population;
 // initializes parameters from the command line
 void init_pars_from_cmd(int argc, char **argv)
 {
-    n[Female] = atoi(argv[1]);
+    n[Female] = atoi(argv[1]); // number of males and females per patch
     n[Male] = atoi(argv[2]);
-    n_patches = atoi(argv[3]);
-    clutch_max = atoi(argv[4]);
+    n_patches = atoi(argv[3]); // number of patches
+    clutch_max = atoi(argv[4]); // max clutch size
 
-    init_d[Female] = atof(argv[5]);
-    init_d[Male] = atof(argv[6]);
-    init_b = atof(argv[7]);
-    init_sr[0] = atof(argv[8]);
+    init_d[Female] = atof(argv[5]); // initial dispersal rates
+    init_d[Male] = atof(argv[6]); 
+    init_b = atof(argv[7]); // initial value of the burrowing trait
+    init_sr[0] = atof(argv[8]); // initial sex ratio
     init_sr[1] = atof(argv[9]);
 
-    v[Female][0] = atof(argv[10]);
+    v[Female][0] = atof(argv[10]); // survival probabilities per sex
     v[Female][1] = atof(argv[11]);
     v[Male][0] = atof(argv[12]);
     v[Male][1] = atof(argv[13]);
-    burrow_mod_survival = atoi(argv[14]);
 
-    s[0] = atof(argv[15]);
+    burrow_mod_survival = atoi(argv[14]); // does burrowing affect survival?
+
+    s[0] = atof(argv[15]); // environmental switch rates
     s[1] = atof(argv[16]);
 
     spatial = atoi(argv[17]);
 
-    p2 = s[0] / (s[0] + s[1]);
+    p2 = s[0] / (s[0] + s[1]); // fraction of environments at a certain frequency
 
-    mu_sr = atof(argv[18]);
+    mu_sr = atof(argv[18]); // mutation rates
     mu_b = atof(argv[19]);
     mu_d[Female] = atof(argv[20]);
     mu_d[Male] = atof(argv[21]);
     sdmu = atof(argv[22]);
     max_generations = atoi(argv[23]);
     file_basename = argv[24];
-
-    std::cout << max_generations << std::endl;
 } // end init_pars_from_cmd()
 
 
@@ -235,29 +233,23 @@ void write_stats_per_timestep(unsigned int const time_step, std::ofstream &data_
     double ss_b = 0.0;
 
     double z;
-
-<<<<<<< HEAD
-    for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
-=======
+    
     double mean_freq1 = 0.0;
     double ss_freq1 = 0.0;
 
-    for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
->>>>>>> e653021c416e4ebbaafad7191778abb2b12deb31
+    for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
+
     {
         assert(meta_population[patch_idx].breedersF.size() == n[Female]);
         assert(meta_population[patch_idx].breedersM.size() == n[Male]);
 
-<<<<<<< HEAD
-        for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)
-=======
         z = meta_population[patch_idx].envt_hi;
         mean_freq1 += z;
         ss_freq1 += z*z;
 
-        for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
->>>>>>> e653021c416e4ebbaafad7191778abb2b12deb31
+        for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
+
             z = meta_population[patch_idx].breedersF[female_idx].sr[0][0]
                     + meta_population[patch_idx].breedersF[female_idx].sr[0][1];
                 
@@ -508,6 +500,8 @@ void mate_produce_offspring()
     // aux variable to store index of father
     unsigned int father_idx;
 
+    bool local_envt_hi;
+
     // loop through all patches of the metapopulation
     for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
@@ -521,6 +515,8 @@ void mate_produce_offspring()
         // as we will produce them now
         meta_population[patch_idx].phil_juvsF.clear();
         meta_population[patch_idx].phil_juvsM.clear();
+
+        local_envt_hi = meta_population[patch_idx].envt_hi;
 
         // loop through all females in a particular site
         for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)

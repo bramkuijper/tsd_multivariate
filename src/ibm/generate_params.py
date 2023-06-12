@@ -23,7 +23,7 @@ vf = [[0.5,1.0]]
 
 vm = [[1.0,1.0]]
 
-s = [[0.5,0.5]]
+s = [[0.001,0.001]]
 
 spatial = [1]
 
@@ -48,7 +48,7 @@ nrep = 5
 ctr = 0
 
 # whether jobs should be run in the background
-run_in_background = True
+run_in_background = False
 
 # never run background jobs on cluster
 hostname = socket.gethostname()
@@ -105,7 +105,7 @@ for replicate_i in range(0,nrep):
                                                         f"{sdmu} " +
                                                         f"{max_generations} " +
                                                         base_name_i + " " +
-                                                        "&" if run_in_background else ""
+                                                        ("&" if run_in_background else "")
                                                         )
 
                                 

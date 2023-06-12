@@ -97,6 +97,10 @@
 
 \begin_body
 
+\begin_layout Title
+The evolution of environmental sex determination when multiple traits coevolve
+\end_layout
+
 \begin_layout Section
 Introduction
 \end_layout
@@ -104,8 +108,8 @@ Introduction
 \begin_layout Standard
 What factors maintain sex ratios in taxa with environmental sex determination
  that face environmental change? Long-standing debates focused on the relative
- roles of maternal nest-site selection behaviour and thermal sensitivity
- of offspring sex (e.g., 
+ roles of maternal nest-site selection behaviour, thermal sensitivity of
+ offspring sex (e.g., 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Bull1982,Bull1982a,Janzen1992,Rhen1998,Morjan2003a,Morjan2003"
@@ -114,28 +118,6 @@ literal "false"
 \end_inset
 
 .
- Indeed, field heritabilities of temperature-dependent sex ratios have been
- found to vary from 0.0 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Bull1982,Janzen1992"
-literal "false"
-
-\end_inset
-
- to 
-\end_layout
-
-\begin_layout Standard
-has focused on heritabilities of the sex ratio, which are typically low
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Bull1982"
-literal "false"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Section
