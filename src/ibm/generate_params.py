@@ -13,7 +13,7 @@ import copy
 
 nf_nm = [[10,10]]
 
-init_d = [[0.2,0.2]]
+init_d = [[1.0,1.0]]
 
 init_b = [0.0]
 
@@ -23,11 +23,18 @@ vf = [[0.5,1.0]]
 
 vm = [[1.0,1.0]]
 
-s = [[0.001,0.001]]
+r = list(np.linspace(0.01,0.99,10))
+p1 = list(np.linspace(0.01,0.99,10))
+
+s = []
+
+for r_i in r:
+    for p1_i in p1:
+        s += [[r_i/(2 * p1_i),r_i/(2 * (1.0 - p1_i))]]
 
 spatial = [1]
 
-clutch_max = 25
+clutch_max = 10
 
 mu_sr = 0.01
 
@@ -43,7 +50,7 @@ date = datetime.datetime.now()
 base_name = "sim_tsd_multivariate_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
-nrep = 5
+nrep = 3
 
 ctr = 0
 
@@ -57,7 +64,7 @@ if "athena" in hostname:
 
 exe = "./tsd_multivariate.exe"
 
-max_generations = 50000
+max_generations = 20000
 
 for replicate_i in range(0,nrep):
     for nf_nm_i in nf_nm:

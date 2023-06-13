@@ -622,6 +622,7 @@ void adult_mortality_replacement()
         nf_imm_local = nf_imm_total / n_patches;
                     
         // loop through all females in a particular site
+        // and replace
         for (unsigned int female_idx = 0; female_idx < n[Female]; ++female_idx)
         {
             assert(nf_imm_local > 0 || 
@@ -668,6 +669,7 @@ void adult_mortality_replacement()
             }
         } // end female_idx
 
+        // loop through all males and replace
         for (unsigned int male_idx = 0; male_idx < n[Male]; ++male_idx)
         {
             // male dies
