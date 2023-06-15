@@ -28,6 +28,7 @@ std::bernoulli_distribution discrete01(0.5);
 unsigned int clutch_max = 50; // maximum clutch size
 unsigned int n_patches = 50; // maximum clutch size
 unsigned int max_generations = 100;
+unsigned int generation_perturb = 50;
 unsigned int skip = 10;
 
 unsigned int n[2] = {10,10}; // n[Female], nm: females and males per patch
@@ -38,7 +39,16 @@ double init_sr[2] = {0.0,0.0};
 
 // juvenile survival of males, 
 // females in their respective envts
+// first index is sex, 2nd index is envt
 double v[2][2] = {{0.0,0.0},{0,0}}; 
+
+// juvenile survival of males, 
+// females in their respective envts before perturbation
+double v_orig[2][2] = {{0.0,0.0},{0,0}}; 
+
+// juvenile survival of males, 
+// females post perturbation
+double v_pert[2][2] = {{0.0,0.0},{0,0}}; 
 
 // does borrowing depth affect survival, y/n
 bool burrow_mod_survival = 0;
@@ -51,6 +61,12 @@ double sdmu = 0.0;
 
 // rates of environmental change
 double s[2] = {0.1,0.5};
+
+// rates of environmental change pre perturbation
+double s_orig[2] = {0.1,0.5};
+
+// rates of environmental change post perturbation
+double s_pert[2] = {0.1,0.5};
 
 // whether environmental variation is spatial or not
 bool spatial = false;
@@ -87,27 +103,36 @@ void init_pars_from_cmd(int argc, char **argv)
     init_sr[0] = atof(argv[8]); // initial sex ratio
     init_sr[1] = atof(argv[9]);
 
-    v[Female][0] = atof(argv[10]); // survival probabilities per sex
-    v[Female][1] = atof(argv[11]);
-    v[Male][0] = atof(argv[12]);
-    v[Male][1] = atof(argv[13]);
+    v[Female][0] = v_orig[Female][0] = atof(argv[10]); // survival probabilities per sex pre perturbation
+    v[Female][1] = v_orig[Female][1] = atof(argv[11]);
+    v[Male][0] = v_orig[Male][0] = atof(argv[12]);
+    v[Male][1] = v_orig[Male][1] = atof(argv[13]);
 
-    burrow_mod_survival = atoi(argv[14]); // does burrowing affect survival?
+    v_pert[Female][0] = atof(argv[14]); // survival probabilities per sex
+    v_pert[Female][1] = atof(argv[15]);
+    v_pert[Male][0] = atof(argv[16]);
+    v_pert[Male][1] = atof(argv[17]);
 
-    s[0] = atof(argv[15]); // environmental switch rates
-    s[1] = atof(argv[16]);
+    burrow_mod_survival = atoi(argv[18]); // does burrowing affect survival?
 
-    spatial = atoi(argv[17]);
+    s_orig[0] = s[0] = atof(argv[19]); // environmental switch rates pre perturbation
+    s_orig[1] = s[1] = atof(argv[20]);
 
-    p2 = s[0] / (s[0] + s[1]); // fraction of environments at a certain frequency
+    s_pert[0] = atof(argv[21]);
+    s_pert[1] = atof(argv[22]);
 
-    mu_sr = atof(argv[18]); // mutation rates
-    mu_b = atof(argv[19]);
-    mu_d[Female] = atof(argv[20]);
-    mu_d[Male] = atof(argv[21]);
-    sdmu = atof(argv[22]);
-    max_generations = atoi(argv[23]);
-    file_basename = argv[24];
+    spatial = atoi(argv[23]);
+
+    p2 = s_orig[0] / (s_orig[0] + s_orig[1]); // fraction of environments at a certain frequency
+
+    mu_sr = atof(argv[24]); // mutation rates
+    mu_b = atof(argv[25]);
+    mu_d[Female] = atof(argv[26]);
+    mu_d[Male] = atof(argv[27]);
+    sdmu = atof(argv[28]);
+    max_generations = atoi(argv[29]);
+    generation_perturb = atoi(argv[30]);
+    file_basename = argv[31];
 } // end init_pars_from_cmd()
 
 
@@ -200,18 +225,25 @@ void write_parameters(std::ofstream &data_file)
         "npatches;" << n_patches << std::endl <<
         "clutch_max;" << clutch_max << std::endl <<
         "spatial;" << spatial << std::endl <<
-        "s1;" << s[0] << std::endl <<
-        "s2;" << s[1] << std::endl <<
-        "vf1;" << v[Female][0] << std::endl <<
-        "vf2;" << v[Female][1] << std::endl <<
-        "vm1;" << v[Male][0] << std::endl <<
-        "vm2;" << v[Male][1] << std::endl <<
+        "s1;" << s_orig[0] << std::endl <<
+        "s2;" << s_orig[1] << std::endl <<
+        "s_pert1;" << s_pert[0] << std::endl <<
+        "s_pert2;" << s_pert[1] << std::endl <<
+        "vf1;" << v_orig[Female][0] << std::endl <<
+        "vf2;" << v_orig[Female][1] << std::endl <<
+        "vm1;" << v_orig[Male][0] << std::endl <<
+        "vm2;" << v_orig[Male][1] << std::endl <<
+        "v_pertf1;" << v_pert[Female][0] << std::endl <<
+        "v_pertf2;" << v_pert[Female][1] << std::endl <<
+        "v_pertm1;" << v_pert[Male][0] << std::endl <<
+        "v_pertm2;" << v_pert[Male][1] << std::endl <<
         "burrow_mod_survival;" << burrow_mod_survival << std::endl <<
         "mu_sr;" << mu_sr << std::endl <<
         "mu_b;" << mu_b << std::endl <<
         "mu_df;" << mu_d[Female] << std::endl <<
         "mu_dm;" << mu_d[Male] << std::endl <<
         "sdmu;" << sdmu << std::endl <<
+        "generation_perturb;" << generation_perturb << std::endl <<
         "basename;" << file_basename << std::endl <<
         std::endl;
 } // end write_parameters
@@ -743,6 +775,19 @@ void adult_mortality_replacement()
     } // end for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
 } // end adult_mortality_replacement()
 
+void environmental_perturbation()
+{
+    for (int envt_idx = 0; envt_idx < 2; ++envt_idx)
+    {
+        s[envt_idx] = s_pert[envt_idx];
+
+        for (int sex_idx = 0; sex_idx < 2; ++sex_idx)
+        {
+            v[sex_idx][envt_idx]  = v_pert[sex_idx][envt_idx];
+        }
+    }
+} // end environmental_perturbation()
+
 // the main part of the code
 int main(int argc, char **argv)
 {
@@ -768,7 +813,15 @@ int main(int argc, char **argv)
         {
             write_stats_per_timestep(generation_idx, data_file);
         }
+
+        if (generation_idx == generation_perturb)
+        {
+            environmental_perturbation();
+        }
     }
 
     write_parameters(data_file);
 }
+
+
+

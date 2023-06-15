@@ -13,7 +13,7 @@ import copy
 
 nf_nm = [[10,10]]
 
-init_d = [[1.0,1.0]]
+init_d = [[0.1,0.1]]
 
 init_b = [0.0]
 
@@ -23,34 +23,41 @@ vf = [[0.5,1.0]]
 
 vm = [[1.0,1.0]]
 
-r = list(np.linspace(0.01,0.99,10))
-p1 = list(np.linspace(0.01,0.99,10))
+vf_pert = [[1.0,1.0]]
+vm_pert = [[1.0,1.0]]
 
-s = []
+#r = list(np.linspace(0.01,0.99,10))
+#p1 = list(np.linspace(0.01,0.99,10))
+#
+#s = []
+#
+#for r_i in r:
+#    for p1_i in p1:
+#        s += [[r_i/(2 * p1_i),r_i/(2 * (1.0 - p1_i))]]
 
-for r_i in r:
-    for p1_i in p1:
-        s += [[r_i/(2 * p1_i),r_i/(2 * (1.0 - p1_i))]]
+s_orig = [[0.5,0.5]]
+
+s_pert = [[0.5,0.5]]
 
 spatial = [1]
 
-clutch_max = 10
+clutch_max = 25
 
 mu_sr = 0.01
 
-mu_b = [0, 0.01]
+mu_b = [0.01]
 
-mu_d = [[0,0]]
+mu_d = [[0,0],[0.01,0.01]]
 
 sdmu = 0.01
 
-burrow_mod_survival = [0,1]
+burrow_mod_survival = [1]
 
 date = datetime.datetime.now()
 base_name = "sim_tsd_multivariate_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
-nrep = 1
+nrep = 5
 
 ctr = 0
 
@@ -64,7 +71,8 @@ if "athena" in hostname:
 
 exe = "./tsd_multivariate.exe"
 
-max_generations = 20000
+max_generations = 50000
+time_perturb = 20000#max_generations/2.0
 
 for replicate_i in range(0,nrep):
     for nf_nm_i in nf_nm:
@@ -76,46 +84,56 @@ for replicate_i in range(0,nrep):
                 for init_sr_i in init_sr:
                     for vf_i in vf:
                         for vm_i in vm:
-                            for s_i in s:
-                                for mu_b_i in mu_b:
-                                    for mu_d_i in mu_d:
-                                        for spatial_i in spatial:
-                                            for burrow_mod_survival_i in burrow_mod_survival:
-                                                base_name_i = base_name + "_" + str(ctr)
+                            for vf_pert_i in vf_pert:
+                                for vm_pert_i in vm_pert:
+                                    for s_i in s_orig:
+                                        for s_pert_i in s_pert:
+                                            for mu_b_i in mu_b:
+                                                for mu_d_i in mu_d:
+                                                    for spatial_i in spatial:
+                                                        for burrow_mod_survival_i in burrow_mod_survival:
+                                                            base_name_i = base_name + "_" + str(ctr)
 
-                                                print("echo " + str(ctr))
+                                                            print("echo " + str(ctr))
 
-                                                ctr+=1
+                                                            ctr+=1
 
-                                                print(exe + " \t" +
-                                                        f"{nf_nm_i[0]} " + 
-                                                        f"{nf_nm_i[1]} " + 
-                                                        f"{n_patches_i:n} " +
-                                                        f"{clutch_max:n} " +
-                                                        f"{init_d_i[0]} " +
-                                                        f"{init_d_i[1]} " +
-                                                        f"{init_b_i} " +
-                                                        f"{init_sr_i[0]} " +
-                                                        f"{init_sr_i[1]} " +
-                                                        f"{vf_i[0]} " +
-                                                        f"{vf_i[1]} " +
-                                                        f"{vm_i[0]} " +
-                                                        f"{vm_i[1]} " +
-                                                        f"{burrow_mod_survival_i} " +
-                                                        f"{s_i[0]} " +
-                                                        f"{s_i[1]} " +
-                                                        f"{spatial_i} " +
-                                                        f"{mu_sr} " +
-                                                        f"{mu_b_i} " +
-                                                        f"{mu_d_i[0]} " +
-                                                        f"{mu_d_i[1]} " +
-                                                        f"{sdmu} " +
-                                                        f"{max_generations} " +
-                                                        base_name_i + " " +
-                                                        ("&" if run_in_background else "")
-                                                        )
+                                                            print(exe + " \t" +
+                                                                    f"{nf_nm_i[0]} " + 
+                                                                    f"{nf_nm_i[1]} " + 
+                                                                    f"{n_patches_i:n} " +
+                                                                    f"{clutch_max:n} " +
+                                                                    f"{init_d_i[0]} " +
+                                                                    f"{init_d_i[1]} " +
+                                                                    f"{init_b_i} " +
+                                                                    f"{init_sr_i[0]} " +
+                                                                    f"{init_sr_i[1]} " +
+                                                                    f"{vf_i[0]} " +
+                                                                    f"{vf_i[1]} " +
+                                                                    f"{vm_i[0]} " +
+                                                                    f"{vm_i[1]} " +
+                                                                    f"{vf_pert_i[0]} " +
+                                                                    f"{vf_pert_i[1]} " +
+                                                                    f"{vm_pert_i[0]} " +
+                                                                    f"{vm_pert_i[1]} " +
+                                                                    f"{burrow_mod_survival_i} " +
+                                                                    f"{s_i[0]} " +
+                                                                    f"{s_i[1]} " +
+                                                                    f"{s_pert_i[0]} " +
+                                                                    f"{s_pert_i[1]} " +
+                                                                    f"{spatial_i} " +
+                                                                    f"{mu_sr} " +
+                                                                    f"{mu_b_i} " +
+                                                                    f"{mu_d_i[0]} " +
+                                                                    f"{mu_d_i[1]} " +
+                                                                    f"{sdmu} " +
+                                                                    f"{max_generations} " +
+                                                                    f"{time_perturb:n} " +
+                                                                    base_name_i + " " +
+                                                                    ("&" if run_in_background else "")
+                                                                    )
 
-                                
+                                            
 
 
 
