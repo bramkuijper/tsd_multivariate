@@ -70,6 +70,9 @@ std::vector <Individual> disp_juvsM;
 // the total meta population 
 std::vector <Patch> meta_population;
 
+double wbar = 0.0;
+double var_wbar = 0.0;
+
 // initializes parameters from the command line
 void init_pars_from_cmd(int argc, char **argv)
 {
@@ -216,7 +219,7 @@ void write_parameters(std::ofstream &data_file)
 // write the headers for the file with the statistics
 void write_stats_headers(std::ofstream &data_file)
 {
-    data_file << "generation;sr1;sr2;varsr1;varsr2;b;varb;df;dm;vardf;vardm;freq1;varfreq1" << std::endl;
+    data_file << "generation;sr1;sr2;varsr1;varsr2;b;varb;df;dm;vardf;vardm;freq1;varfreq1;wbar;var_wbar;" << std::endl;
 } // end write_stats_headers
 
 // write statistics to file data_file
@@ -358,7 +361,9 @@ void write_stats_per_timestep(unsigned int const time_step, std::ofstream &data_
         << var_d[Female] <<  ";"
         << var_d[Male] << ";"
         << mean_freq1 <<  ";"
-        << var_freq1 
+        << var_freq1  << ";"
+        << wbar << ";"
+        << var_wbar << ";"
         << std::endl;
 } // end void write_stats_per_timestep()
 
@@ -502,6 +507,9 @@ void mate_produce_offspring()
 
     bool local_envt_hi;
 
+    wbar = 0.0;
+    var_wbar = 0.0;
+
     // loop through all patches of the metapopulation
     for (unsigned int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
     {
@@ -553,6 +561,9 @@ void mate_produce_offspring()
                     continue;
                 }
 
+                ++wbar;
+                ++var_wbar;
+
                 if (uniform(rng_r) < Kid.d[Kid.sex][0] + Kid.d[Kid.sex][1]) // kid disperses
                 {
                     if (Kid.sex == Female)
@@ -591,6 +602,9 @@ void mate_produce_offspring()
         } // end for for (int female_idx = 0; female_idx < n[Female]; ++female_idx)
 
     } // end for (int patch_idx = 0; patch_idx < n_patches; ++patch_idx)
+
+    wbar /= n_patches * n[Female];
+    var_wbar = var_wbar / (n_patches * n[Female]) - wbar * wbar;
 
     // randomly shuffle dispersers
     shuffle(disp_juvsM.begin(), disp_juvsM.end(), rng_r);
