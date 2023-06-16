@@ -13,17 +13,19 @@ import copy
 
 nf_nm = [[10,10]]
 
-init_d = [[0.1,0.1]]
+init_d = [[1.0,1.0]]
 
 init_b = [0.0]
 
 init_sr = [[0.5,0.5]]
 
-vf = [[0.5,1.0]]
+vf = [[1.0,0.9]]
 
 vm = [[1.0,1.0]]
 
-vf_pert = [[1.0,1.0]]
+d_cue_is_envt = 0
+
+vf_pert = [[1.0,0.3]]
 vm_pert = [[1.0,1.0]]
 
 #r = list(np.linspace(0.01,0.99,10))
@@ -45,7 +47,7 @@ clutch_max = 25
 
 mu_sr = 0.01
 
-mu_b = [0.01]
+mu_b = [0.0,0.1]
 
 mu_d = [[0,0],[0.01,0.01]]
 
@@ -122,6 +124,7 @@ for replicate_i in range(0,nrep):
                                                                     f"{s_pert_i[0]} " +
                                                                     f"{s_pert_i[1]} " +
                                                                     f"{spatial_i} " +
+                                                                    f"{d_cue_is_envt} " +
                                                                     f"{mu_sr} " +
                                                                     f"{mu_b_i} " +
                                                                     f"{mu_d_i[0]} " +

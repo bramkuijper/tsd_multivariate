@@ -29,13 +29,15 @@ unsigned int clutch_max = 50; // maximum clutch size
 unsigned int n_patches = 50; // maximum clutch size
 unsigned int max_generations = 100;
 unsigned int generation_perturb = 50;
-unsigned int skip = 10;
+unsigned int skip = 1;
 
 unsigned int n[2] = {10,10}; // n[Female], nm: females and males per patch
 
 double init_d[2] = {0.0,0.0}; // initialize dispersal
 double init_b = 0.0; // initial value of the burrowing trait
 double init_sr[2] = {0.0,0.0};
+
+bool d_cue_is_envt = false;
 
 // juvenile survival of males, 
 // females in their respective envts
@@ -123,16 +125,18 @@ void init_pars_from_cmd(int argc, char **argv)
 
     spatial = atoi(argv[23]);
 
+    d_cue_is_envt = atoi(argv[24]);
+
     p2 = s_orig[0] / (s_orig[0] + s_orig[1]); // fraction of environments at a certain frequency
 
-    mu_sr = atof(argv[24]); // mutation rates
-    mu_b = atof(argv[25]);
-    mu_d[Female] = atof(argv[26]);
-    mu_d[Male] = atof(argv[27]);
-    sdmu = atof(argv[28]);
-    max_generations = atoi(argv[29]);
-    generation_perturb = atoi(argv[30]);
-    file_basename = argv[31];
+    mu_sr = atof(argv[25]); // mutation rates
+    mu_b = atof(argv[26]);
+    mu_d[Female] = atof(argv[27]);
+    mu_d[Male] = atof(argv[28]);
+    sdmu = atof(argv[29]);
+    max_generations = atoi(argv[30]);
+    generation_perturb = atoi(argv[31]);
+    file_basename = argv[32];
 } // end init_pars_from_cmd()
 
 
@@ -164,8 +168,8 @@ void initialize_population()
                 female_i.sr[0][allele_idx] = 0.5 * init_sr[0];
                 female_i.sr[1][allele_idx] = 0.5 * init_sr[1];
 
-                female_i.d[Female][allele_idx] = 0.5 * init_d[Female];
-                female_i.d[Male][allele_idx] = 0.5 * init_d[Male];
+                female_i.d[0][allele_idx] = 0.5 * init_d[0];
+                female_i.d[1][allele_idx] = 0.5 * init_d[1];
 
                 female_i.b[allele_idx] = 0.5 * init_b;
             }
@@ -184,8 +188,8 @@ void initialize_population()
                 male_i.sr[0][allele_idx] = 0.5 * init_sr[0];
                 male_i.sr[1][allele_idx] = 0.5 * init_sr[1];
 
-                male_i.d[Female][allele_idx] = 0.5 * init_d[Female];
-                male_i.d[Male][allele_idx] = 0.5 * init_d[Male];
+                male_i.d[0][allele_idx] = 0.5 * init_d[0];
+                male_i.d[1][allele_idx] = 0.5 * init_d[1];
 
                 male_i.b[allele_idx] = 0.5 * init_b;
             }
@@ -225,6 +229,7 @@ void write_parameters(std::ofstream &data_file)
         "npatches;" << n_patches << std::endl <<
         "clutch_max;" << clutch_max << std::endl <<
         "spatial;" << spatial << std::endl <<
+        "d_cue_is_envt;" << d_cue_is_envt << std::endl <<
         "s1;" << s_orig[0] << std::endl <<
         "s2;" << s_orig[1] << std::endl <<
         "s_pert1;" << s_pert[0] << std::endl <<
@@ -297,14 +302,14 @@ void write_stats_per_timestep(unsigned int const time_step, std::ofstream &data_
             mean_sr[1] += z;
             ss_sr[1] += z * z;
 
-            z = meta_population[patch_idx].breedersF[female_idx].d[Female][0]
-                    + meta_population[patch_idx].breedersF[female_idx].d[Female][1];
+            z = meta_population[patch_idx].breedersF[female_idx].d[0][0]
+                    + meta_population[patch_idx].breedersF[female_idx].d[0][1];
 
             mean_d[Female] += z;
             ss_d[Female] += z * z;
             
-            z = meta_population[patch_idx].breedersF[female_idx].d[Male][0]
-                    + meta_population[patch_idx].breedersF[female_idx].d[Male][1];
+            z = meta_population[patch_idx].breedersF[female_idx].d[1][0]
+                    + meta_population[patch_idx].breedersF[female_idx].d[1][1];
 
             mean_d[Male] += z;
             ss_d[Male] += z * z;
@@ -329,14 +334,14 @@ void write_stats_per_timestep(unsigned int const time_step, std::ofstream &data_
             mean_sr[1] += z;
             ss_sr[1] += z * z;
 
-            z = meta_population[patch_idx].breedersM[male_idx].d[Female][0]
-                    + meta_population[patch_idx].breedersM[male_idx].d[Female][1];
+            z = meta_population[patch_idx].breedersM[male_idx].d[0][0]
+                    + meta_population[patch_idx].breedersM[male_idx].d[0][1];
 
             mean_d[Female] += z;
             ss_d[Female] += z * z;
             
-            z = meta_population[patch_idx].breedersM[male_idx].d[Male][0]
-                    + meta_population[patch_idx].breedersM[male_idx].d[Male][1];
+            z = meta_population[patch_idx].breedersM[male_idx].d[1][0]
+                    + meta_population[patch_idx].breedersM[male_idx].d[1][1];
 
             mean_d[Male] += z;
             ss_d[Male] += z * z;
@@ -453,31 +458,31 @@ void create_offspring(
                     ,mutational_distribution)
                 ,0.0,0.5);
 
-        offspring.d[Female][0] = std::clamp(
+        offspring.d[0][0] = std::clamp(
                 mutate(
-                    mother.d[Female][discrete01(rng_r)]
-                    ,mu_d[Female]
+                    mother.d[0][discrete01(rng_r)]
+                    ,mu_d[0]
                     ,mutational_distribution)
                 ,0.0,0.5);
 
-        offspring.d[Female][1] = std::clamp(
+        offspring.d[0][1] = std::clamp(
                 mutate(
-                    father.d[Female][discrete01(rng_r)]
-                    ,mu_d[Female]
+                    father.d[0][discrete01(rng_r)]
+                    ,mu_d[0]
                     ,mutational_distribution)
                 ,0.0,0.5);
         
-        offspring.d[Male][0] = std::clamp(
+        offspring.d[1][0] = std::clamp(
                 mutate(
-                    mother.d[Male][discrete01(rng_r)]
-                    ,mu_d[Male]
+                    mother.d[1][discrete01(rng_r)]
+                    ,mu_d[1]
                     ,mutational_distribution)
                 ,0.0,0.5);
 
-        offspring.d[Male][1] = std::clamp(
+        offspring.d[1][1] = std::clamp(
                 mutate(
-                    father.d[Male][discrete01(rng_r)]
-                    ,mu_d[Male]
+                    father.d[1][discrete01(rng_r)]
+                    ,mu_d[1]
                     ,mutational_distribution)
                 ,0.0,0.5);
         
@@ -537,7 +542,7 @@ void mate_produce_offspring()
     // aux variable to store index of father
     unsigned int father_idx;
 
-    bool local_envt_hi;
+    bool local_envt_hi, cue;
 
     wbar = 0.0;
     var_wbar = 0.0;
@@ -596,7 +601,9 @@ void mate_produce_offspring()
                 ++wbar;
                 ++var_wbar;
 
-                if (uniform(rng_r) < Kid.d[Kid.sex][0] + Kid.d[Kid.sex][1]) // kid disperses
+                cue = d_cue_is_envt ? local_envt_hi : Kid.sex;
+
+                if (uniform(rng_r) < Kid.d[cue][0] + Kid.d[cue][1]) // kid disperses
                 {
                     if (Kid.sex == Female)
                     {

@@ -216,6 +216,13 @@ traitdict = {
             }
 }
 
+if "wbar" in list(dat.columns):
+    traitdict["Wbar"] = {
+            "x" : "generation",
+            "y" : "wbar"
+            }
+
+
 
 
 
