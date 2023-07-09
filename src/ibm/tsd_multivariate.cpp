@@ -70,6 +70,7 @@ double s_orig[2] = {0.1,0.5};
 // rates of environmental change post perturbation
 double s_pert[2] = {0.1,0.5};
 
+
 // whether environmental variation is spatial or not
 bool spatial = false;
 
