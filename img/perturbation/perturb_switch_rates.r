@@ -28,7 +28,7 @@ get_last_line_number <- function(file_name)
     stop("no line found")
 } # end get_last_line_number()
 
-generation.limits <- c(19000,21000)
+generation.limits <- c(19000,23000)
 
 prepare_data <- function(file_name)
 {
@@ -85,10 +85,10 @@ get_sims <- function(data.subset)
 #### read in summary file
 the.summ <- read_delim(
         file="summary_perturb_switch.csv"
-        ,delim=";")
+        ,delim=";") %>% filter(s_pert2 == 0.1 & s_pert1 == 0.9 & init_df == 1.0 & init_dm == 1.0)
 
 # now get all the data from the individual simulations
-dat_all <- get_sims(summ_tsd_only) %>% mutate(
+dat_all <- get_sims(the.summ) %>% mutate(
         unique_id_f = as_factor(unique_id)) %>% arrange(generation)
 
 mean.w <- mean(dat_all$wbar)
@@ -99,8 +99,7 @@ dat_all <- mutate(dat_all
         ,wbar_std=(wbar - mean.w)/sd.w
         )
 
-dat_tsd_only <- filter(dat_all,
-        mu_df == 0 & mu_sr > 0 & mu_b == 0 & init_df == 0.2 & init_dm == 0.2)
+dat_tsd_only <- filter(dat_all, mu_df == 0 & mu_sr > 0 & mu_b == 0)
 
 
 ############### the actual plots ###############
@@ -137,7 +136,7 @@ tsd_only_sr <- ggplot(data=dat_tsd_only_long,
 ############# burrowing #############
 
 dat_tsd_burrowing <- filter(
-        dat_all,mu_df == 0 & mu_sr > 0 & mu_b > 0 & init_df == 0.2 & init_dm == 0.2)
+        dat_all,mu_df == 0 & mu_sr > 0 & mu_b > 0)
 
 tsd_burrowing_w <- ggplot(data = dat_tsd_burrowing,
         mapping = aes(x=generation
@@ -168,7 +167,7 @@ tsd_burrowing_sr <- ggplot(data=dat_tsd_burrowing_long,
 ############# dispersal #############
 
 dat_tsd_dispersal <- filter(
-        dat_all,mu_df > 0 & mu_sr > 0 & mu_b == 0 & init_df == 0.2 & init_dm == 0.2)
+        dat_all,mu_df > 0 & mu_sr > 0 & mu_b == 0)
 
 tsd_dispersal_w <- ggplot(data = dat_tsd_dispersal,
         mapping = aes(x=generation

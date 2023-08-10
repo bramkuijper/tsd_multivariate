@@ -120,6 +120,11 @@ literal "false"
 .
 \end_layout
 
+\begin_layout Standard
+A recent review concluded that more integration among different models of
+ TSD is called for 
+\end_layout
+
 \begin_layout Section
 The model
 \end_layout
@@ -129,7 +134,15 @@ Our initial model considers the following traits:
 \end_layout
 
 \begin_layout Itemize
-dispersal
+dispersal, as previously modelled by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Boyle2014"
+literal "false"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Itemize
