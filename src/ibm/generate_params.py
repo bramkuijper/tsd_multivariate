@@ -11,7 +11,19 @@ import datetime
 import sys
 import copy
 
-nf_nm = [[10,10]]
+# function to calculate a risk value
+# and autocorrelation into frequencies
+# risk is given by freq of envt 2, s12/(s21 + s12)
+# autocorr is given by 1.0 - s12 - s21
+
+def riskAutocorr2freq(risk, autocorr):
+
+    s12 = risk * (1.0 - autocorr)
+    s21 = 1.0 - autocorr - s12
+
+    return([s12,s21])
+
+nf_nm = [[5,5]]
 
 init_d = [[1.0,1.0],[0.2,0.2]]
 
@@ -37,9 +49,9 @@ vm_pert = [[1.0,1.0]]
 #    for p1_i in p1:
 #        s += [[r_i/(2 * p1_i),r_i/(2 * (1.0 - p1_i))]]
 
-s_orig = [[0.5,0.5]]
+s_orig = [riskAutocorr2freq(0.875, 0.75),riskAutocorr2freq(0.1, 0.75)]
 
-s_pert = [[0.1,0.9],[0.9,0.1]]
+s_pert = [riskAutocorr2freq(0.1, 0.75),riskAutocorr2freq(0.875, 0.75)]
 
 spatial = [1]
 

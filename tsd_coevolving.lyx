@@ -98,11 +98,83 @@
 \begin_body
 
 \begin_layout Title
-The evolution of environmental sex determination when multiple traits coevolve
+Environmental sex determination when multiple traits coevolve
+\end_layout
+
+\begin_layout Author
+Bram Kuijper & David J Hosken
 \end_layout
 
 \begin_layout Section
 Introduction
+\end_layout
+
+\begin_layout Standard
+In various taxa, sex determination is affected by the environment 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Bachtrog2014"
+literal "false"
+
+\end_inset
+
+, involving cues such as temperature 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Georges2010"
+literal "false"
+
+\end_inset
+
+, photoperiod 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Naylor1988"
+literal "false"
+
+\end_inset
+
+, number of competing foundresses 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Werren1980"
+literal "false"
+
+\end_inset
+
+ or combinations of cues (chapter 6 in 
+\begin_inset CommandInset citation
+LatexCommand citealp
+key "West2009"
+literal "false"
+
+\end_inset
+
+).
+ Classical theory suggests that environmental sex determination is adaptive
+ over and above genetic forms of sex determination when sex-specific fitness
+ varies predictably across different environments 
+\begin_inset CommandInset citation
+LatexCommand citealp
+key "Trivers1973,Charnov1977,Warner2008"
+literal "false"
+
+\end_inset
+
+.
+ These predictions have subsequently been corroborated by a vast body of
+ theory (reviewed in 
+\begin_inset CommandInset citation
+LatexCommand citealp
+key "Schwanz2021"
+literal "false"
+
+\end_inset
+
+) and empirical work (reviewed in ???).
+ However, a shortcoming of most of these studies is, however, that key evolution
+ary predictions focus only the evolution of environmental sex determination
+ itself, while considering that other types of sex determination
 \end_layout
 
 \begin_layout Standard
@@ -130,42 +202,60 @@ The model
 \end_layout
 
 \begin_layout Standard
-Our initial model considers the following traits: 
-\end_layout
-
-\begin_layout Itemize
-dispersal, as previously modelled by 
+Our model builds on the classical Charnov-Bull model of condition-dependent
+ sex allocation 
 \begin_inset CommandInset citation
-LatexCommand citet
-key "Boyle2014"
+LatexCommand citep
+key "Charnov1977,West2009,Schwanz2021"
 literal "false"
 
 \end_inset
 
+, which considers a patch-structured population linked by juvenile dispersal.
+ For the sake of tractability, each patch can be in one of two environmental
+ states, which differentially affects sex-specific survival upon birth.
+ Consequently, probabilities of survival of newborn females and males in
+ a patch currently in environmental state 
+\begin_inset Formula $i$
+\end_inset
 
-\end_layout
+ are given by 
+\begin_inset Formula $v_{\mathrm{f}i}$
+\end_inset
 
-\begin_layout Itemize
-maternal nest site choice, we need to not only make this sex-dependent but
- also environment-dependent (but later...)
-\end_layout
+ and 
+\begin_inset Formula $v_{\mathrm{m}i}$
+\end_inset
 
-\begin_layout Itemize
-nest depth, with nest depth affecting temperature in environment 2 
-\end_layout
-
-\begin_layout Itemize
-TSD
+ respectively.
+ After birth and survival, individuals disperse to 
 \end_layout
 
 \begin_layout Subsection
-Life cycle
+Burrowing
 \end_layout
 
 \begin_layout Standard
-We consider two environments, environment 1 (e.g., a cold environment) and
- environment 2 (e.g., the hot environment).
- Environment 1 affects the survival of daughters, but not that of sons.
+We consider a scenario in which burrowing affects nest temperature, allowing
+ parents to modulate their local environment and thus the consequences of
+ sex-specific survival.
+ To this end, we consider an evolvable probability 
+\begin_inset Formula $b$
+\end_inset
+
+ that 
+\end_layout
+
+\begin_layout Standard
+loss of generality, we assume that burrowing in environment 
+\begin_inset Formula $2$
+\end_inset
+
+ modulates 
+\end_layout
+
+\begin_layout Subsubsection
+Dispersal
 \end_layout
 
 \begin_layout Subsubsection
@@ -204,98 +294,8 @@ K\left\{ (1-b)s_{2}v_{\mathrm{m2}}+bs_{1}\left[\delta v_{\mathrm{m1}}+\left(1-\d
 
 \end_layout
 
-\begin_layout Paragraph
-Environment 1
-\end_layout
-
-\begin_layout Standard
-The number of surviving daughters 
-\begin_inset Formula $f_{1}\left(s_{1}\right)$
-\end_inset
-
- and sons 
-\begin_inset Formula $m_{1}(s_{1})$
-\end_inset
-
- that hatch from a brood produced in the cold site 
-\begin_inset Formula $1$
-\end_inset
-
- is given by
-\begin_inset Formula 
-\begin{align*}
-f_{1}\left(s_{1}\right) & =\\
-m_{1}\left(s_{1}\right) & =Ks_{1}v_{\mathrm{m}1}.
-\end{align*}
-
-\end_inset
-
-where 
-\begin_inset Formula $K_{1}$
-\end_inset
-
- is the fecundity of females who breed in environment 
-\begin_inset Formula $1$
-\end_inset
-
-, while 
-\begin_inset Formula $s_{1}$
-\end_inset
-
- and 
-\begin_inset Formula $1-s_{1}$
-\end_inset
-
- are the proportions of daughters and sons produced in the cold environment.
- 
-\end_layout
-
-\begin_layout Standard
-Note that the average depth of the burrow 
-\begin_inset Formula $b$
-\end_inset
-
- is assumed to not affect the sex ratio or survival in environment 
-\begin_inset Formula $1$
-\end_inset
-
-.
- In the case of temperature, for example, this is because environment 1
- is the cold environment and hence, by digging deeper, the environment only
- becomes colder.
- However, in the supplement we consider an extension of the model where
- burrow depth in environment 1 does not increase the sex ratio but does
- affect sex-specific survival.
-\end_layout
-
-\begin_layout Paragraph
-\noindent
-Enviroment 2
-\end_layout
-
 \begin_layout Standard
 \noindent
-The number of surviving daughters 
-\begin_inset Formula $f_{2}\left(s_{1},s_{2};b\right)$
-\end_inset
-
- and sons 
-\begin_inset Formula $m_{2}\left(s_{1},s_{2};b\right)$
-\end_inset
-
- that hatch from a brood produced in the warm site 
-\begin_inset Formula $2$
-\end_inset
-
- is given by
-\begin_inset Formula 
-\begin{align*}
-f_{2}\left(s_{1},s_{2};b\right) & =\\
-m_{2}\left(s_{1},s_{2};b\right) & =
-\end{align*}
-
-\end_inset
-
 The life cycle starts upon the birth of an expected number of 
 \begin_inset Formula $f_{i}$
 \end_inset
@@ -573,7 +573,7 @@ We then calculate the selection gradients in the sex allocation loci
 \begin_inset Formula $b$
 \end_inset
 
- and the philopatry traits 
+, the philopatry traits 
 \begin_inset Formula $d_{\mathrm{f}}$
 \end_inset
 
@@ -581,7 +581,11 @@ We then calculate the selection gradients in the sex allocation loci
 \begin_inset Formula $d_{\mathrm{m}}$
 \end_inset
 
- as follows:
+ and 
+\end_layout
+
+\begin_layout Section
+Results
 \end_layout
 
 \begin_layout Standard

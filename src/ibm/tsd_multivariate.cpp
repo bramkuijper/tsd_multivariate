@@ -799,6 +799,7 @@ void environmental_perturbation()
 // the main part of the code
 int main(int argc, char **argv)
 {
+    // initialize parameters from command-line args
     init_pars_from_cmd(argc, argv);
     // ok parameters initialized, now lets do some work
 

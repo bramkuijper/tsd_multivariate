@@ -89,7 +89,9 @@ the.summ <- read_delim(
 
 # now get all the data from the individual simulations
 dat_all <- get_sims(the.summ) %>% mutate(
-        unique_id_f = as_factor(unique_id)) %>% arrange(generation)
+        unique_id_f = as_factor(unique_id)
+        ,df = d1
+        ,dm = d2) %>% arrange(generation)
 
 mean.w <- mean(dat_all$wbar)
 sd.w <- sd(dat_all$wbar)
@@ -100,7 +102,6 @@ dat_all <- mutate(dat_all
         )
 
 dat_tsd_only <- filter(dat_all, mu_df == 0 & mu_sr > 0 & mu_b == 0)
-
 
 ############### the actual plots ###############
 w_range <- c(-5,1.5)
@@ -118,7 +119,7 @@ tsd_only_w <- ggplot(data = dat_tsd_only,
 
 # sex ratio data
 dat_tsd_only_long <- pivot_longer(dat_tsd_only
-        ,cols=c("sr1","sr2","b")
+        ,cols=c("sr1","sr2","b","df","dm")
         ,names_to="trait"
         ,values_to="trait_value")
 
@@ -135,8 +136,7 @@ tsd_only_sr <- ggplot(data=dat_tsd_only_long,
 
 ############# burrowing #############
 
-dat_tsd_burrowing <- filter(
-        dat_all,mu_df == 0 & mu_sr > 0 & mu_b > 0)
+dat_tsd_burrowing <- filter(dat_all,mu_df == 0 & mu_sr > 0 & mu_b > 0)
 
 tsd_burrowing_w <- ggplot(data = dat_tsd_burrowing,
         mapping = aes(x=generation
@@ -150,7 +150,7 @@ tsd_burrowing_w <- ggplot(data = dat_tsd_burrowing,
 
 # sex ratio data
 dat_tsd_burrowing_long <- pivot_longer(dat_tsd_burrowing
-        ,cols=c("sr1","sr2","b")
+        ,cols=c("sr1","sr2","b","df","dm")
         ,names_to="trait"
         ,values_to="trait_value")
 
@@ -166,8 +166,7 @@ tsd_burrowing_sr <- ggplot(data=dat_tsd_burrowing_long,
 
 ############# dispersal #############
 
-dat_tsd_dispersal <- filter(
-        dat_all,mu_df > 0 & mu_sr > 0 & mu_b == 0)
+dat_tsd_dispersal <- filter(dat_all,mu_df > 0 & mu_sr > 0 & mu_b == 0)
 
 tsd_dispersal_w <- ggplot(data = dat_tsd_dispersal,
         mapping = aes(x=generation
@@ -181,7 +180,7 @@ tsd_dispersal_w <- ggplot(data = dat_tsd_dispersal,
 
 # sex ratio data
 dat_tsd_dispersal_long <- pivot_longer(dat_tsd_dispersal
-        ,cols=c("sr1","sr2","b")
+        ,cols=c("sr1","sr2","b","df","dm")
         ,names_to="trait"
         ,values_to="trait_value")
 
