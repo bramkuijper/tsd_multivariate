@@ -73,8 +73,6 @@ void TSDSeasonal::reproduce()
             patch_iter != metapopulation.end();
             ++patch_iter)
     {
-
-
     }
 } // end reproduce()
 
