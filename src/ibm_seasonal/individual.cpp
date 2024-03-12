@@ -3,7 +3,8 @@
 #include "individual.hpp"
 #include "parameters.hpp"
 
-Individual::Individual(double const init_z, int const init_t) :
+Individual::Individual(bool const is_female, double const init_z, int const init_t) :
+    is_female{is_female},
     z{init_z},
     t{init_t}
 {
@@ -11,6 +12,7 @@ Individual::Individual(double const init_z, int const init_t) :
 
 // copy constructor
 Individual::Individual(Individual const &other) :
+    is_female{other.is_female},
     z{other.z},
     t{other.t}
 {
@@ -21,7 +23,8 @@ Individual::Individual(Individual const &other) :
 Individual::Individual(Individual const &mom,
         Individual const &dad,
         Parameters const &par,
-        std::mt19937 &rng_r)
+        std::mt19937 &rng_r) :
+    is_female{true} // by default individual is female until sex is determined
 {
     std::uniform_real_distribution uniform{0.0,1.0};
 
@@ -49,13 +52,14 @@ Individual::Individual(Individual const &mom,
 
         t += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
     
-        t = std::clamp(t,0,max_t);
+        t = std::clamp(t,0,par.max_threshold);
     }
 } // end birth constructor
 
 // assignment operator
 void Individual::operator=(Individual const &other)
 {
+    is_female = other.is_female;
     z = other.z;
     t = other.t;
 }

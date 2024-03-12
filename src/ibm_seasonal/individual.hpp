@@ -8,10 +8,11 @@ class Individual
 {
 
     public:
+        bool is_female{true};
         double z{0.0};
         int t{1};
 
-        Individual(double const z, int const t);
+        Individual(bool const is_female, double const z, int const t);
         Individual(Individual const &other);
 
         Individual(Individual const &mom, 

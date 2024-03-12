@@ -3,15 +3,18 @@
 
 #include <vector>
 #include "individual.hpp"
+#include "parameters.hpp"
 
 class Patch
 {
-    std::vector <Individual> females{};
-    std::vector <Individual> males{};
-    std::vector <Individual> juveniles{};
 
     public: 
-        Patch();
+        std::vector <Individual> females{};
+        std::vector <Individual> female_survivors{};
+        std::vector <Individual> males{};
+        std::vector <Individual> male_survivors{};
+        std::vector <Individual> juveniles{};
+        Patch(Parameters const &par);
 
 
 };
