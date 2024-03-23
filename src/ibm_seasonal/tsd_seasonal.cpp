@@ -51,6 +51,9 @@ void TSDSeasonal::survive()
         int n_female_survivors = female_survivor_sampler(rng_r);
         int n_male_survivors = male_survivor_sampler(rng_r);
 
+        assert(patch_iter->females.size() == par.n[female];
+        assert(patch_iter->males.size() == par.n[male];
+
         // sample surviving f and put them into female survivors
         std::sample(patch_iter->females.begin(), 
                 patch_iter->females.end(),
@@ -69,10 +72,24 @@ void TSDSeasonal::survive()
 
 void TSDSeasonal::reproduce()
 {
+    int n_vacancies[2];
+
+    // go through all survivors and have them make offspring
     for (std::vector<Patch>::iterator patch_iter = metapopulation.begin();
             patch_iter != metapopulation.end();
             ++patch_iter)
     {
+        n_vacancies[female] = patch_iter->females.size() - 
+            patch_iter->female_survivors.size();
+
+        n_vacancies[male] = patch_iter->males.size() - 
+            patch_iter->male_survivors.size();
+
+        // let's go and make females
+        if ()
+        {
+            // 
+        }
     }
 } // end reproduce()
 
