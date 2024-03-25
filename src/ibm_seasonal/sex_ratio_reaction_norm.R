@@ -21,9 +21,32 @@ ggplot(data=df_data,
 temp <- seq(-1,1,0.01)
 
 tf_opt <- -0.1
+tm_opt <- 0.0
 omega_f <- 0.1
+omega_m <- 0.1
 
 # survival on females
-psurv <- exp(-.5 * (tf_opt - temp)^2/omega_f)
+psurv <- function(t_opt, omega, t)
+{
+    exp(-.5 * (t_opt - t)^2/omega)
+}
 
-df_surv <- 
+df_surv <- data.frame(temp = temp, 
+                      psurvf = psurv(t_opt = tf_opt,
+                                     omega = omega_f,
+                                     t = temp),
+                      psurvm = psurv(t_opt = tm_opt,
+                                     omega = omega_m,
+                                     t = temp)
+)
+
+df_surv_l <- pivot_longer(data = df_surv,
+                          cols=c(psurvf,psurvm),
+                          names_to="Sex",
+                          values_to="Survival"
+                          )
+                      
+ggplot(data=df_surv_l,
+       mapping=aes(x=temp, y = psurv)) +
+    geom_line() +
+    theme_classic()
