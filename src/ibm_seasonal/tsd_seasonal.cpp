@@ -22,8 +22,14 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
         survive();
         reproduce();
         replace();
+        update_environment();
     }
 } // end constructor
+
+void TSDSeasonal::update_environment()
+{
+    temperature = params.temperature_amplitude * sin(time_step * params.frequency)
+}
 
 void TSDSeasonal::survive()
 {
@@ -70,27 +76,62 @@ void TSDSeasonal::survive()
     }
 } // end survive()
 
+
+// calculate fecundity for a given female
+int TSDSeasonal::calculate_fecundity(Individual &mother)
+{
+    double resources_to_current_effort = mother.effort_per_timestep;
+
+    // if too few resources left to make a full clutch, use a fraction of resources
+    if (resources_to_current_effort > mother.resources)
+    {
+        resources_to_current_effort = mother.resources;
+
+        mother.resources = 0.0;
+    }
+    else
+    {
+        mother.resources -= resources_to_current_effort;
+        assert(mother.resources >= 0.0);
+        assert(mother.resources < params.init_resources);
+    }
+
+    n_eggs = std::floor(resources_to_current_effort);
+
+    // stochastic rounding, if effort_per_timestep = 5.3
+    // then we have 5 eggs + 0.3 prob of having another
+    if (uniform(rng_r) < resources_to_current_effort - n_eggs)
+    {
+        ++n_eggs;
+    }
+
+    return(n_eggs);
+} // end calculate_fecundity
+
 void TSDSeasonal::reproduce()
 {
-    int n_vacancies[2];
-
-    // go through all survivors and have them make offspring
-    for (std::vector<Patch>::iterator patch_iter = metapopulation.begin();
-            patch_iter != metapopulation.end();
-            ++patch_iter)
+    // go through all survivors and assess whether they are breeding
+    for (int patch_idx = 0;
+            patch_idx < metapopulation.size();
+            ++patch_idx)
     {
-        n_vacancies[female] = patch_iter->females.size() - 
-            patch_iter->female_survivors.size();
-
-        n_vacancies[male] = patch_iter->males.size() - 
-            patch_iter->male_survivors.size();
-
-        // let's go and make females
-        if ()
+        for (int female_survivor_idx = 0; 
+                metapopulation[patch_idx].female_survivors.size();
+                ++female_survivor_idx)
         {
-            // 
-        }
-    }
+            assert(metapopulation[patch_idx].
+                    female_survivors[female_survivor_idx].is_female);
+            // ok 
+            if (metapopulation[patch_idx].
+                    female_survivors[female_survivor_idx].t % timestep == 0)
+            {
+                // fecundity
+                n_eggs = calculate_fecundity(female_survivors[female_survivor_idx]);
+
+
+            }
+        } // end for female_idx
+    } // end for patch_idx
 } // end reproduce()
 
 void TSDSeasonal::replace()

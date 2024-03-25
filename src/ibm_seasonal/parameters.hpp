@@ -21,23 +21,28 @@ class Parameters
 
         double freq{0.05};
 
-        // reproductive resources allocated when reproducing
-        double resources{30};
-        
         // timing value where t % timing == 0 determines breeding
         int init_timing{1};
 
-        // max threshold
+        double init_resources{10};
+
+        double init_effort_per_timestep{2.0};
+
+        // max value of the sex allocation threshold
         int max_threshold{20};
+
         unsigned max_time{100};
 
-        // initial threshold 
+        // initial sex allocation threshold 
         double init_z{0.5};
 
         double mu_z{0.02};
         double mu_t{0.05};
         double unif_range_sdmu_t{2.0};
         double sdmu_z{0.01};
+
+        double temperature_amplitude{1.0};
+        double frequency{1.0};
 
         std::string file_name{"sim_tsd_seasonal"};
 };

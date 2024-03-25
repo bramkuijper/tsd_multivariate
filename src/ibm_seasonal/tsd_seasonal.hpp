@@ -21,6 +21,9 @@ class TSDSeasonal
         std::uniform_int_distribution<int> male_sampler;
 
         long unsigned time_step{0};
+
+        double temperature{0.0};
+
         std::random_device rd;
         unsigned int seed;
         std::mt19937 rng_r;
@@ -30,10 +33,17 @@ class TSDSeasonal
         void survive();
         void reproduce();
         void replace();
+
         void write_data_headers();
         void write_data();
         void write_parameters();
 
+        // update the state of the environment
+        void update_environment();
+
+        // calculate fecundity of an individual
+        // and update resource levels
+        int calculate_fecundity(Individual &mother)
     public:
         TSDSeasonal(Parameters const &par);
 
