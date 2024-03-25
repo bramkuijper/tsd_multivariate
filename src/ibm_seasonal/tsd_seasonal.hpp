@@ -43,7 +43,7 @@ class TSDSeasonal
 
         // calculate fecundity of an individual
         // and update resource levels
-        int calculate_fecundity(Individual &mother)
+        int calculate_fecundity(Individual &mother);
     public:
         TSDSeasonal(Parameters const &par);
 

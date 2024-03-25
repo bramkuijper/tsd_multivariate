@@ -22,7 +22,7 @@ class Parameters
         double freq{0.05};
 
         // timing value where t % timing == 0 determines breeding
-        int init_timing{1};
+        int init_t{1};
 
         double init_resources{10};
 
@@ -37,10 +37,12 @@ class Parameters
         double init_z{0.5};
 
         double mu_z{0.02};
+        double mu_effort_per_timestep{0.02};
         double mu_t{0.05};
         double unif_range_sdmu_t{2.0};
-        double sdmu_z{0.01};
+        double sdmu{0.02};
 
+        // temperature sinusoidal
         double temperature_amplitude{1.0};
         double frequency{1.0};
 
