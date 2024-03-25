@@ -13,7 +13,8 @@ class Patch
         std::vector <Individual> female_survivors{};
         std::vector <Individual> males{};
         std::vector <Individual> male_survivors{};
-        std::vector <Individual> juveniles{};
+        std::vector <Individual> juvenile_females{};
+        std::vector <Individual> juvenile_males{};
         Patch(Parameters const &par);
 
 

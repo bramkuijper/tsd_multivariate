@@ -28,7 +28,11 @@ class TSDSeasonal
         unsigned int seed;
         std::mt19937 rng_r;
 
+        // all the patches of the metapopoulation
         std::vector<Patch> metapopulation;
+
+        // total productivity for males and females
+        int global_productivity[2]{0,0};
 
         void survive();
         void reproduce();

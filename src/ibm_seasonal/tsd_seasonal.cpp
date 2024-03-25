@@ -115,13 +115,19 @@ void TSDSeasonal::reproduce()
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
 
+    global_productivity[Male] = 0;
+    global_productivity[Female] = 0;
+
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
         available_local_males.clear();
-        juveniles.clear();
+
+        // clear male and female juvs
+        juvenile_females.clear();
+        juvenile_males.clear();
         
         for (unsigned int male_survivor_idx = 0; 
                 metapopulation[patch_idx].male_survivors.size();
@@ -145,7 +151,8 @@ void TSDSeasonal::reproduce()
                 available_local_males.end(),
                 rng_r);
 
-
+        // now go through all females and make offspring if 
+        // season is alright
         for (unsigned int female_survivor_idx = 0; 
                 metapopulation[patch_idx].female_survivors.size();
                 ++female_survivor_idx)
@@ -177,18 +184,53 @@ void TSDSeasonal::reproduce()
                                 par,
                                 rng_r);
 
+                    // calculate individual SR
                     p_female = Kid.determine_sex(environment);
 
+                    // realise sex determination
                     Kid.is_female = uniform(rng_r) < p_female;
 
-                    if (uniform(rng_r) < 
-                            calculate_survival(Kid.is_female ? female : male))
+                    // survive and add to pool of juveniles
+                    if (Kid.is_female)
                     {
-                        juveniles.push_back(Kid);
+                        if (uniform(rng_r) < 
+                                calculate_survival(female))
+                        {
+                            juvenile_females.push_back(Kid);
+                        }
+                    }
+                    else
+                    {
+                        if (uniform(rng_r) < 
+                                calculate_survival(male))
+                        {
+                            juvenile_males.push_back(Kid);
+                        }
                     }
                 } // end for()
             } // end if
         } // end for female_idx
+
+        // shuffle the vectors
+        std::shuffle(
+                metapopulation[patch_idx].juvenile_females.begin(),
+                    metapopulation[patch_idx].juvenile_females.end(),
+                    rng_r
+                    );
+
+        std::shuffle(
+                metapopulation[patch_idx].juvenile_males.begin(),
+                    metapopulation[patch_idx].juvenile_males.end(),
+                    rng_r
+                    );
+
+        // add this to calculation of global productivity
+        // which is needed to calculate dispersal
+        global_productivity[Male] += 
+            metapopulation[patch_idx].juvenile_males.size(),
+
+        global_productivity[Female] += 
+            metapopulation[patch_idx].juvenile_females.size(),
     } // end for patch_idx
 } // end reproduce()
 
@@ -199,6 +241,8 @@ bool TSDSeasonal::calculate_survival(Sex const the_sex)
                 (par.t_opt[the_sex] - temperature) / par.omega_t[the_sex]));
 } // end calculate_survival
 
+
+// replace vacancies with newborn juveniles
 void TSDSeasonal::replace()
 {
     // go through all survivors and assess whether they are breeding
@@ -206,18 +250,30 @@ void TSDSeasonal::replace()
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
-        n_vacant_f = metapopulation[patch_idx].female_survivors();
-        n_vacant_m = metapopulation[patch_idx].male_survivors();
+        n_vacant_f = par.n[f] - metapopulation[patch_idx].female_survivors();
+        n_vacant_m = par.n[m] - metapopulation[patch_idx].male_survivors();
 
-        for (unsigned int juvenile_idx = 0; 
-                metapopulation[patch_idx].juveniles.size();
-                ++juvenile_idx)
+        for (int replace_idx = 0; 
+                replace_idx < n_vacancies;
+                ++replace_idx)
         {
-            if (metapopulation[patch_idx].juveniles[juvenile_idx].is_female
-                    && )
+            if (metapopulation[patch_idx].juveniles.size() == 0)
+            {
+                break;
+            }
+
+            if (metapopulation[patch_idx].juveniles.back().is_female())
             {
                 metapopulation[patch_idx].female_survivors.append(
+                        metapopulation[patch_idx].juveniles.back());
             }
-        }
-    }
+            else
+            {
+                metapopulation[patch_idx].male_survivors.append(
+                        metapopulation[patch_idx].juveniles.back()
+                        );
+            }
+            metapopulation[patch_idx].juveniles.pop_back();
+        } // end replace_idx
+    } // end for patch_idx
 } // end replace()
