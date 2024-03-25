@@ -18,6 +18,8 @@ class Parameters
         double d[2]{.5,.5};
         double survival_prob[2]{.5,.5};
 
+        double t_opt[2]{-0.1,0.0};
+        double omega_t[2]{0.1,0.1};
 
         double freq{0.05};
 

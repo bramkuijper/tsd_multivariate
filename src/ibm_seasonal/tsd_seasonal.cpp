@@ -121,6 +121,7 @@ void TSDSeasonal::reproduce()
             ++patch_idx)
     {
         available_local_males.clear();
+        juveniles.clear();
         
         for (unsigned int male_survivor_idx = 0; 
                 metapopulation[patch_idx].male_survivors.size();
@@ -180,6 +181,11 @@ void TSDSeasonal::reproduce()
 
                     Kid.is_female = uniform(rng_r) < p_female;
 
+                    if (uniform(rng_r) < 
+                            calculate_survival(Kid.is_female ? female : male))
+                    {
+                        juveniles.push_back(Kid);
+                    }
                 } // end for()
             } // end if
         } // end for female_idx
@@ -187,11 +193,31 @@ void TSDSeasonal::reproduce()
 } // end reproduce()
 
 // calculate survival
-double TSDSeasonal::calculate_survival(enum const Sex)
+bool TSDSeasonal::calculate_survival(Sex const the_sex)
 {
-    ;:
-}
+    return(std::exp(-0.5 * (par.t_opt[the_sex] - temperature) * 
+                (par.t_opt[the_sex] - temperature) / par.omega_t[the_sex]));
+} // end calculate_survival
 
 void TSDSeasonal::replace()
 {
-}
+    // go through all survivors and assess whether they are breeding
+    for (unsigned int patch_idx = 0;
+            patch_idx < metapopulation.size();
+            ++patch_idx)
+    {
+        n_vacant_f = metapopulation[patch_idx].female_survivors();
+        n_vacant_m = metapopulation[patch_idx].male_survivors();
+
+        for (unsigned int juvenile_idx = 0; 
+                metapopulation[patch_idx].juveniles.size();
+                ++juvenile_idx)
+        {
+            if (metapopulation[patch_idx].juveniles[juvenile_idx].is_female
+                    && )
+            {
+                metapopulation[patch_idx].female_survivors.append(
+            }
+        }
+    }
+} // end replace()
