@@ -27,12 +27,13 @@ class Parameters
 
         // timing value where t % timing == 0 determines breeding
         int init_t{1};
+        int max_t{20};
 
         double init_resources{10};
 
         double init_effort_per_timestep{0.1};
 
-        int max_time{100};
+        long unsigned max_simulation_time{100};
 
         // initial sex allocation threshold 
         double init_a{0.0};

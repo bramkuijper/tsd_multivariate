@@ -1,4 +1,5 @@
 #include <cassert>
+#include <stdexcept>
 #include <vector>
 #include <cmath>
 #include "tsd_seasonal.hpp"
@@ -9,17 +10,14 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     par{par},
     data_file{par.file_name},
     uniform{0.0,1.0},
-    patch_sampler{0, static_cast<int>(par.npatches) - 1},
-    female_sampler{0, static_cast<int>(par.n[female]) - 1},
-    male_sampler{0, static_cast<int>(par.n[male]) - 1},
     rd{},
     seed{rd()},
     rng_r{seed},
-    metapopulation(500,Patch(par))
+    metapopulation(par.npatches,Patch(par))
 {
     // now run the simulation
     for (time_step = 0; 
-            time_step < par.max_time; ++time_step)
+            time_step < par.max_simulation_time; ++time_step)
     {
         // mortality 
         survive();
@@ -39,16 +37,6 @@ void TSDSeasonal::survive()
     // dist to sample number of female survivors
     // this could be in constructor but putting it here now 
     // as things could potentially depend on local envt
-    std::binomial_distribution<unsigned> 
-        female_survivor_sampler(
-                par.n[female], 
-                par.survival_prob[female]);
-    
-    std::binomial_distribution<unsigned> 
-        male_survivor_sampler(
-                par.n[male], 
-                par.survival_prob[male]);
-
     for (std::vector<Patch>::iterator patch_iter = metapopulation.begin();
             patch_iter != metapopulation.end();
             ++patch_iter)
@@ -56,12 +44,20 @@ void TSDSeasonal::survive()
         patch_iter->female_survivors.clear();
         patch_iter->male_survivors.clear();
 
+        std::binomial_distribution<unsigned> 
+            female_survivor_sampler(
+                    patch_iter->females.size(),
+                    par.survival_prob[female]);
+        
+        std::binomial_distribution<unsigned> 
+            male_survivor_sampler(
+                    patch_iter->males.size(),
+                    par.survival_prob[male]);
+
+
         // get number of female survivors
         int n_female_survivors = female_survivor_sampler(rng_r);
         int n_male_survivors = male_survivor_sampler(rng_r);
-
-        assert(patch_iter->females.size() == par.n[female]);
-        assert(patch_iter->males.size() == par.n[male]);
 
         // sample surviving f and put them into female survivors
         std::sample(patch_iter->females.begin(), 
@@ -114,9 +110,7 @@ void TSDSeasonal::reproduce()
 
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
-
-    global_productivity = 0;
-
+    
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
             patch_idx < metapopulation.size();
@@ -124,8 +118,8 @@ void TSDSeasonal::reproduce()
     {
         available_local_males.clear();
 
-        // clear male and female juvs
-        juveniles.clear();
+        metapopulation[patch_idx].male_juveniles.clear();
+        metapopulation[patch_idx].female_juveniles.clear();
         
         for (unsigned int male_survivor_idx = 0; 
                 metapopulation[patch_idx].male_survivors.size();
@@ -183,7 +177,7 @@ void TSDSeasonal::reproduce()
                                 rng_r);
 
                     // calculate individual SR
-                    double p_female = Kid.determine_sex(environment);
+                    double p_female = Kid.determine_sex(temperature);
 
                     // realise sex determination
                     Kid.is_female = uniform(rng_r) < p_female;
@@ -194,7 +188,7 @@ void TSDSeasonal::reproduce()
                         if (uniform(rng_r) < 
                                 calculate_survival(female))
                         {
-                            juvenile_females.push_back(Kid);
+                            metapopulation[patch_idx].female_juveniles.push_back(Kid);
                         }
                     }
                     else
@@ -202,27 +196,69 @@ void TSDSeasonal::reproduce()
                         if (uniform(rng_r) < 
                                 calculate_survival(male))
                         {
-                            juvenile_males.push_back(Kid);
+                            metapopulation[patch_idx].male_juveniles.push_back(Kid);
                         }
                     }
                 } // end for()
             } // end if
         } // end for female_idx
 
-        // shuffle the vectors
-        std::shuffle(
-                metapopulation[patch_idx].juveniles.begin(),
-                    metapopulation[patch_idx].juveniles.end(),
-                    rng_r
-                    );
-
-        // add this to calculation of global productivity
-        // which is needed to calculate dispersal
-        global_productivity += 
-            metapopulation[patch_idx].juveniles.size();
-
     } // end for patch_idx
 } // end reproduce()
+
+
+void TSDSeasonal::calculate_patch_productivities()
+{
+    // vectors to store all local productivities
+    // of males and females, allowing us to make 
+    // a productivity distribution
+    std::vector<int> local_productivity_male{};
+    std::vector<int> local_productivity_female{};
+     
+    // reset sum of all productivities to 0
+    global_productivity[male] = 0;
+    global_productivity[female] = 0;
+
+    int njuv_males,njuv_females;
+
+    // go through all survivors and assess whether they are breeding
+    for (unsigned int patch_idx = 0;
+            patch_idx < metapopulation.size();
+            ++patch_idx)
+    {
+        njuv_males = metapopulation[patch_idx].male_juveniles.size();
+        njuv_females = metapopulation[patch_idx].female_juveniles.size();
+
+        local_productivity_male.push_back(njuv_males);
+        local_productivity_female.push_back(njuv_females);
+        
+        // add this to calculation of global productivity
+        // which is needed to calculate dispersal
+        global_productivity[male] += njuv_males;
+
+        global_productivity[female] += njuv_females;
+    }// end for patch_idx
+
+
+    // now update the distribution of patch productivities
+    // which is used for remote sampling
+    std::discrete_distribution<unsigned>::param_type 
+        distribution_param_juvs_m(
+                local_productivity_male.begin(),
+                local_productivity_male.end());
+
+    std::discrete_distribution<unsigned>::param_type 
+        distribution_param_juvs_f(
+                local_productivity_female.begin(),
+                local_productivity_female.end()
+                );
+
+    productivity_distribution_f.param(distribution_param_juvs_f);
+    productivity_distribution_m.param(distribution_param_juvs_m);
+
+
+} // end calculate_patch_productivities
+
 
 // calculate survival
 bool TSDSeasonal::calculate_survival(Sex const the_sex)
@@ -231,12 +267,27 @@ bool TSDSeasonal::calculate_survival(Sex const the_sex)
                 (par.t_opt[the_sex] - temperature) / par.omega_t[the_sex]));
 } // end calculate_survival
 
+// add juvenile to stack of survivors
+void TSDSeasonal::add_juv_to_survivors(std::vector<Individual> &from,
+        std::vector<Individual> &to)
+{
+    assert(from.size() > 0);
+
+    // sample from the local juveniles
+    std::sample(from.begin(), 
+            from.end(),
+            std::back_inserter(to),
+            1,
+            rng_r);
+} // end add_juv_to_survivors()
 
 // replace vacancies with newborn juveniles
 void TSDSeasonal::replace()
 {
-    int n_vacancies;
+    unsigned n_vacancies;
 
+    unsigned event_idx, patch_origin;
+    
     std::vector<double> probabilities{};
 
     // go through all survivors and assess whether they are breeding
@@ -244,52 +295,116 @@ void TSDSeasonal::replace()
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
+
+        // event 0: sample local male
+        probabilities.push_back(
+                (1.0 - par.d[male]) * metapopulation[patch_idx].
+                male_juveniles.size());
+
+        // event 1: sample dispersing male
+        probabilities.push_back(
+                par.d[male] * 
+                    static_cast<double>(
+                        global_productivity[male]) / par.npatches);
+
+        // event 2: sample philopatric female
+        probabilities.push_back(
+                (1.0 - par.d[female]) * metapopulation[patch_idx].
+                    female_juveniles.size());
+
+        // event 3: sample dispersing female
+        probabilities.push_back(
+                par.d[female] * 
+                    static_cast<double>(
+                        global_productivity[female]) / par.npatches);
+
+        // make a discrete distribution of the different 
+        // events that can take place
+        std::discrete_distribution<unsigned> recruitment_event(
+                probabilities.begin(), probabilities.end());
+
         // calculate number of vacancies
-        n_vacancies = par.n - etapopulation[patch_idx].
-            juveniles_f.size() - metapopulation[patch_idx].juveniles_m.size();
+        n_vacancies = par.n - metapopulation[patch_idx].
+            female_juveniles.size() - metapopulation[patch_idx].male_juveniles.size();
 
-        // event 1: sample local male
-        probabilities.push_back(
-                (1.0 - d[male]) * metapopulation[patch_idx].
-                juvenile_males.size());
+        assert(n_vacancies <= par.n);
+        assert(n_vacancies >= 0);
 
-        // event 2: sample dispersing male
-        probabilities.push_back(
-                d[male] * productivity[male] / par.npatches);
-
-        // event 3: sample philopatric female
-        probabilities.push_back((1.0 - d[female]) * metapopulation[patch_idx].
-                juvenile_females.size());
-
-        // event 4: sample dispersing female
-        probabilities.push_back(d[female] * productivity[female] / par.npatches);
-
-        std::discrete_distribution(probabilities.begin(), probabilities.end());
-
-        for (int replace_idx = 0; 
+        // replace juveniles
+        for (unsigned int replace_idx = 0; 
                 replace_idx < n_vacancies;
                 ++replace_idx)
         {
+            event_idx = recruitment_event(rng_r);
 
-            if (metapopulation[patch_idx].juveniles.size() == 0)
+            switch(event_idx)
             {
-                break;
-            }
+                case 0: // recruit local male
+                    {
+                        patch_origin = patch_idx;
 
-            if (metapopulation[patch_idx].juveniles.back().is_female)
-            {
-                metapopulation[patch_idx].female_survivors.push_back(
-                        metapopulation[patch_idx].juveniles.back());
-            }
-            else
-            {
-                metapopulation[patch_idx].male_survivors.push_back(
-                        metapopulation[patch_idx].juveniles.back()
-                        );
-            }
+                        unsigned int sizet0 = metapopulation[patch_idx].male_survivors.size();
 
-            metapopulation[patch_idx].juveniles.pop_back();
+                        add_juv_to_survivors(
+                            metapopulation[patch_origin].male_juveniles,
+                            metapopulation[patch_idx].male_survivors);
+
+                        assert(metapopulation[patch_idx].male_survivors.size() == sizet0 + 1);
+                    }
+                    break;
+                    
+                case 1:  // recruit remote male
+                    {
+                        patch_origin = productivity_distribution_m(rng_r); 
+                        
+                        unsigned int sizet0 = metapopulation[patch_idx].male_survivors.size();
+
+                        add_juv_to_survivors(
+                            metapopulation[patch_origin].male_juveniles,
+                            metapopulation[patch_idx].male_survivors);
+
+                        assert(metapopulation[patch_idx].male_survivors.size() == sizet0 + 1);
+                    }
+                    break;
+                
+                case 2: // recruit local female
+                    {
+                        patch_origin = patch_idx;
+
+                        unsigned int sizet0 = metapopulation[patch_idx].female_survivors.size();
+
+                        add_juv_to_survivors(
+                            metapopulation[patch_origin].female_juveniles,
+                            metapopulation[patch_idx].female_survivors);
+
+                        assert(metapopulation[patch_idx].female_survivors.size() == sizet0 + 1);
+                    }
+                    break;
+
+                case 3: // recruit remote female
+                    {
+                        patch_origin = productivity_distribution_f(rng_r); 
+                        
+                        unsigned int sizet0 = metapopulation[patch_idx].female_survivors.size();
+
+                        add_juv_to_survivors(
+                            metapopulation[patch_origin].female_juveniles,
+                            metapopulation[patch_idx].female_survivors);
+
+                        assert(metapopulation[patch_idx].female_survivors.size() == sizet0 + 1);
+                    }
+                    break;
+
+                default:
+                    throw std::runtime_error("juvenile sampler event out of bounds.");
+                    break;
+            } // end switch;
+
         } // end replace_idx
+
+        metapopulation[patch_idx].females = metapopulation[patch_idx].female_survivors;
+        metapopulation[patch_idx].males = metapopulation[patch_idx].male_survivors;
+
     } // end for patch_idx
 } // end replace()
 
@@ -308,7 +423,7 @@ void TSDSeasonal::write_parameters()
         << "omegaf;" << par.omega_t[female] << std::endl
         << "omegam;" << par.omega_t[male] << std::endl
         << "frequency;" << par.frequency << std::endl
-        << "amplitude;" << par.temperature_amplitude << std::endl
+        << "amplitude;" << par.amplitude << std::endl
         << "init_t;" << par.init_t << std::endl
         << "init_resources;" << par.init_resources << std::endl
         << "init_effort_per_timestep;" << par.init_effort_per_timestep << std::endl

@@ -16,9 +16,11 @@ class TSDSeasonal
         std::ofstream data_file;
 
         std::uniform_real_distribution<double> uniform;
-        std::uniform_int_distribution<int> patch_sampler;
-        std::uniform_int_distribution<int> female_sampler;
-        std::uniform_int_distribution<int> male_sampler;
+        
+        // productivity distributions for females and males, 
+        // initialized with some dummy values
+        std::discrete_distribution<unsigned> productivity_distribution_f{1,1};
+        std::discrete_distribution<unsigned> productivity_distribution_m{1,1};
 
         long unsigned time_step{0};
 
@@ -50,6 +52,11 @@ class TSDSeasonal
         int calculate_fecundity(Individual &mother);
 
         bool calculate_survival(Sex const the_sex);
+
+        void calculate_patch_productivities();
+
+        void add_juv_to_survivors(std::vector<Individual> &from,
+                std::vector<Individual> &to);
 
     public:
         TSDSeasonal(Parameters const &par);
