@@ -47,6 +47,7 @@ df_surv_l <- pivot_longer(data = df_surv,
                           )
                       
 ggplot(data=df_surv_l,
-       mapping=aes(x=temp, y = psurv)) +
-    geom_line() +
-    theme_classic()
+       mapping=aes(x=temp, y = Survival)) +
+    geom_line(mapping = aes(colour = Sex)) +
+    theme_classic() +
+    scale_colour_brewer(palette="Set1")
