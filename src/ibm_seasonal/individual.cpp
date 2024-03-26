@@ -69,7 +69,7 @@ Individual::Individual(Individual const &mom,
 
         t += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
     
-        t = std::clamp(t,0,par.max_t);
+        t = std::clamp(t,1,par.max_t);
     }
 
 

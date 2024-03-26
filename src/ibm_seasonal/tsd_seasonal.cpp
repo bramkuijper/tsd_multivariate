@@ -618,6 +618,8 @@ void TSDSeasonal::write_data()
         var_resources << ";" <<
         global_juv_sr_after_survival << ";" << 
         adult_sr << ";" << 
+        static_cast<double>(nf)/par.npatches  << ";" << 
+        static_cast<double>(nm)/par.npatches  << ";" << 
         temperature << ";" <<
         std::endl;
 
@@ -625,6 +627,6 @@ void TSDSeasonal::write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;effort;var_effort;resources;var_resources;juv_sr;adult_sr;environment;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;effort;var_effort;resources;var_resources;juv_sr;adult_sr;nf;nm;environment;" 
         << std::endl;
 } // write_headers()

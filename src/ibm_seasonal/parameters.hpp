@@ -12,7 +12,7 @@ enum Sex
 class Parameters
 {
     public:
-        unsigned npatches{100};
+        unsigned npatches{250};
         unsigned n{10};
 
         double d[2]{.5,.5};

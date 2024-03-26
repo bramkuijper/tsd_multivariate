@@ -6,7 +6,7 @@ p_female <- function(a,b) {
     return(1.0 / (1.0 + exp(-(a + b*temp))))
 }
 
-p_female_x <- p_female(a=0,b=1.0)
+p_female_x <- p_female(a=3,b=0.3)
 
 df_data <- data.frame(temp=temp, pfem = p_female_x)
 

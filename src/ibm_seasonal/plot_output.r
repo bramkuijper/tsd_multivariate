@@ -74,6 +74,10 @@ jsonstuff <- '[
     },
     {
         "xvar" : "time",
+        "yvar" : ["nf","nm"]
+    },
+    {
+        "xvar" : "time",
         "yvar" : "environment"
     }
 ]
@@ -101,6 +105,18 @@ data.tibble <- read_delim(file=file.name
         ,delim=";"
         ,n_max=param.line-1
         ,col_names=T)
+
+# get the parameters
+data.tibble.params <- read_delim(file=file.name
+        ,delim=";"
+        ,skip=param.line
+        ,col_names=c("name","value")
+        )
+
+# transpose the tibble with the parameters
+params <- data.tibble.params %>% pivot_wider(
+        names_from = name
+        ,values_from = value)
 
 plot.structure <- fromJSON(jsonstuff, simplifyVector = F)
 
@@ -172,7 +188,16 @@ for (plot_struct_idx in 1:plot.structure.l)
     plot.list.idx <- plot.list.idx + 1
 }
 
-wrap_plots(plot.list,ncol=1)
+title <- ""
+
+if (exists("params"))
+{
+    title <- paste0(
+            "survival: ",params["sf"],", freq: ",params["frequency"],", toptf: ",params["toptf"])
+}
+
+wrap_plots(plot.list,ncol=1) + plot_annotation(
+        title=title)
 
 file.name <- paste0("graph_",basename(file.name),".pdf")
 
