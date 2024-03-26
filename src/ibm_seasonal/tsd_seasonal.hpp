@@ -35,12 +35,13 @@ class TSDSeasonal
 
         // total productivity for males and females
         int global_productivity[2]{0,0};
+        unsigned int survivors[2]{0,0};
 
         void survive();
         void reproduce();
         void replace();
 
-        void write_data_headers();
+        void write_headers();
         void write_data();
         void write_parameters();
 

@@ -15,16 +15,26 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     rng_r{seed},
     metapopulation(par.npatches,Patch(par))
 {
+    write_headers();
+
     // now run the simulation
-    for (time_step = 0; 
+    for (time_step = 1; 
             time_step < par.max_simulation_time; ++time_step)
     {
+        std::cout << "time: " << time_step << std::endl;
         // mortality 
         survive();
         reproduce();
         replace();
         update_environment();
+    
+        if (time_step % par.skip_output == 0)
+        {
+            write_data();
+        }
     }
+
+    write_parameters();
 } // end constructor
 
 void TSDSeasonal::update_environment()
@@ -122,7 +132,7 @@ void TSDSeasonal::reproduce()
         metapopulation[patch_idx].female_juveniles.clear();
         
         for (unsigned int male_survivor_idx = 0; 
-                metapopulation[patch_idx].male_survivors.size();
+                male_survivor_idx < metapopulation[patch_idx].male_survivors.size();
                 ++male_survivor_idx)
         {
             if (metapopulation[patch_idx].
@@ -146,7 +156,7 @@ void TSDSeasonal::reproduce()
         // now go through all females and make offspring if 
         // season is alright
         for (unsigned int female_survivor_idx = 0; 
-                metapopulation[patch_idx].female_survivors.size();
+                female_survivor_idx < metapopulation[patch_idx].female_survivors.size();
                 ++female_survivor_idx)
         {
             assert(metapopulation[patch_idx].
@@ -160,12 +170,13 @@ void TSDSeasonal::reproduce()
                         metapopulation[patch_idx].
                             female_survivors[female_survivor_idx]);
 
-                for (int egg_idx = 0; egg_idx < n_eggs; ++n_eggs)
+                for (int egg_idx = 0; egg_idx < n_eggs; ++egg_idx)
                 {
                     // obtain father_idx
                     unsigned int father_idx = available_local_males[
                         egg_idx % available_local_males.size()];
 
+                    assert(father_idx >= 0);
                     assert(father_idx < metapopulation[patch_idx].
                             male_survivors.size());
 
@@ -290,33 +301,57 @@ void TSDSeasonal::replace()
     
     std::vector<double> probabilities{};
 
+    double sumprob{0.0};
+
+    survivors[male] = 0;
+    survivors[female] = 0;
+
+
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
+        probabilities.clear();
+        sumprob = 0.0;
+
+        double plocal_male = 
+                (1.0 - par.d[male]) * metapopulation[patch_idx].
+                male_juveniles.size();
 
         // event 0: sample local male
-        probabilities.push_back(
-                (1.0 - par.d[male]) * metapopulation[patch_idx].
-                male_juveniles.size());
+        probabilities.push_back(plocal_male);
+        sumprob += plocal_male;
 
         // event 1: sample dispersing male
-        probabilities.push_back(
+        double premote_male = 
                 par.d[male] * 
                     static_cast<double>(
-                        global_productivity[male]) / par.npatches);
+                        global_productivity[male]) / par.npatches;
+
+        probabilities.push_back(premote_male);
+        sumprob += premote_male;
 
         // event 2: sample philopatric female
-        probabilities.push_back(
-                (1.0 - par.d[female]) * metapopulation[patch_idx].
-                    female_juveniles.size());
+        double plocal_female = (1.0 - par.d[female]) * metapopulation[patch_idx].
+                    female_juveniles.size();
+
+        probabilities.push_back(plocal_female);
+        sumprob += plocal_female;
 
         // event 3: sample dispersing female
-        probabilities.push_back(
-                par.d[female] * 
+        double premote_female = par.d[female] * 
                     static_cast<double>(
-                        global_productivity[female]) / par.npatches);
+                        global_productivity[female]) / par.npatches;
+
+        probabilities.push_back(premote_female);
+
+        sumprob += premote_female;
+
+        if (sumprob == 0.0)
+        {
+            continue;
+        }
 
         // make a discrete distribution of the different 
         // events that can take place
@@ -343,13 +378,16 @@ void TSDSeasonal::replace()
                     {
                         patch_origin = patch_idx;
 
-                        unsigned int sizet0 = metapopulation[patch_idx].male_survivors.size();
+                        unsigned int sizet0 = metapopulation[patch_idx].
+                            male_survivors.size();
 
                         add_juv_to_survivors(
                             metapopulation[patch_origin].male_juveniles,
-                            metapopulation[patch_idx].male_survivors);
+                            metapopulation[patch_idx].male_survivors
+                            );
 
-                        assert(metapopulation[patch_idx].male_survivors.size() == sizet0 + 1);
+                        assert(metapopulation[patch_idx].
+                                male_survivors.size() == sizet0 + 1);
                     }
                     break;
                     
@@ -402,10 +440,22 @@ void TSDSeasonal::replace()
 
         } // end replace_idx
 
+        survivors[male] += metapopulation[patch_idx].male_survivors.size();
+        survivors[female] += metapopulation[patch_idx].female_survivors.size();
+
         metapopulation[patch_idx].females = metapopulation[patch_idx].female_survivors;
         metapopulation[patch_idx].males = metapopulation[patch_idx].male_survivors;
 
     } // end for patch_idx
+    
+
+    // population extinct, we are done
+    if (survivors[male] == 0 || survivors[female]==0)
+    {
+        write_data();
+        write_parameters();
+        exit(1);
+    }
 } // end replace()
 
 void TSDSeasonal::write_parameters()
@@ -425,6 +475,7 @@ void TSDSeasonal::write_parameters()
         << "frequency;" << par.frequency << std::endl
         << "amplitude;" << par.amplitude << std::endl
         << "init_t;" << par.init_t << std::endl
+        << "max_t;" << par.max_t << std::endl
         << "init_resources;" << par.init_resources << std::endl
         << "init_effort_per_timestep;" << par.init_effort_per_timestep << std::endl
         << "init_a;" << par.init_a << std::endl
@@ -436,3 +487,126 @@ void TSDSeasonal::write_parameters()
         << "unif_range_sdmu_t;" << par.unif_range_sdmu_t << std::endl
         << "sdmu;" << par.sdmu << std::endl; 
 } // end write_parameters
+
+void TSDSeasonal::write_data()
+{
+    double meana{0.0};
+    double ssa{0.0};
+
+    double meanb{0.0};
+    double ssb{0.0};
+    
+    double meant{0.0};
+    double sst{0.0};
+    
+    double mean_effort_per_timestep{0.0};
+    double ss_effort_per_timestep{0.0};
+    
+    double mean_resources{0.0};
+    double ss_resources{0.0};
+
+    double x;
+
+    int nf{0};
+    int nm{0};
+
+    double adult_sr{0.0};
+
+    // go through all survivors and assess whether they are breeding
+    for (auto patch_iter = metapopulation.begin();
+            patch_iter != metapopulation.end();
+            ++patch_iter)
+    {
+        nf += patch_iter->females.size();
+        nm += patch_iter->males.size();
+
+        for (auto female_iter = patch_iter->females.begin();
+                female_iter != patch_iter->females.end();
+                ++female_iter)
+        {
+            x = female_iter->a;
+            meana += x;
+            ssa += x * x;
+
+            x = female_iter->b;
+            meanb += x;
+            ssb += x * x;
+
+            x = female_iter->t;
+            meant += x;
+            sst += x * x;
+            
+            x = female_iter->effort_per_timestep;
+            mean_effort_per_timestep += x;
+            ss_effort_per_timestep += x * x;
+            
+            x = female_iter->resources;
+            mean_resources += x;
+            ss_resources += x * x;
+        }
+        
+        for (auto male_iter = patch_iter->males.begin();
+                male_iter != patch_iter->males.end();
+                ++male_iter)
+        {
+            x = male_iter->a;
+            meana += x;
+            ssa += x * x;
+
+            x = male_iter->b;
+            meanb += x;
+            ssb += x * x;
+
+            x = male_iter->t;
+            meant += x;
+            sst += x * x;
+            
+            x = male_iter->effort_per_timestep;
+            mean_effort_per_timestep += x;
+            ss_effort_per_timestep += x * x;
+
+            // no need to calculate resources for males
+        }
+    }
+
+    adult_sr = nf + nm == 0 ? 0 : nm / (nf + nm);
+
+    meana /= nf + nm;
+    double vara = ssa / (nf + nm) - meana * meana;
+
+    meanb /= nf + nm;
+    double varb = ssb / (nf + nm) - meanb * meanb;
+    
+    mean_effort_per_timestep /= nf + nm;
+    double var_effort_per_timestep = ss_effort_per_timestep / (nf + nm) - 
+        mean_effort_per_timestep * mean_effort_per_timestep;
+
+    mean_resources /= nf;
+    double var_resources = ss_resources / nf - mean_resources * mean_resources;
+
+    double global_juv_sr_after_survival = 
+        static_cast<double>(global_productivity[male]) / 
+            (global_productivity[male] + global_productivity[female]);
+
+    data_file << 
+        meana << ";" <<
+        vara << ";" <<
+
+        meanb << ";" <<
+        varb << ";" <<
+
+        mean_effort_per_timestep << ";" <<
+        var_effort_per_timestep << ";" <<
+
+        mean_resources << ";" <<
+        var_resources << ";" <<
+        global_juv_sr_after_survival << ";" << 
+        adult_sr << ";" << std::endl;
+
+} // end write_data()
+
+void TSDSeasonal::write_headers()
+{
+    data_file << "a;var_a;b;var_b;effort;var_effort;resources;var_resources;juv_sr;adult_sr;" 
+        << std::endl;
+} // write_headers()

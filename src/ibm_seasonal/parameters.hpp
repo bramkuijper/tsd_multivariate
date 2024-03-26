@@ -13,10 +13,10 @@ class Parameters
 {
     public:
         unsigned npatches{100};
-        unsigned n;
+        unsigned n{10};
 
         double d[2]{.5,.5};
-        double survival_prob[2]{.5,.5};
+        double survival_prob[2]{.9,.9};
 
         double t_opt[2]{-0.1,0.0};
         double omega_t[2]{0.1,0.1};
@@ -41,11 +41,14 @@ class Parameters
 
         double mu_a{0.02};
         double mu_b{0.02};
+
         double mu_effort_per_timestep{0.02};
         double mu_t{0.05};
+
         double unif_range_sdmu_t{2.0};
         double sdmu{0.02};
 
+        unsigned int skip_output = 10;
 
         std::string file_name{"sim_tsd_seasonal"};
 };
