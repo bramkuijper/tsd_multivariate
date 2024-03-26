@@ -22,7 +22,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
             time_step < par.max_simulation_time; ++time_step)
     {
         std::cout << "time: " << time_step << std::endl;
-        // mortality 
+
         survive();
         reproduce();
         replace();
@@ -136,7 +136,10 @@ void TSDSeasonal::reproduce()
                 ++male_survivor_idx)
         {
             if (metapopulation[patch_idx].
-                    male_survivors[male_survivor_idx].t % time_step == 0)
+                    male_survivors[male_survivor_idx].t != 0 
+                        && 
+                    time_step % metapopulation[patch_idx].
+                        male_survivors[male_survivor_idx].t == 0)
             {
                 available_local_males.push_back(male_survivor_idx);
             }
@@ -161,9 +164,12 @@ void TSDSeasonal::reproduce()
         {
             assert(metapopulation[patch_idx].
                     female_survivors[female_survivor_idx].is_female);
-            // ok 
+
             if (metapopulation[patch_idx].
-                    female_survivors[female_survivor_idx].t % time_step == 0)
+                    female_survivors[female_survivor_idx].t != 0 
+                        && 
+                    time_step % metapopulation[patch_idx].
+                        female_survivors[female_survivor_idx].t == 0)
             {
                 // get fecundity
                 n_eggs = calculate_fecundity(
@@ -295,6 +301,9 @@ void TSDSeasonal::add_juv_to_survivors(std::vector<Individual> &from,
 // replace vacancies with newborn juveniles
 void TSDSeasonal::replace()
 {
+    // first calculate all the productivities
+    calculate_patch_productivities();
+
     unsigned n_vacancies;
 
     unsigned event_idx, patch_origin;
@@ -360,7 +369,7 @@ void TSDSeasonal::replace()
 
         // calculate number of vacancies
         n_vacancies = par.n - metapopulation[patch_idx].
-            female_juveniles.size() - metapopulation[patch_idx].male_juveniles.size();
+            female_survivors.size() - metapopulation[patch_idx].male_survivors.size();
 
         assert(n_vacancies <= par.n);
         assert(n_vacancies >= 0);
@@ -452,6 +461,7 @@ void TSDSeasonal::replace()
     // population extinct, we are done
     if (survivors[male] == 0 || survivors[female]==0)
     {
+        std::cout << "extinct :-(" << std::endl;
         write_data();
         write_parameters();
         exit(1);
@@ -569,13 +579,16 @@ void TSDSeasonal::write_data()
         }
     }
 
-    adult_sr = nf + nm == 0 ? 0 : nm / (nf + nm);
+    adult_sr = (nf + nm) == 0 ? 0 : static_cast<double>(nm) / (nf + nm);
 
     meana /= nf + nm;
     double vara = ssa / (nf + nm) - meana * meana;
 
     meanb /= nf + nm;
     double varb = ssb / (nf + nm) - meanb * meanb;
+    
+    meant /= nf + nm;
+    double vart = sst / (nf + nm) - meant * meant;
     
     mean_effort_per_timestep /= nf + nm;
     double var_effort_per_timestep = ss_effort_per_timestep / (nf + nm) - 
@@ -584,16 +597,19 @@ void TSDSeasonal::write_data()
     mean_resources /= nf;
     double var_resources = ss_resources / nf - mean_resources * mean_resources;
 
-    double global_juv_sr_after_survival = 
+    double global_juv_sr_after_survival = global_productivity[male] + global_productivity[female] == 0 ? 0 :
         static_cast<double>(global_productivity[male]) / 
             (global_productivity[male] + global_productivity[female]);
 
-    data_file << 
+    data_file << time_step << ";" << 
         meana << ";" <<
         vara << ";" <<
 
         meanb << ";" <<
         varb << ";" <<
+        
+        meant << ";" <<
+        vart << ";" <<
 
         mean_effort_per_timestep << ";" <<
         var_effort_per_timestep << ";" <<
@@ -601,12 +617,14 @@ void TSDSeasonal::write_data()
         mean_resources << ";" <<
         var_resources << ";" <<
         global_juv_sr_after_survival << ";" << 
-        adult_sr << ";" << std::endl;
+        adult_sr << ";" << 
+        temperature << ";" <<
+        std::endl;
 
 } // end write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "a;var_a;b;var_b;effort;var_effort;resources;var_resources;juv_sr;adult_sr;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;effort;var_effort;resources;var_resources;juv_sr;adult_sr;environment;" 
         << std::endl;
 } // write_headers()

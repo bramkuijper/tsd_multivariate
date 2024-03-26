@@ -16,7 +16,7 @@ class Parameters
         unsigned n{10};
 
         double d[2]{.5,.5};
-        double survival_prob[2]{.9,.9};
+        double survival_prob[2]{0.1,0.1};
 
         double t_opt[2]{-0.1,0.0};
         double omega_t[2]{0.1,0.1};
@@ -48,7 +48,7 @@ class Parameters
         double unif_range_sdmu_t{2.0};
         double sdmu{0.02};
 
-        unsigned int skip_output = 10;
+        unsigned int skip_output = 1;
 
         std::string file_name{"sim_tsd_seasonal"};
 };
