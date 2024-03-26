@@ -31,7 +31,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
 
 void TSDSeasonal::update_environment()
 {
-    temperature = par.temperature_amplitude * std::sin(time_step * par.frequency);
+    temperature = par.amplitude * std::sin(time_step * par.frequency);
 }
 
 void TSDSeasonal::survive()
@@ -115,8 +115,7 @@ void TSDSeasonal::reproduce()
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
 
-    global_productivity[Male] = 0;
-    global_productivity[Female] = 0;
+    global_productivity = 0;
 
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
@@ -126,8 +125,7 @@ void TSDSeasonal::reproduce()
         available_local_males.clear();
 
         // clear male and female juvs
-        juvenile_females.clear();
-        juvenile_males.clear();
+        juveniles.clear();
         
         for (unsigned int male_survivor_idx = 0; 
                 metapopulation[patch_idx].male_survivors.size();
@@ -185,7 +183,7 @@ void TSDSeasonal::reproduce()
                                 rng_r);
 
                     // calculate individual SR
-                    p_female = Kid.determine_sex(environment);
+                    double p_female = Kid.determine_sex(environment);
 
                     // realise sex determination
                     Kid.is_female = uniform(rng_r) < p_female;
@@ -213,24 +211,16 @@ void TSDSeasonal::reproduce()
 
         // shuffle the vectors
         std::shuffle(
-                metapopulation[patch_idx].juvenile_females.begin(),
-                    metapopulation[patch_idx].juvenile_females.end(),
-                    rng_r
-                    );
-
-        std::shuffle(
-                metapopulation[patch_idx].juvenile_males.begin(),
-                    metapopulation[patch_idx].juvenile_males.end(),
+                metapopulation[patch_idx].juveniles.begin(),
+                    metapopulation[patch_idx].juveniles.end(),
                     rng_r
                     );
 
         // add this to calculation of global productivity
         // which is needed to calculate dispersal
-        global_productivity[Male] += 
-            metapopulation[patch_idx].juvenile_males.size(),
+        global_productivity += 
+            metapopulation[patch_idx].juveniles.size();
 
-        global_productivity[Female] += 
-            metapopulation[patch_idx].juvenile_females.size(),
     } // end for patch_idx
 } // end reproduce()
 
@@ -245,35 +235,89 @@ bool TSDSeasonal::calculate_survival(Sex const the_sex)
 // replace vacancies with newborn juveniles
 void TSDSeasonal::replace()
 {
+    int n_vacancies;
+
+    std::vector<double> probabilities{};
+
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
-        n_vacant_f = par.n[f] - metapopulation[patch_idx].female_survivors();
-        n_vacant_m = par.n[m] - metapopulation[patch_idx].male_survivors();
+        // calculate number of vacancies
+        n_vacancies = par.n - etapopulation[patch_idx].
+            juveniles_f.size() - metapopulation[patch_idx].juveniles_m.size();
+
+        // event 1: sample local male
+        probabilities.push_back(
+                (1.0 - d[male]) * metapopulation[patch_idx].
+                juvenile_males.size());
+
+        // event 2: sample dispersing male
+        probabilities.push_back(
+                d[male] * productivity[male] / par.npatches);
+
+        // event 3: sample philopatric female
+        probabilities.push_back((1.0 - d[female]) * metapopulation[patch_idx].
+                juvenile_females.size());
+
+        // event 4: sample dispersing female
+        probabilities.push_back(d[female] * productivity[female] / par.npatches);
+
+        std::discrete_distribution(probabilities.begin(), probabilities.end());
 
         for (int replace_idx = 0; 
                 replace_idx < n_vacancies;
                 ++replace_idx)
         {
+
             if (metapopulation[patch_idx].juveniles.size() == 0)
             {
                 break;
             }
 
-            if (metapopulation[patch_idx].juveniles.back().is_female())
+            if (metapopulation[patch_idx].juveniles.back().is_female)
             {
-                metapopulation[patch_idx].female_survivors.append(
+                metapopulation[patch_idx].female_survivors.push_back(
                         metapopulation[patch_idx].juveniles.back());
             }
             else
             {
-                metapopulation[patch_idx].male_survivors.append(
+                metapopulation[patch_idx].male_survivors.push_back(
                         metapopulation[patch_idx].juveniles.back()
                         );
             }
+
             metapopulation[patch_idx].juveniles.pop_back();
         } // end replace_idx
     } // end for patch_idx
 } // end replace()
+
+void TSDSeasonal::write_parameters()
+{
+    data_file << std::endl << std::endl
+        << "seed;" << seed << std::endl
+        << "npatches;" << par.npatches << std::endl
+        << "n;" << par.n << std::endl
+        << "df;" << par.d[female] << std::endl
+        << "dm;" << par.d[male] << std::endl
+        << "sf;" << par.survival_prob[female] << std::endl
+        << "sm;" << par.survival_prob[male] << std::endl
+        << "toptf;" << par.t_opt[female] << std::endl
+        << "toptm;" << par.t_opt[male] << std::endl
+        << "omegaf;" << par.omega_t[female] << std::endl
+        << "omegam;" << par.omega_t[male] << std::endl
+        << "frequency;" << par.frequency << std::endl
+        << "amplitude;" << par.temperature_amplitude << std::endl
+        << "init_t;" << par.init_t << std::endl
+        << "init_resources;" << par.init_resources << std::endl
+        << "init_effort_per_timestep;" << par.init_effort_per_timestep << std::endl
+        << "init_a;" << par.init_a << std::endl
+        << "init_b;" << par.init_b << std::endl
+        << "mu_a;" << par.mu_a << std::endl
+        << "mu_b;" << par.mu_b << std::endl
+        << "mu_effort_per_timestep;" << par.mu_effort_per_timestep << std::endl
+        << "mu_t;" << par.mu_t << std::endl
+        << "unif_range_sdmu_t;" << par.unif_range_sdmu_t << std::endl
+        << "sdmu;" << par.sdmu << std::endl; 
+} // end write_parameters

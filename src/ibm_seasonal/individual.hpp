@@ -30,7 +30,7 @@ class Individual
 
         void operator=(Individual const &other);
 
-        double determine_sex();
+        double determine_sex(double const temperature);
 };
 
 
