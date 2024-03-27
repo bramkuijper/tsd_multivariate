@@ -189,7 +189,7 @@ void TSDSeasonal::reproduce()
                     Individual Kid(metapopulation[patch_idx].
                             female_survivors[female_survivor_idx],
                                 metapopulation[patch_idx].
-                                female_survivors[female_survivor_idx],
+                                male_survivors[father_idx],
                                 par,
                                 rng_r);
 
@@ -354,7 +354,6 @@ void TSDSeasonal::replace()
                         global_productivity[female]) / par.npatches;
 
         probabilities.push_back(premote_female);
-
         sumprob += premote_female;
 
         if (sumprob == 0.0)
@@ -431,6 +430,9 @@ void TSDSeasonal::replace()
                 case 3: // recruit remote female
                     {
                         patch_origin = productivity_distribution_f(rng_r); 
+
+                        assert(patch_origin >= 0);
+                        assert(patch_origin < par.npatches);
                         
                         unsigned int sizet0 = metapopulation[patch_idx].female_survivors.size();
 
