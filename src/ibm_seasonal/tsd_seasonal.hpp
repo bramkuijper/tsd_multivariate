@@ -41,6 +41,7 @@ class TSDSeasonal
         void survive();
         void reproduce();
         void replace();
+        void fill_vacancies();
 
         void write_headers();
         void write_data();
@@ -53,7 +54,7 @@ class TSDSeasonal
         // and update resource levels
         int calculate_fecundity(Individual &mother);
 
-        bool calculate_survival(Sex const the_sex);
+        double calculate_survival(Sex const the_sex);
 
         void calculate_patch_productivities();
 

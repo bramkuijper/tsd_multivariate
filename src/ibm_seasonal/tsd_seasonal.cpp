@@ -23,6 +23,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     {
         survive();
         reproduce();
+        fill_vacancies();
         replace();
         update_environment();
     
@@ -281,10 +282,11 @@ void TSDSeasonal::calculate_patch_productivities()
 
 
 // calculate survival
-bool TSDSeasonal::calculate_survival(Sex const the_sex)
+double TSDSeasonal::calculate_survival(Sex const the_sex)
 {
     return(std::exp(-0.5 * (par.t_opt[the_sex] - temperature) * 
                 (par.t_opt[the_sex] - temperature) / par.omega_t[the_sex]));
+
 } // end calculate_survival
 
 // add juvenile to stack of survivors
@@ -302,7 +304,7 @@ void TSDSeasonal::add_juv_to_survivors(std::vector<Individual> &from,
 } // end add_juv_to_survivors()
 
 // replace vacancies with newborn juveniles
-void TSDSeasonal::replace()
+void TSDSeasonal::fill_vacancies()
 {
     // first calculate all the productivities
     calculate_patch_productivities();
@@ -314,9 +316,6 @@ void TSDSeasonal::replace()
     std::vector<double> probabilities{};
 
     double sumprob{0.0};
-
-    survivors[male] = 0;
-    survivors[female] = 0;
 
 
     // go through all survivors and assess whether they are breeding
@@ -358,11 +357,12 @@ void TSDSeasonal::replace()
 
         probabilities.push_back(premote_female);
         sumprob += premote_female;
-
+        
         if (sumprob == 0.0)
         {
             continue;
         }
+
 
         // make a discrete distribution of the different 
         // events that can take place
@@ -454,24 +454,37 @@ void TSDSeasonal::replace()
 
         } // end replace_idx
 
-        survivors[male] += metapopulation[patch_idx].male_survivors.size();
-        survivors[female] += metapopulation[patch_idx].female_survivors.size();
-
-        metapopulation[patch_idx].females = metapopulation[patch_idx].female_survivors;
-        metapopulation[patch_idx].males = metapopulation[patch_idx].male_survivors;
-
     } // end for patch_idx
     
 
+} // end fill_vacancies()
+
+
+// now replace breeders with surviving breeders (which includes filled vacancies)
+void TSDSeasonal::replace()
+{
+    survivors[male] = 0;
+    survivors[female] = 0;
+
+    for (auto patch_iter = metapopulation.begin();
+            patch_iter != metapopulation.end();
+            ++patch_iter)
+    {
+        survivors[male] += patch_iter->male_survivors.size();
+        survivors[female] += patch_iter->female_survivors.size();
+
+        patch_iter->females = patch_iter->female_survivors;
+        patch_iter->males = patch_iter->male_survivors;
+    }
     // population extinct, we are done
     if (survivors[male] == 0 || survivors[female]==0)
     {
-        std::cout << "extinct :-(" << std::endl;
+        std::cout << "extinct :-( in generation " << time_step << std::endl;
         write_data();
         write_parameters();
         exit(1);
     }
-} // end replace()
+}
 
 void TSDSeasonal::write_parameters()
 {
@@ -606,7 +619,7 @@ void TSDSeasonal::write_data()
         static_cast<double>(global_productivity[male]) / 
             (global_productivity[male] + global_productivity[female]);
 
-    double fecundity_per_female = static_cast<double>(fecundity) / nf;
+    double fecundity_per_female = static_cast<double>(fecundity) / par.npatches;
 
     data_file << time_step << ";" << 
         meana << ";" <<
@@ -637,6 +650,6 @@ void TSDSeasonal::write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;effort;var_effort;resources;var_resources;surviving_male_juvs;surviving_female_juvs;fecundity_per_female;surviving_juv_sr;adult_sr;nf;nm;environment;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;effort;var_effort;resources;var_resources;surviving_male_juvs;surviving_female_juvs;fecundity_per_patch;surviving_juv_sr;adult_sr;nf;nm;environment;" 
         << std::endl;
 } // write_headers()

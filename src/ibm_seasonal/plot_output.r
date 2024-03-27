@@ -70,7 +70,7 @@ jsonstuff <- '[
     },
     {
         "xvar" : "time",
-        "yvar" : ["fecundity_per_female","surviving_female_juvs","surviving_male_juvs"]
+        "yvar" : ["fecundity_per_patch","surviving_female_juvs","surviving_male_juvs"]
     },
     {
         "xvar" : "time",
@@ -194,7 +194,7 @@ for (plot_struct_idx in 1:plot.structure.l)
 
 title <- ""
 
-if (exists("params"))
+if (exists("params") && "sf" %in% names(params))
 {
     title <- paste0(
             "survival: ",params["sf"],", freq: ",params["frequency"],", toptf: ",params["toptf"])

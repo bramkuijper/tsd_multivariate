@@ -22,8 +22,8 @@ temp <- seq(-1,1,0.01)
 
 tf_opt <- -0.1
 tm_opt <- 0.0
-omega_f <- 0.1
-omega_m <- 0.1
+omega_f <- 0.01
+omega_m <- 0.01
 
 # survival on females
 psurv <- function(t_opt, omega, t)
@@ -45,9 +45,12 @@ df_surv_l <- pivot_longer(data = df_surv,
                           names_to="Sex",
                           values_to="Survival"
                           )
-                      
+# plot survival curves
 ggplot(data=df_surv_l,
        mapping=aes(x=temp, y = Survival)) +
     geom_line(mapping = aes(colour = Sex)) +
     theme_classic() +
     scale_colour_brewer(palette="Set1")
+
+
+

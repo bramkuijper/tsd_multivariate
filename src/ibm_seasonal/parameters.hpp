@@ -26,7 +26,7 @@ class Parameters
         double frequency{1.0};
 
         // timing value where t % timing == 0 determines breeding
-        int init_t{1};
+        int init_t{5};
         int max_t{20};
 
         double init_resources{10};
@@ -48,7 +48,7 @@ class Parameters
         double unif_range_sdmu_t{2.0};
         double sdmu{0.02};
 
-        unsigned int skip_output = 100;
+        unsigned int skip_output = 1;
 
         std::string file_name{"sim_tsd_seasonal"};
 };
