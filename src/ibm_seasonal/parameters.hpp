@@ -48,7 +48,7 @@ class Parameters
         double unif_range_sdmu_t{2.0};
         double sdmu{0.02};
 
-        unsigned int skip_output = 1;
+        unsigned int skip_output = 20;
 
         std::string file_name{"sim_tsd_seasonal"};
 };

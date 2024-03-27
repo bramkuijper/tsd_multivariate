@@ -12,7 +12,7 @@ base_name = "sim_seasonal_tsd_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
 ctr = 0
-max_simulation_time = 300
+max_simulation_time = 150000
 
 sm = [ 0.95]
 sf = [ 0.95]
@@ -21,7 +21,7 @@ t_opt_f = [ -0.5 ]
 
 freq = [ 1, 0.1, 0.01 ]
 
-omega = 0.1
+omega = 0.5
 
 nrep = 3
 
