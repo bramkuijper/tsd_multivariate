@@ -18,7 +18,7 @@ class Parameters
         double d[2]{.5,.5};
         double survival_prob[2]{0.1,0.1};
 
-        double t_opt[2]{-0.1,0.0};
+        double t_opt[2]{-0.5,0.5};
         double omega_t[2]{0.1,0.1};
 
         // temperature sinusoidal

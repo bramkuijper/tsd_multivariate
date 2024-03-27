@@ -21,7 +21,7 @@ t_opt_f = [ -0.5 ]
 
 freq = [ 1, 0.1, 0.01 ]
 
-omega = 0.01
+omega = 0.1
 
 nrep = 3
 
