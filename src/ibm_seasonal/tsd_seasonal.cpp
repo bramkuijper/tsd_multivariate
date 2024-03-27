@@ -21,8 +21,6 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     for (time_step = 1; 
             time_step < par.max_simulation_time; ++time_step)
     {
-        std::cout << "time: " << time_step << std::endl;
-
         survive();
         reproduce();
         replace();
@@ -118,6 +116,9 @@ void TSDSeasonal::reproduce()
 {
     int n_eggs;
 
+    // reset fecundity variable
+    fecundity = 0;
+
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
     
@@ -175,6 +176,8 @@ void TSDSeasonal::reproduce()
                 n_eggs = calculate_fecundity(
                         metapopulation[patch_idx].
                             female_survivors[female_survivor_idx]);
+
+                fecundity += n_eggs;
 
                 for (int egg_idx = 0; egg_idx < n_eggs; ++egg_idx)
                 {
@@ -603,6 +606,8 @@ void TSDSeasonal::write_data()
         static_cast<double>(global_productivity[male]) / 
             (global_productivity[male] + global_productivity[female]);
 
+    double fecundity_per_female = static_cast<double>(fecundity) / nf;
+
     data_file << time_step << ";" << 
         meana << ";" <<
         vara << ";" <<
@@ -618,6 +623,9 @@ void TSDSeasonal::write_data()
 
         mean_resources << ";" <<
         var_resources << ";" <<
+        static_cast<double>(global_productivity[male])/par.npatches << ";" << 
+        static_cast<double>(global_productivity[female])/par.npatches << ";" << 
+        fecundity_per_female << ";" <<
         global_juv_sr_after_survival << ";" << 
         adult_sr << ";" << 
         static_cast<double>(nf)/par.npatches  << ";" << 
@@ -629,6 +637,6 @@ void TSDSeasonal::write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;effort;var_effort;resources;var_resources;juv_sr;adult_sr;nf;nm;environment;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;effort;var_effort;resources;var_resources;surviving_male_juvs;surviving_female_juvs;fecundity_per_female;surviving_juv_sr;adult_sr;nf;nm;environment;" 
         << std::endl;
 } // write_headers()

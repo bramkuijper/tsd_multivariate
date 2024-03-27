@@ -70,7 +70,11 @@ jsonstuff <- '[
     },
     {
         "xvar" : "time",
-        "yvar" : ["juv_sr","adult_sr"]
+        "yvar" : ["fecundity_per_female","surviving_female_juvs","surviving_male_juvs"]
+    },
+    {
+        "xvar" : "time",
+        "yvar" : ["surviving_juv_sr","adult_sr"]
     },
     {
         "xvar" : "time",
