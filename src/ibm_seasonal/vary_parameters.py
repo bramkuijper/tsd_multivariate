@@ -17,11 +17,12 @@ max_simulation_time = 150000
 sm = [ 0.95]
 sf = [ 0.95]
 
-t_opt_f = [ -0.5 ]
+t_opt_f = [ 0.1 ]
+t_opt_m = 0.25
 
 freq = [ 1, 0.1, 0.01 ]
 
-omega = 0.5
+omega = 0.05
 
 nrep = 3
 
@@ -45,6 +46,7 @@ for rep_i in range(0,nrep):
                             f"{omega} " \
                             f"{omega} " \
                             f"{t_opt_fi} " \
+                            f"{t_opt_m} " \
                             f"{freq_i}")
 
 

@@ -11,8 +11,9 @@ int main(int argc, char **argv)
     params.survival_prob[female] = std::stod(argv[4]);
     params.omega_t[male] = std::stod(argv[5]);
     params.omega_t[female] = std::stod(argv[6]);
-    params.t_opt[female] = std::stod(argv[7]);
-    params.frequency = std::stod(argv[8]);
+    params.t_opt[male] = std::stod(argv[7]);
+    params.t_opt[female] = std::stod(argv[8]);
+    params.frequency = std::stod(argv[9]);
 
     TSDSeasonal sim(params);
 }
