@@ -6,6 +6,8 @@ p_female <- function(a,b) {
     return(1.0 / (1.0 + exp(-(a + b*temp))))
 }
 
+p_female_x <- p_female(a=0.0,b=-3.0)
+
 
 df_data <- data.frame(temp=temp, pfem = p_female_x)
 
@@ -17,11 +19,16 @@ ggplot(data=df_data,
 
 
 
-# survival on females
+# survival of females
 psurv <- function(t_opt, omega, t)
 {
     exp(-.5 * (t_opt - t)^2/omega)
 }
+
+tf_opt <- 0.1
+tm_opt <- 0.25
+omega_m <- 0.05
+omega_f <- 0.05
 
 df_surv <- data.frame(temp = temp, 
                       psurvf = psurv(t_opt = tf_opt,
