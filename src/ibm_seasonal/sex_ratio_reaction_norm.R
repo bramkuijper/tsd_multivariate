@@ -51,5 +51,6 @@ ggplot(data=df_surv_l,
     theme_classic() +
     scale_colour_brewer(palette="Set1")
 
-
+# ok now make a plot of the sex ratio curve varying from 0 to 1
+# or from -1 to 1 whatever
 
