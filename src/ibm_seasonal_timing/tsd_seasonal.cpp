@@ -10,6 +10,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     par{par},
     data_file{par.file_name},
     uniform{0.0,1.0},
+    temperature_error{0.0,par.temp_error_sd},
     rd{},
     seed{rd()},
     rng_r{seed},
@@ -47,8 +48,21 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
 // envt is Gaussian varying over time from -1 to 1
 void TSDSeasonal::update_environment()
 {
-    temperature = par.temperature_intercept + par.amplitude * std::sin(time_step * M_PI / par.max_t);
-}
+    double intercept = time_step < par.max_simulation_time / 2 ? 
+        par.temperature_intercept 
+        : 
+        par.temperature_intercept_change;
+
+    for (unsigned int patch_idx = 0; 
+            patch_idx < metapopulation.size();
+            ++patch_idx)
+    {
+        metapopulation[patch_idx].temperature = 
+            intercept + 
+            par.amplitude * std::sin(time_step * 2 * M_PI / par.max_t) +
+            temperature_error(rng_r);
+    }
+}// end update_environment()
 
 void TSDSeasonal::adult_survival()
 {
@@ -168,7 +182,8 @@ void TSDSeasonal::reproduce()
                                 rng_r);
 
                     // calculate individual SR
-                    double p_female = Kid.determine_sex(temperature);
+                    double p_female = Kid.determine_sex(
+                            metapopulation[patch_idx].temperature);
 
                     // realise sex determination
                     Kid.is_female = uniform(rng_r) < p_female;
@@ -177,7 +192,7 @@ void TSDSeasonal::reproduce()
                     if (Kid.is_female)
                     {
                         if (uniform(rng_r) < 
-                                calculate_survival(female))
+                                calculate_survival(patch_idx, female))
                         {
                             metapopulation[patch_idx].female_juveniles.push_back(Kid);
                         }
@@ -185,7 +200,7 @@ void TSDSeasonal::reproduce()
                     else
                     {
                         if (uniform(rng_r) < 
-                                calculate_survival(male))
+                                calculate_survival(patch_idx, male))
                         {
                             metapopulation[patch_idx].male_juveniles.push_back(Kid);
                         }
@@ -252,10 +267,12 @@ void TSDSeasonal::calculate_patch_productivities()
 
 
 // calculate survival
-double TSDSeasonal::calculate_survival(Sex const the_sex)
+double TSDSeasonal::calculate_survival(unsigned int const patch_idx, Sex const the_sex)
 {
-    return(std::exp(-0.5 * (par.t_opt[the_sex] - temperature) * 
-                (par.t_opt[the_sex] - temperature) / par.omega_t[the_sex]));
+    return(std::exp(-0.5 * 
+                (par.t_opt[the_sex] - metapopulation[patch_idx].temperature) * 
+                (par.t_opt[the_sex] - metapopulation[patch_idx].temperature) / 
+                    par.omega_t[the_sex]));
 
 } // end calculate_survival
 
@@ -472,8 +489,11 @@ void TSDSeasonal::write_parameters()
         << "toptm;" << par.t_opt[male] << std::endl
         << "omegaf;" << par.omega_t[female] << std::endl
         << "omegam;" << par.omega_t[male] << std::endl
+        << "ab_min;" << par.ab_range[0] << std::endl
+        << "ab_max;" << par.ab_range[1] << std::endl
         << "amplitude;" << par.amplitude << std::endl
         << "intercept;" << par.temperature_intercept << std::endl
+        << "intercept_change;" << par.temperature_intercept_change << std::endl
         << "init_t;" << par.init_t << std::endl
         << "max_t;" << par.max_t << std::endl
         << "init_a;" << par.init_a << std::endl
@@ -503,6 +523,9 @@ void TSDSeasonal::write_data()
 
     double adult_sr{0.0};
 
+    double mean_temperature{0.0};
+    double ss_temperature{0.0};
+
     // go through all survivors and assess whether they are breeding
     for (auto patch_iter = metapopulation.begin();
             patch_iter != metapopulation.end();
@@ -510,6 +533,9 @@ void TSDSeasonal::write_data()
     {
         nf += patch_iter->females.size();
         nm += patch_iter->males.size();
+
+        mean_temperature += patch_iter->temperature;
+        ss_temperature += patch_iter->temperature * patch_iter->temperature;
 
         for (auto female_iter = patch_iter->females.begin();
                 female_iter != patch_iter->females.end();
@@ -561,6 +587,9 @@ void TSDSeasonal::write_data()
         static_cast<double>(global_productivity[male]) / 
             (global_productivity[male] + global_productivity[female]);
 
+    mean_temperature /= par.npatches;
+    double var_temperature = ss_temperature / par.npatches - mean_temperature * mean_temperature;
+
     data_file << time_step << ";" << 
         meana << ";" <<
         vara << ";" <<
@@ -577,13 +606,13 @@ void TSDSeasonal::write_data()
         adult_sr << ";" << 
         static_cast<double>(nf)/par.npatches  << ";" << 
         static_cast<double>(nm)/par.npatches  << ";" << 
-        temperature << ";" <<
+        mean_temperature << ";" <<
+        var_temperature << ";" <<
         std::endl;
-
 } // end write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;surviving_male_juvs;surviving_female_juvs;fecundity_per_patch;surviving_juv_sr;adult_sr;nf;nm;environment;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;surviving_male_juvs;surviving_female_juvs;surviving_juv_sr;adult_sr;nf;nm;mean_environment;var_environment;" 
         << std::endl;
 } // write_headers()

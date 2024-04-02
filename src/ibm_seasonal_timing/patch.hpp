@@ -9,6 +9,7 @@ class Patch
 {
 
     public: 
+        double temperature{0.0};
         std::vector <Individual> females{};
         std::vector <Individual> female_survivors{};
         std::vector <Individual> female_juveniles{};

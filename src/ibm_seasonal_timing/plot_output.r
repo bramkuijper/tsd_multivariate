@@ -54,23 +54,7 @@ jsonstuff <- '[
     },
     {
         "xvar" : "time",
-        "yvar" : "effort"
-    },
-    {
-        "xvar" : "time",
-        "yvar" : "var_effort"
-    },
-    {
-        "xvar" : "time",
-        "yvar" : "resources"
-    },
-    {
-        "xvar" : "time",
-        "yvar" : "var_resources"
-    },
-    {
-        "xvar" : "time",
-        "yvar" : ["fecundity_per_patch","surviving_female_juvs","surviving_male_juvs"]
+        "yvar" : ["surviving_female_juvs","surviving_male_juvs"]
     },
     {
         "xvar" : "time",
@@ -82,7 +66,11 @@ jsonstuff <- '[
     },
     {
         "xvar" : "time",
-        "yvar" : "environment"
+        "yvar" : "mean_environment"
+    },
+    {
+        "xvar" : "time",
+        "yvar" : "var_environment"
     }
 ]
 '
@@ -197,7 +185,7 @@ title <- ""
 if (exists("params") && "sf" %in% names(params))
 {
     title <- paste0(
-            "survival: ",params["sf"],", freq: ",params["frequency"],", toptf: ",params["toptf"])
+            "survival: ",params["sf"],", toptf: ",params["toptf"])
 }
 
 wrap_plots(plot.list,ncol=1) + plot_annotation(

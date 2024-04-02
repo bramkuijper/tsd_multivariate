@@ -13,6 +13,8 @@ int main(int argc, char **argv)
     params.omega_t[female] = std::stod(argv[6]);
     params.t_opt[male] = std::stod(argv[7]);
     params.t_opt[female] = std::stod(argv[8]);
+    params.skip_output = std::stoi(argv[9]);
+    params.temperature_intercept_change = std::stod(argv[10]);
 
     TSDSeasonal sim(params);
 }

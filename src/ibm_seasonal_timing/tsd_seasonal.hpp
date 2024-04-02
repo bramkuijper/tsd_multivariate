@@ -16,6 +16,7 @@ class TSDSeasonal
         std::ofstream data_file;
 
         std::uniform_real_distribution<double> uniform;
+        std::normal_distribution<double> temperature_error{1.0,0.1};
         
         // productivity distributions for females and males, 
         // initialized with some dummy values
@@ -23,8 +24,6 @@ class TSDSeasonal
         std::discrete_distribution<unsigned> productivity_distribution_m{1,1};
 
         long unsigned time_step{0};
-
-        double temperature{0.0};
 
         std::random_device rd;
         unsigned int seed;
@@ -54,7 +53,7 @@ class TSDSeasonal
         // and update resource levels
         int calculate_fecundity(Individual &mother);
 
-        double calculate_survival(Sex const the_sex);
+        double calculate_survival(unsigned int const patch_idx, Sex const the_sex);
 
         void calculate_patch_productivities();
 

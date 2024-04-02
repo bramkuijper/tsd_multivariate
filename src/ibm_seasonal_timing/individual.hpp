@@ -12,7 +12,7 @@ class Individual
         double a{0.0}; // the sex allocation temperature intercept
         double b{0.0}; // the sex allocation temperature slope
         
-        int t{1}; // the time step trait at which to reproduce. t = 0 reproduce never. t = 1 reproduce every time step, t = 2 reproduce every 2nd time step etc
+        int t{1}; // the time step in the season at which the individual reproduces
        
         Individual(Parameters const &pars, bool const is_female);
         Individual(Individual const &other);

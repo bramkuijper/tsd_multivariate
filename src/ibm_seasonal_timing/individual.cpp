@@ -40,12 +40,15 @@ Individual::Individual(Individual const &mom,
     if (uniform(rng_r) < par.mu_a)
     {
         a += normal(rng_r);
+
+        a = std::clamp(a, par.ab_range[0], par.ab_range[1]);
     }
 
     // mutate the threshold above which individuals develop as male
     if (uniform(rng_r) < par.mu_b)
     {
         b += normal(rng_r);
+        b = std::clamp(b, par.ab_range[0], par.ab_range[1]);
     }
 
     // mutate the timestep at which an individual will reproduce

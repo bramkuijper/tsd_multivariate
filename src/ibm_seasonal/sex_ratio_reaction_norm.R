@@ -6,7 +6,7 @@ p_female <- function(a,b) {
     return(1.0 / (1.0 + exp(-(a + b*temp))))
 }
 
-p_female_x <- p_female(a=0.0,b=-3.0)
+p_female_x <- p_female(a=5,b=-6.5)
 
 
 df_data <- data.frame(temp=temp, pfem = p_female_x)
@@ -53,4 +53,18 @@ ggplot(data=df_surv_l,
 
 # ok now make a plot of the sex ratio curve varying from 0 to 1
 # or from -1 to 1 whatever
+temp_over_season <- function(time_t, mid, width) {
+    return(sin((2*pi / 100 )*time_t))
+}
+
+time_t <- seq(0,100,0.1)
+temp <- temp_over_season(time_t=time_t, mid = 50, width=30)
+data <- data.frame(t =time_t, temperature = temp)
+
+ggplot(data = data,
+       mapping = aes(x = t, y = temperature)) +
+    geom_line() +
+    theme_classic()
+
+
 
