@@ -20,7 +20,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
 
     // now run the simulation
     for (time_step = 1; 
-            time_step < par.max_simulation_time; ++time_step)
+            time_step <= par.max_simulation_time; ++time_step)
     {
         if (time_step % par.max_t == 0)
         {
@@ -36,7 +36,9 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
         reproduce();
         update_environment();
     
-        if (time_step % par.skip_output == 0)
+        if (time_step % par.skip_output == 0 || 
+                (time_step > par.max_simulation_time / 2 - 50 && 
+                 time_step < par.max_simulation_time / 2 + 50))
         {
             write_data();
         }

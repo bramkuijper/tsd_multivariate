@@ -24,7 +24,8 @@ omega = 0.05
 
 nrep = 3
 
-temp_change = [0.1,0.2,0.3]
+temp_change = [0.1]
+mu_t = [0,0.05]
 
 # aim for roughly 25000 lines
 skip = int(round(max_simulation_time / 25000, 0))
@@ -32,29 +33,28 @@ skip = int(round(max_simulation_time / 25000, 0))
 if skip < 1:
     skip = 1
 
-for change_i in temp_change:
-    for rep_i in range(0,nrep):
-        for sm_i in sm:
-            for sf_i in sf:
-                if sf_i != sm_i:
-                    continue
+for mu_ti in mu_t:
+    for change_i in temp_change:
+        for rep_i in range(0,nrep):
+            for sm_i in sm:
+                for sf_i in sf:
+                    if sf_i != sm_i:
+                        continue
 
-                for t_opt_fi in t_opt_f:
+                    for t_opt_fi in t_opt_f:
 
-                    # get the basename
-                    ctr += 1
-                    base_name_i = base_name + "_" + str(ctr)
+                        # get the basename
+                        ctr += 1
+                        base_name_i = base_name + "_" + str(ctr)
 
-                    print(f"{exe_name} {base_name_i} " \
-                            f"{max_simulation_time} " \
-                            f"{sm_i} " \
-                            f"{sf_i} " \
-                            f"{omega} " \
-                            f"{omega} " \
-                            f"{t_opt_m} " \
-                            f"{t_opt_fi} " \
-                            f"{skip} " \
-                            f"{change_i} ")
-
-
-
+                        print(f"{exe_name} {base_name_i} " \
+                                f"{max_simulation_time} " \
+                                f"{sm_i} " \
+                                f"{sf_i} " \
+                                f"{omega} " \
+                                f"{omega} " \
+                                f"{t_opt_m} " \
+                                f"{t_opt_fi} " \
+                                f"{skip} " \
+                                f"{change_i} " \
+                                f"{mu_ti}")
