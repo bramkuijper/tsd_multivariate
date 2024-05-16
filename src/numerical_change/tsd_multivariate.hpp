@@ -138,6 +138,8 @@ class TSD_Multivariate
 
         void write_data_headers(std::ofstream &output_file);
 
+        void change_envt();
+
     public: 
         
         TSD_Multivariate();
