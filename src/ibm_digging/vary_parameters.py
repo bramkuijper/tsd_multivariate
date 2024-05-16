@@ -17,8 +17,8 @@ max_simulation_time = int(1e07)
 sm = [ 0.5]
 sf = [ 0.5]
 
-t_opt_f = [ 0.5 ]
-t_opt_m = 0.8
+t_opt_f = [ 0.8 ]
+t_opt_m = 0.5
 
 omega = 0.05
 
@@ -26,7 +26,8 @@ nrep = 3
 
 temp_change = [0.4]
 slope = [0.00001,0.000001]
-mu_t = [0]
+mu_t = [0.01]
+mu_d = [0,0.01]
 
 # aim for roughly 25000 lines
 skip = int(round(max_simulation_time / 25000, 0))
@@ -35,29 +36,32 @@ if skip < 1:
     skip = 1
 
 for slope_i in slope:
-    for mu_ti in mu_t:
-        for change_i in temp_change:
-            for rep_i in range(0,nrep):
-                for sm_i in sm:
-                    for sf_i in sf:
-                        if sf_i != sm_i:
-                            continue
+    for mu_di in mu_d:
+        for mu_ti in mu_t:
+            for change_i in temp_change:
+                for rep_i in range(0,nrep):
+                    for sm_i in sm:
+                        for sf_i in sf:
+                            if sf_i != sm_i:
+                                continue
 
-                        for t_opt_fi in t_opt_f:
+                            for t_opt_fi in t_opt_f:
 
-                            # get the basename
-                            ctr += 1
-                            base_name_i = base_name + "_" + str(ctr)
+                                # get the basename
+                                ctr += 1
+                                base_name_i = base_name + "_" + str(ctr)
 
-                            print(f"{exe_name} {base_name_i} " \
-                                    f"{max_simulation_time} " \
-                                    f"{sm_i} " \
-                                    f"{sf_i} " \
-                                    f"{omega} " \
-                                    f"{omega} " \
-                                    f"{t_opt_m} " \
-                                    f"{t_opt_fi} " \
-                                    f"{skip} " \
-                                    f"{change_i} " \
-                                    f"{slope_i} " \
-                                    f"{mu_ti}")
+                                print(f"{exe_name} {base_name_i} " \
+                                        f"{max_simulation_time} " \
+                                        f"{sm_i} " \
+                                        f"{sf_i} " \
+                                        f"{omega} " \
+                                        f"{omega} " \
+                                        f"{t_opt_m} " \
+                                        f"{t_opt_fi} " \
+                                        f"{skip} " \
+                                        f"{change_i} " \
+                                        f"{slope_i} " \
+                                        f"{mu_ti} " \
+                                        f"{mu_di} " \
+                                        )

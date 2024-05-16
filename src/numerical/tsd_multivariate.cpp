@@ -37,7 +37,7 @@ TSD_Multivariate::TSD_Multivariate(
                     pstruct.surv[0][1]},
                 {pstruct.surv[1][0],
                     pstruct.surv[1][1]}}
-            ,d{pstruct.d[0],d[1]}
+            ,d{pstruct.d[0],pstruct.d[1]}
             ,b{pstruct.b}
             ,s{pstruct.s[0],pstruct.s[1]}
             ,sigma{
@@ -103,7 +103,7 @@ void TSD_Multivariate::run()
 {
     base = base + ".csv";
 
-//    int skip_rows = 10;
+    int skip_rows = 10;
 
     // initialize the file only when you run the thing
     std::ofstream output_file{base};
@@ -126,10 +126,10 @@ void TSD_Multivariate::run()
             break;
         }
 
-//        if (time_step % skip_rows == 0)
-//        {
-//            write_data(output_file, time_step);
-//        }
+        if (time_step % skip_rows == 0)
+        {
+            write_data(output_file, time_step);
+        }
     }
 } // end run()
 
