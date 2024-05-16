@@ -37,10 +37,13 @@ for risk_i in risk:
 
 # [eul_d, eul_sr, eul_b]
 #euls = [[0,0.01,0],[0.01,0.01,0],[0.01,0.01,0.01],[0,0.01,0.01]]
-euls = [[0,0.01,0.01]]
+euls = [[0.01,0.01,0.01]]
 
+sigma = [[0.25,0.25]]
+sigma2 = [[0.166667,0.33333]]
 
 survival_vf2 = [0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0]
+survival_vf2 = [0.5]
 
 survival_values = []
 
@@ -60,38 +63,45 @@ for nf_nm_i in nf_nm:
     for init_dfdm_i in init_dfdm:
         for init_b_i in init_b:
             for sigma_i in sigma:
-                for burrow_mod_survival_i in burrow_mod_survival:
-                    for survival_val_i in survival_values:
-                        for eul_i in euls:
-                            base_name_i = base_name + "_" + str(ctr)
+                for sigma2_i in sigma2:
+                    for burrow_mod_survival_i in burrow_mod_survival:
+                        for survival_val_i in survival_values:
+                            for eul_i in euls:
+                                base_name_i = base_name + "_" + str(ctr)
 
-                            print("echo " + str(ctr))
+                                print("echo " + str(ctr))
 
-                            ctr+=1
+                                ctr+=1
 
-                            print(exe + " \t" +
-                                    f"{survival_val_i[0][0]} " + 
-                                    f"{survival_val_i[0][1]} " + 
-                                    f"{survival_val_i[1][0]} " + 
-                                    f"{survival_val_i[1][1]} " + 
-                                    f"{init_dfdm_i[0]} " +
-                                    f"{init_dfdm_i[1]} " +
-                                    f"{init_b_i} " +
-                                    f"{init_sr} " +
-                                    f"{init_sr} " +
-                                    f"{sigma_i[0]} " +
-                                    f"{sigma_i[1]} " +
-                                    f"{init_lambda} " +
-                                    f"{burrow_mod_survival_i} " +
-                                    f"{nf_nm_i[0]} " +
-                                    f"{nf_nm_i[1]} " +
-                                    f"{eul_i[0]} " +
-                                    f"{eul_i[1]} " +
-                                    f"{eul_i[2]} " +
-                                    base_name_i
-                                    )
+                                print(exe + " \t" +
+                                        f"{survival_val_i[0][0]} " + 
+                                        f"{survival_val_i[0][1]} " + 
+                                        f"{survival_val_i[1][0]} " + 
+                                        f"{survival_val_i[1][1]} " + 
+                                        f"{survival_val_i[0][0]} " + 
+                                        f"{survival_val_i[0][1]} " + 
+                                        f"{survival_val_i[1][0]} " + 
+                                        f"{survival_val_i[1][1]} " + 
+                                        f"{init_dfdm_i[0]} " +
+                                        f"{init_dfdm_i[1]} " +
+                                        f"{init_b_i} " +
+                                        f"{init_sr} " +
+                                        f"{init_sr} " +
+                                        f"{sigma_i[0]} " +
+                                        f"{sigma_i[1]} " +
+                                        f"{sigma2_i[0]} " +
+                                        f"{sigma2_i[1]} " +
+                                        f"{init_lambda} " +
+                                        f"{burrow_mod_survival_i} " +
+                                        f"{nf_nm_i[0]} " +
+                                        f"{nf_nm_i[1]} " +
+                                        f"{eul_i[0]} " +
+                                        f"{eul_i[1]} " +
+                                        f"{eul_i[2]} " +
+                                        base_name_i
+                                        )
 
-            
+                
 
 
 

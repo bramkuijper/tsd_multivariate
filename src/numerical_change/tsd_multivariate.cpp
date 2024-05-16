@@ -69,10 +69,16 @@ void TSD_Multivariate::init_arguments(int argc, char **argv)
     surv_t0[Male][1] = std::atof(argv[2]);
     surv_t0[Female][0] = std::atof(argv[3]);
     surv_t0[Female][1] = std::atof(argv[4]);
+
     surv_tend[Male][0] = std::atof(argv[5]);
     surv_tend[Male][1] = std::atof(argv[6]);
     surv_tend[Female][0] = std::atof(argv[7]);
     surv_tend[Female][1] = std::atof(argv[8]);
+    
+    surv[Male][0] = surv_t0[Male][0];
+    surv[Male][1] = surv_t0[Male][1];
+    surv[Female][0] = surv_t0[Female][0];
+    surv[Female][1] = surv_t0[Female][1];
 
     d[Female] = std::atof(argv[9]);
     d[Male] = std::atof(argv[10]);
@@ -131,7 +137,6 @@ void TSD_Multivariate::run()
     // initialize the file only when you run the thing
     std::ofstream output_file{base};
 
-    write_parameters(output_file);
 
     write_data_headers(output_file);
 
@@ -161,6 +166,8 @@ void TSD_Multivariate::run()
             {
                 write_data(output_file, time_step);
                 change_envt();
+                envt_changed = true;
+                t_change = time_step;
             }
         }
 
@@ -169,6 +176,8 @@ void TSD_Multivariate::run()
             write_data(output_file, time_step);
         }
     }
+    
+    write_parameters(output_file);
 } // end run()
 
 
@@ -183,6 +192,10 @@ void TSD_Multivariate::change_envt()
             surv[idx1][idx2] = surv_tend[idx1][idx2];
         }
     }
+
+    p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
+    p[1] = 1.0 - p[0];
+
 } // end change_envt()
 
 void TSD_Multivariate::write_data_headers(std::ofstream &output_file)
@@ -243,7 +256,12 @@ void TSD_Multivariate::write_parameters(std::ofstream &output_file)
         << "burrow_surv;" << delta_surv << std::endl
         << "eul_d;" << eul_d << std::endl
         << "eul_b;" << eul_b << std::endl
-        << "eul_sr;" << eul_sr << std::endl;
+        << "t_change;" << t_change << std::endl
+        << "eul_sr;" << eul_sr << std::endl
+        << "rho_t0;" << 1.0 - sigma_t0[0][1] - sigma_t0[1][0] << std::endl
+        << "risk_t0;" << sigma_t0[0][1]/(sigma_t0[1][0] +sigma_t0[0][1]) << std::endl
+        << "rho_tend;" << 1.0 - sigma_tend[0][1] - sigma_tend[1][0] << std::endl
+        << "risk_tend;" << sigma_tend[0][1]/(sigma_tend[1][0] + sigma_tend[0][1]) << std::endl;
 
     for (int iter_i = 0; iter_i < 2; ++iter_i)
     {

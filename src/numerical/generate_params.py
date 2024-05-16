@@ -12,7 +12,7 @@ import sys
 import copy
 
 nf_nm = [[10,10]]
-init_dfdm = [[0.75,0.75],[0.5,0.5],[0.25,0.25],[0.1,0.1]]
+init_dfdm = [[1.0,1.0]]
 init_b = [0]
 init_sr = 0.5
 init_vf = 1.0
@@ -37,7 +37,7 @@ for risk_i in risk:
 
 # [eul_d, eul_sr, eul_b]
 #euls = [[0,0.01,0],[0.01,0.01,0],[0.01,0.01,0.01],[0,0.01,0.01]]
-euls = [[0,0.01,0.0]]
+euls = [[0,0.01,0.01]]
 
 survival_vf2 = [0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0]
 
@@ -46,7 +46,10 @@ survival_values = []
 for surv_i in survival_vf2:
     survival_values += [[[1.0,1.0],[1.0,surv_i]]]
 
-survival_values = [[[1.0,1.0],[0.5,1.0]]]
+#survival_values = [[[1.0,1.0],[0.5,1.0]]]
+survival_values = [[[1.0,1.0],[1.0,0.5]]]
+
+sigma = [[0.25,0.25]]
 
 burrow_mod_survival = [1]
 

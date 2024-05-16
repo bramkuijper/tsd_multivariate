@@ -90,6 +90,9 @@ class TSD_Multivariate
         // the basename of the output file
         std::string base;
 
+        // keep track of when the envt changes
+        long int t_change{0};
+
         static constexpr long int max_time = 1e08;
         static constexpr double vanish_bound = 1e-07;
 
