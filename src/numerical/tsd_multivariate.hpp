@@ -1,63 +1,17 @@
 #ifndef TSD_MULTIVARIATE_HPP
-#include <string>
 #include <fstream>
-
-enum Sex {
-    Male = 0,
-    Female = 1
-};
-
-// struct with parameters
-struct parstruct{
-    double surv[2][2];
-    double d[2];
-    double b;
-    double s[2];
-    double sigma[2][2];
-    double p[2];
-    double v[2][2];
-    double u[2][2];
-    double n[2];
-    double eul_d;
-    double eul_sr;
-    double eul_b;
-    bool delta_surv;
-    std::string base;
-};
+#include "parameters.hpp"
 
 class TSD_Multivariate
 {
     private:
-        // sex specific survival probabilities
-        double surv[2][2];
+        Parameters pars;
 
-        // population sizes per patch
-        double n[2];
-
-        // sex-specific dispersal
-        double d[2];
-
-        // burrow depth
-        double b;
-
-        // proportions sons in either envt
-        double s[2];
-
-        // environmental change
-        double sigma[2][2];
-
-        bool delta_surv;
-
-        // frequency of either envt
-        double p[2];
+        // the actual traits of interest
+        double d[2][2]; // dispersal first index is sex, second index
 
         // eigenvalue
         double lambda;
-
-        // euler's constant
-        double eul_d;
-        double eul_sr;
-        double eul_b;
 
         // reproductive values
         // first index sex
@@ -81,12 +35,6 @@ class TSD_Multivariate
         double Qff[2];
         double Qfm[2];
         double Qmm[2];
-
-        // the basename of the output file
-        std::string base;
-
-        static constexpr long int max_time = 1e08;
-        static constexpr double vanish_bound = 1e-07;
 
         // private functions
 
