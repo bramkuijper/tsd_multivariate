@@ -108,7 +108,6 @@ void TSD_Multivariate::run()
     // initialize the file only when you run the thing
     std::ofstream output_file{base};
 
-    write_parameters(output_file);
 
     write_data_headers(output_file);
 
@@ -131,6 +130,7 @@ void TSD_Multivariate::run()
             write_data(output_file, time_step);
         }
     }
+    write_parameters(output_file);
 } // end run()
 
 void TSD_Multivariate::write_data_headers(std::ofstream &output_file)
