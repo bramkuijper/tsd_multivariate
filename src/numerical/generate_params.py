@@ -28,6 +28,8 @@ risk = list(np.arange(0.01,0.99,0.01))
 # environmental autocorrelation (within a patch)
 autocorr = list(np.arange(0.01,0.99,0.01))
 
+autocorr = [0.0]
+
 for risk_i in risk:
     for autocorr_i in autocorr:
         s12 = (1 - risk_i) * (1 - autocorr_i)
@@ -38,6 +40,8 @@ for risk_i in risk:
 # [eul_d, eul_sr, eul_b]
 euls = [[0,0.01,0],[0.01,0.01,0],[0.01,0.01,0.01],[0,0.01,0.01]]
 euls = [[0.01,0.01,0.01]]
+
+survival_vf2 = [0.5]
 
 survival_vf2 = [0.5]
 
