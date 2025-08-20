@@ -8,7 +8,7 @@ Individual::Individual(Parameters const &params, bool const is_female) :
     is_female{is_female},
     a{params.init_a}, // pivotal temp 
     b{params.init_b}, // temp slope (sigmoidal)
-    t{params.init_t}, // timing 
+    t{params.init_t} // timing 
 {
 } // end Individual()
 

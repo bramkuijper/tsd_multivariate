@@ -14,7 +14,6 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     par{par},
     data_file{par.file_name},
     uniform{0.0,1.0},
-    temperature_error{0.0,par.temp_error_sd},
     rd{},
     seed{rd()},
     rng_r{seed},
@@ -27,6 +26,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     for (time_step = 1; 
             time_step <= par.max_simulation_time; ++time_step)
     {
+        // once per season replace adults
         if (time_step % par.max_t == 0)
         {
             adult_survival();
@@ -36,6 +36,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
             // clear the stack of juveniles and be ready for the
             // next season
             clear_juveniles();
+            reset_adult_breeding_status();
         }
 
         reproduce();
@@ -51,6 +52,36 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
 
     write_parameters();
 } // end constructor
+
+// once an individual is selected to breed at a
+// particular timestep (based on its seasonal reaction norm)
+// it cannot breed another time during the season.
+// Only once the season starts again, will the breeding status
+// of this individual be reset
+void TSDSeasonal::reset_adult_breeding_status()
+{
+    // update the environment in each patch wi
+    for (unsigned int patch_idx = 0; 
+            patch_idx < metapopulation.size();
+            ++patch_idx)
+    {
+        // reset males 
+        for (auto male_iterator = metapopulation[patch_idx].males.begin(); 
+                male_iterator != metapopulation[patch_idx].males.end();
+                ++male_iterator)
+        {
+            male_iterator->attempted_to_mate = false;
+        }
+
+        // reset females
+        for (auto female_iterator = metapopulation[patch_idx].females.begin(); 
+                female_iterator != metapopulation[patch_idx].females.end();
+                ++female_iterator)
+        {
+            female_iterator->attempted_to_mate = false;
+        }
+    } // patch_idx
+} // end reset_adult_breeding_status()
 
 // envt is sinusoidal varying over time from -1 to 1 + error
 void TSDSeasonal::update_environment()
@@ -70,7 +101,7 @@ void TSDSeasonal::update_environment()
         metapopulation[patch_idx].temperature = 
             intercept + 
             par.amplitude * std::sin(time_step * 2 * M_PI / par.max_t) +
-            temperature_error(rng_r);
+            standard_normal(rng_r) * par.temp_error_sd;
     }
 }// end update_environment()
 
@@ -136,10 +167,11 @@ void TSDSeasonal::reproduce()
     fecundity = 0;
 
     // aux variable for timing of reproduction
-    double prob_reproduce
+    double prob_reproduce, cue;
 
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
+    std::vector <unsigned int> already_attempted_to_mate{};
     
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
@@ -152,12 +184,21 @@ void TSDSeasonal::reproduce()
                 male_idx < metapopulation[patch_idx].males.size();
                 ++male_idx)
         {
-            // only reproduce if timing is right
-            if (metapopulation[patch_idx].males[male_idx].t == (time_step % par.max_t))
+            if (!metapopulation[patch_idx].males[male_idx].attempted_to_mate)
             {
-                available_local_males.push_back(male_idx);
+                cue = metapopulation[patch_idx].temperature +
+                          standard_normal(rng_r) * par.cue_error;
+
+                prob_reproduce = metapopulation[patch_idx].males[male_idx].t +
+                    metapopulation[patch_idx].males[male_idx].tb * cue;
+
+                if (uniform(rng_r) < prob_reproduce)
+                {
+                    available_local_males.push_back(male_idx);
+                    metapopulation[patch_idx].males[male_idx].attempted_to_mate = true;
+                }
             }
-        }
+        } // end male_idx
 
         // no male available: no offspring produced.
         if (available_local_males.size() < 1)
@@ -178,9 +219,22 @@ void TSDSeasonal::reproduce()
         {
             assert(metapopulation[patch_idx].females[female_idx].is_female);
 
-            // check whether a female indeed reproduces at this time step
-            if (metapopulation[patch_idx].females[female_idx].t == (time_step % par.max_t))
+            if (metapopulation[patch_idx].females[female_idx].attempted_to_mate)
             {
+                continue;
+            }
+            
+            cue = metapopulation[patch_idx].temperature +
+                      standard_normal(rng_r) * par.cue_error;
+
+            prob_reproduce = metapopulation[patch_idx].females[female_idx].t +
+                metapopulation[patch_idx].females[female_idx].tb * cue;
+
+            // check whether a female indeed reproduces at this time step
+            if (uniform(rng_r) < prob_reproduce)
+            {
+                metapopulation[patch_idx].females[female_idx].attempted_to_mate = true;
+
                 for (int egg_idx = 0; egg_idx < par.fecundity; ++egg_idx)
                 {
                     // obtain father_idx
@@ -220,9 +274,8 @@ void TSDSeasonal::reproduce()
                         }
                     }
                 } // end for()
-            } // end if
+            } // end if uniform() <  prob_reproduce
         } // end for female_idx
-
     } // end for patch_idx
 } // end reproduce()
 
@@ -516,7 +569,9 @@ void TSDSeasonal::write_parameters()
         << "mu_b;" << par.mu_b << std::endl
         << "mu_t;" << par.mu_t << std::endl
         << "mu_tb;" << par.mu_tb << std::endl
-        << "sdmu;" << par.sdmu << std::endl; 
+        << "sdmu;" << par.sdmu << std::endl
+        << "temp_error_sd;" << par.temp_error_sd << std::endl
+        << "cue_error;" << par.cue_error << std::endl; 
 } // end write_parameters
 
 void TSDSeasonal::write_data()
@@ -530,6 +585,9 @@ void TSDSeasonal::write_data()
     double meant{0.0};
     double sst{0.0};
     
+    double meantb{0.0};
+    double sstb{0.0};
+
     double x;
 
     int nf{0};
@@ -566,6 +624,10 @@ void TSDSeasonal::write_data()
             x = female_iter->t;
             meant += x;
             sst += x * x;
+            
+            x = female_iter->tb;
+            meantb += x;
+            sstb += x * x;
         }
         
         for (auto male_iter = patch_iter->males.begin();
@@ -583,6 +645,10 @@ void TSDSeasonal::write_data()
             x = male_iter->t;
             meant += x;
             sst += x * x;
+            
+            x = male_iter->tb;
+            meantb += x;
+            sstb += x * x;
         }
     }
 
@@ -597,12 +663,16 @@ void TSDSeasonal::write_data()
     meant /= nf + nm;
     double vart = sst / (nf + nm) - meant * meant;
     
+    meantb /= nf + nm;
+    double vartb = sstb / (nf + nm) - meantb * meantb;
+
     double global_juv_sr_after_survival = global_productivity[male] + global_productivity[female] == 0 ? 0 :
         static_cast<double>(global_productivity[male]) / 
             (global_productivity[male] + global_productivity[female]);
 
     mean_temperature /= par.npatches;
-    double var_temperature = ss_temperature / par.npatches - mean_temperature * mean_temperature;
+    double var_temperature = ss_temperature / par.npatches - 
+        mean_temperature * mean_temperature;
 
     data_file << time_step << ";" << 
         meana << ";" <<
@@ -613,6 +683,9 @@ void TSDSeasonal::write_data()
         
         meant << ";" <<
         vart << ";" <<
+
+        meantb << ";" <<
+        vartb << ";" <<
 
         static_cast<double>(global_productivity[male])/par.npatches << ";" << 
         static_cast<double>(global_productivity[female])/par.npatches << ";" << 
@@ -627,6 +700,6 @@ void TSDSeasonal::write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;surviving_male_juvs;surviving_female_juvs;surviving_juv_sr;adult_sr;nf;nm;mean_environment;var_environment;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;tb;var_tb;surviving_male_juvs;surviving_female_juvs;surviving_juv_sr;adult_sr;nf;nm;mean_environment;var_environment;" 
         << std::endl;
 } // write_headers()

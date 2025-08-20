@@ -16,7 +16,7 @@ class TSDSeasonal
         std::ofstream data_file;
 
         std::uniform_real_distribution<double> uniform;
-        std::normal_distribution<double> temperature_error{1.0,0.1};
+        std::normal_distribution<double> standard_normal{0.0,1.0};
         
         // productivity distributions for females and males, 
         // initialized with some dummy values
@@ -45,6 +45,10 @@ class TSDSeasonal
         void write_headers();
         void write_data();
         void write_parameters();
+
+        // reset an individual's breeding statuses
+        // at the start of each season
+        void reset_adult_breeding_status();
 
         // update the state of the environment
         void update_environment();

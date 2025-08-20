@@ -32,7 +32,8 @@ class Parameters
         int max_t{50};
 
         // timing value, where t is time in the season of reproduction
-        int init_t{8};
+        double init_t{0.25};
+        double init_tb{0.0}; // initial slope of the reaction norm
 
         long unsigned max_simulation_time{100};
 
@@ -45,12 +46,14 @@ class Parameters
         double ab_range[2]{-10,10};
         
         double mu_t{0.05};
+        double mu_tb{0.05};
 
         double sdmu{0.05};
 
         unsigned int skip_output{1};
 
         double temp_error_sd{0.1};
+        double cue_error{0.01};
 
         std::string file_name{"sim_tsd_seasonal"};
 

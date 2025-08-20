@@ -9,9 +9,8 @@ Individual::Individual(Parameters const &params, bool const is_female) :
     a{params.init_a}, // pivotal temp 
     b{params.init_b}, // temp slope (sigmoidal)
     t{params.init_t}, // timing intercept
-    t_b{params.init_t_b}, // timing slope on perceived temp
-{
-} // end Individual()
+    tb{params.init_tb} // timing slope on perceived temp
+{}
 
 // copy constructor
 Individual::Individual(Individual const &other) :
@@ -19,7 +18,7 @@ Individual::Individual(Individual const &other) :
     a{other.a},
     b{other.b},
     t{other.t},
-    t_b{params.init_t_b},
+    tb{other.tb}
 {
 }
 
@@ -37,7 +36,7 @@ Individual::Individual(Individual const &mom,
     a = uniform(rng_r) < 0.5 ? dad.a : mom.a; // pivotal temperature
     b = uniform(rng_r) < 0.5 ? dad.b : mom.b; // sex alloc slope on temperature
     t = uniform(rng_r) < 0.5 ? dad.t : mom.t; // timing of reproduction, intercept
-    t_b = uniform(rng_r) < 0.5 ? dad.t_b : mom.t; // timing of reproduction
+    tb = uniform(rng_r) < 0.5 ? dad.tb : mom.tb; // timing of reproduction
                                               //
     // mutate the intercept
     if (uniform(rng_r) < par.mu_a)
@@ -74,6 +73,8 @@ void Individual::operator=(Individual const &other)
     b = other.b;
     t = other.t;
     tb = other.tb;
+
+    attempted_to_mate = other.attempted_to_mate;
 }
 
 // determine sex of this individual
