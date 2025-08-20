@@ -8,7 +8,8 @@ Individual::Individual(Parameters const &params, bool const is_female) :
     is_female{is_female},
     a{params.init_a}, // pivotal temp 
     b{params.init_b}, // temp slope (sigmoidal)
-    t{params.init_t}, // timing 
+    t{params.init_t}, // timing intercept
+    t_b{params.init_t_b}, // timing slope on perceived temp
 {
 } // end Individual()
 
@@ -17,7 +18,8 @@ Individual::Individual(Individual const &other) :
     is_female{other.is_female},
     a{other.a},
     b{other.b},
-    t{other.t}
+    t{other.t},
+    t_b{params.init_t_b},
 {
 }
 
@@ -32,9 +34,10 @@ Individual::Individual(Individual const &mom,
     std::normal_distribution normal{0.0, par.sdmu};
 
     // inherit haploid traits
-    a = uniform(rng_r) < 0.5 ? dad.a : mom.a; // sex alloc pivotal temp
-    b = uniform(rng_r) < 0.5 ? dad.b : mom.b; // sex alloc slope on temp
-    t = uniform(rng_r) < 0.5 ? dad.t : mom.t; // timing of reproduction
+    a = uniform(rng_r) < 0.5 ? dad.a : mom.a; // pivotal temperature
+    b = uniform(rng_r) < 0.5 ? dad.b : mom.b; // sex alloc slope on temperature
+    t = uniform(rng_r) < 0.5 ? dad.t : mom.t; // timing of reproduction, intercept
+    t_b = uniform(rng_r) < 0.5 ? dad.t_b : mom.t; // timing of reproduction
                                               //
     // mutate the intercept
     if (uniform(rng_r) < par.mu_a)
@@ -51,24 +54,17 @@ Individual::Individual(Individual const &mom,
         b = std::clamp(b, par.ab_range[0], par.ab_range[1]);
     }
 
-    // mutate the timestep at which an individual will reproduce
-    double delta_t_double{0.0};
-    double delta_t_int{0.0};
-
     if (uniform(rng_r) < par.mu_t)
     {
-        // either increment or decrement with values from a certain range
-        delta_t_double = uniform(rng_r) * par.unif_range_sdmu_t;
-   
-        // round to nearest integer value
-        delta_t_int = std::lround(delta_t_double);
-
-        t += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
-    
-        t = std::clamp(t,0,par.max_t);
+        t+=normal(rng_r);
     }
-
+    
+    if (uniform(rng_r) < par.mu_tb)
+    {
+        tb += normal(rng_r);
+    }
 } // end birth constructor
+
 
 // assignment operator
 void Individual::operator=(Individual const &other)
@@ -77,13 +73,14 @@ void Individual::operator=(Individual const &other)
     a = other.a;
     b = other.b;
     t = other.t;
+    tb = other.tb;
 }
 
 // determine sex of this individual
 double Individual::determine_sex(double const temperature)
 {
     double p_female = 1.0 / (1.0 + std::exp(-(a + b * temperature)));
-
+    
     return(p_female);
 } // end determine_sex
 

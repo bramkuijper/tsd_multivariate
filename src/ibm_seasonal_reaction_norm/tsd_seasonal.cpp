@@ -135,6 +135,9 @@ void TSDSeasonal::reproduce()
     // reset fecundity variable
     fecundity = 0;
 
+    // aux variable for timing of reproduction
+    double prob_reproduce
+
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
     
@@ -512,7 +515,7 @@ void TSDSeasonal::write_parameters()
         << "mu_a;" << par.mu_a << std::endl
         << "mu_b;" << par.mu_b << std::endl
         << "mu_t;" << par.mu_t << std::endl
-        << "unif_range_sdmu_t;" << par.unif_range_sdmu_t << std::endl
+        << "mu_tb;" << par.mu_tb << std::endl
         << "sdmu;" << par.sdmu << std::endl; 
 } // end write_parameters
 
