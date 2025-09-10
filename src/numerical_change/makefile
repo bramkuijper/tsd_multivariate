@@ -16,9 +16,6 @@ IFLAGS=-I /usr/local/Cellar/boost/1.75.0_1/include
 LFLAGS=-L /usr/local/lib/
 lFlags=/usr/local/lib/libboost_unit_test_framework-mt.a
 
-IFLAGS_GSL=-I/opt/homebrew/include
-LFLAGS_GSL=-L/opt/homebrew/lib
-
 # build everything
 #all : $(EXE) $(TEST_EXE)
 all : $(EXE)
@@ -26,7 +23,7 @@ all : $(EXE)
 
 # build the normal executable
 $(EXE) : $(CPP) $(HPP)
-	$(CXX) $(CXXFLAGS) $(IFLAGS_GSL) $(LFLAGS_GSL) -o $(EXE) $(CPP)  $(LXXFLAGS)
+	$(CXX) $(CXXFLAGS) -o $(EXE) $(CPP) $(LXXFLAGS)
 
 # build the testsuite
 $(TEST_EXE) : $(TEST_CPP) $(HPP)

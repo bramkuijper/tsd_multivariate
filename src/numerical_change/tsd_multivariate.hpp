@@ -1,17 +1,68 @@
 #ifndef TSD_MULTIVARIATE_HPP
+#include <string>
 #include <fstream>
-#include "parameters.hpp"
+
+enum Sex {
+    Male = 0,
+    Female = 1
+};
+
+// struct with parameters
+struct parstruct{
+    double surv[2][2];
+    double d[2];
+    double b;
+    double s[2];
+    double sigma[2][2];
+    double p[2];
+    double v[2][2];
+    double u[2][2];
+    double n[2];
+    double eul_d;
+    double eul_sr;
+    double eul_b;
+    bool delta_surv;
+    std::string base;
+};
 
 class TSD_Multivariate
 {
     private:
-        Parameters pars;
+        // sex specific survival probabilities
+        double surv_t0[2][2]; // initial survival probabilities
+        double surv_tend[2][2]; // initial survival probabilities
+        double surv[2][2]; // current survival probabilities
+        
 
-        // the actual traits of interest
-        double d[2][2]; // dispersal first index is sex, second index
+        // population sizes per patch
+        double n[2];
+
+        // sex-specific dispersal
+        double d[2];
+
+        // burrow depth
+        double b;
+
+        // proportions sons in either envt
+        double s[2];
+
+        // environmental change
+        double sigma_t0[2][2]; // initial sigma
+        double sigma_tend[2][2]; // new sigma
+        double sigma[2][2]; // current sigma
+
+        bool delta_surv;
+
+        // frequency of either envt
+        double p[2];
 
         // eigenvalue
         double lambda;
+
+        // euler's constant
+        double eul_d;
+        double eul_sr;
+        double eul_b;
 
         // reproductive values
         // first index sex
@@ -35,6 +86,15 @@ class TSD_Multivariate
         double Qff[2];
         double Qfm[2];
         double Qmm[2];
+
+        // the basename of the output file
+        std::string base;
+
+        // keep track of when the envt changes
+        long int t_change{0};
+
+        static constexpr long int max_time = 1e08;
+        static constexpr double vanish_bound = 1e-07;
 
         // private functions
 
@@ -80,6 +140,8 @@ class TSD_Multivariate
         void write_parameters(std::ofstream &output_file);
 
         void write_data_headers(std::ofstream &output_file);
+
+        void change_envt();
 
     public: 
         

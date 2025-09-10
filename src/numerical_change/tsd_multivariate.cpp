@@ -7,17 +7,131 @@
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
-#include "tsd_multivariate.hpp"
-#include "parameters.hpp"
 
-TSD_Multivariate::TSD_Multivariate(Parameters const &parameters) :
-    pars{parameters}
+
+#include "tsd_multivariate.hpp"
+
+TSD_Multivariate::TSD_Multivariate() :
+    surv{{0.0,0.0},{0.0,0.0}}
+    ,d{0.0,0.0}
+    ,b{0.0}
+    ,s{0.0,0.0}
+    ,sigma{{0.0,0.0},{0.0,0.0}}
+    ,p{0.0,0.0}
+    ,lambda{0.0}
+    ,v{{0.0,0.0},{0.0,0.0}}
+    ,u{{0.0,0.0},{0.0,0.0}}
+    ,n{0.0,0.0}
+    ,delta_surv{false}
+    ,eul_b{0.0}
+    ,eul_sr{0.0}
+    ,eul_d{0.0}
+    ,base{}
 {
 } // end void TSD_Multivariate::TSD_Multivariate
+
+// constructor with arguments
+TSD_Multivariate::TSD_Multivariate(
+        parstruct const &pstruct) :
+            surv{{pstruct.surv[0][0],
+                    pstruct.surv[0][1]},
+                {pstruct.surv[1][0],
+                    pstruct.surv[1][1]}}
+            ,d{pstruct.d[0],pstruct.d[1]}
+            ,b{pstruct.b}
+            ,s{pstruct.s[0],pstruct.s[1]}
+            ,sigma{
+                {pstruct.sigma[0][0]
+                    ,pstruct.sigma[0][1]},
+                {pstruct.sigma[1][0]
+                    ,pstruct.sigma[1][1]}}
+        ,p{pstruct.p[0],pstruct.p[1]}
+        ,lambda{1.0}
+        ,v{
+            {pstruct.v[0][0],pstruct.v[0][1]}
+            ,{pstruct.v[1][0],pstruct.v[1][1]}}
+        ,u{
+            {pstruct.u[0][0],pstruct.u[0][1]}
+            ,{pstruct.u[1][0],pstruct.u[1][1]}}
+        ,n{pstruct.n[0],pstruct.n[1]}
+        ,delta_surv{pstruct.delta_surv}
+        ,eul_d{pstruct.eul_d}
+        ,eul_sr{pstruct.eul_sr}
+        ,eul_b{pstruct.eul_b}
+        ,base{pstruct.base}
+{
+}
+
+// initialize arguments
+void TSD_Multivariate::init_arguments(int argc, char **argv)
+{
+    surv_t0[Male][0] = std::atof(argv[1]);
+    surv_t0[Male][1] = std::atof(argv[2]);
+    surv_t0[Female][0] = std::atof(argv[3]);
+    surv_t0[Female][1] = std::atof(argv[4]);
+
+    surv_tend[Male][0] = std::atof(argv[5]);
+    surv_tend[Male][1] = std::atof(argv[6]);
+    surv_tend[Female][0] = std::atof(argv[7]);
+    surv_tend[Female][1] = std::atof(argv[8]);
+    
+    surv[Male][0] = surv_t0[Male][0];
+    surv[Male][1] = surv_t0[Male][1];
+    surv[Female][0] = surv_t0[Female][0];
+    surv[Female][1] = surv_t0[Female][1];
+
+    d[Female] = std::atof(argv[9]);
+    d[Male] = std::atof(argv[10]);
+
+    b = std::atof(argv[11]);
+
+    s[0] = std::atof(argv[12]);
+    s[1] = std::atof(argv[13]);
+
+    sigma_t0[0][1] = std::atof(argv[14]);
+    sigma_t0[0][0] = 1.0 - sigma[0][1];
+
+    sigma_t0[1][0] = std::atof(argv[15]);
+    sigma_t0[1][1] = 1.0 - sigma[1][0];
+    
+    sigma_tend[0][1] = std::atof(argv[16]);
+    sigma_tend[0][0] = 1.0 - sigma[0][1];
+
+    sigma_tend[1][0] = std::atof(argv[17]);
+    sigma_tend[1][1] = 1.0 - sigma[1][0];
+   
+    // set sigma to initial value
+    sigma[0][1] = sigma_t0[0][1];
+    sigma[0][0] = sigma_t0[0][0];
+    sigma[1][0] = sigma_t0[1][0];
+    sigma[1][1] = sigma_t0[1][1];
+
+    lambda = std::atof(argv[18]);
+    delta_surv = std::atoi(argv[19]);
+
+    n[Female] = std::atof(argv[20]);
+    n[Male] = std::atof(argv[21]);
+
+    eul_d = atof(argv[22]);
+    eul_sr = atof(argv[23]);
+    eul_b = atof(argv[24]);
+    base = argv[25];
+
+    p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
+    p[1] = 1.0 - p[0];
+
+} // end init_arguments()
 
 // run the iteration
 void TSD_Multivariate::run()
 {
+    // keep track of whether 
+    // the envt has changed or not
+    bool envt_changed = false;
+
+
+    base = base + ".csv";
+
     int skip_rows = 10;
 
     // initialize the file only when you run the thing
@@ -25,6 +139,8 @@ void TSD_Multivariate::run()
 
 
     write_data_headers(output_file);
+
+    bool converged;
 
     for (int time_step = 0; time_step < max_time; ++time_step)
     {
@@ -34,10 +150,25 @@ void TSD_Multivariate::run()
         // update relatedness coefficients
         iterate_relatedness();
 
-        if (update_traits()) 
+        converged = update_traits();
+
+        if (converged)
         {
-            write_data(output_file, time_step);
-            break;
+            if (envt_changed)
+            {
+                // if there is convergence and the envt has already changed
+                // then end the simulation, we are done as we have converged
+                // traits to their novel environment
+                write_data(output_file, time_step);
+                break;
+            }
+            else
+            {
+                write_data(output_file, time_step);
+                change_envt();
+                envt_changed = true;
+                t_change = time_step;
+            }
         }
 
         if (time_step % skip_rows == 0)
@@ -45,8 +176,27 @@ void TSD_Multivariate::run()
             write_data(output_file, time_step);
         }
     }
+    
     write_parameters(output_file);
 } // end run()
+
+
+// changes characteristics of the environment
+void TSD_Multivariate::change_envt()
+{
+    for (unsigned idx1 = 0; idx1 < 2; ++idx1)
+    {
+        for (unsigned idx2 = 0; idx2 < 2; ++idx2)
+        {
+            sigma[idx1][idx2] = sigma_tend[idx1][idx2];
+            surv[idx1][idx2] = surv_tend[idx1][idx2];
+        }
+    }
+
+    p[0] = sigma[1][0] / (sigma[1][0] + sigma[0][1]);
+    p[1] = 1.0 - p[0];
+
+} // end change_envt()
 
 void TSD_Multivariate::write_data_headers(std::ofstream &output_file)
 {
@@ -99,24 +249,32 @@ void TSD_Multivariate::write_data(std::ofstream &output_file, int const generati
     output_file << std::endl;
 }
 
-void TSD_Multivariate::write_parameters()
+void TSD_Multivariate::write_parameters(std::ofstream &output_file)
 {
     output_file << std::endl
         << std::endl
-        << "burrow_surv;" << pars.delta_surv << std::endl
-        << "eul_d;" << pars.eul_d << std::endl
-        << "eul_b;" << pars.eul_b << std::endl
-        << "eul_sr;" << pars.eul_sr << std::endl;
+        << "burrow_surv;" << delta_surv << std::endl
+        << "eul_d;" << eul_d << std::endl
+        << "eul_b;" << eul_b << std::endl
+        << "t_change;" << t_change << std::endl
+        << "eul_sr;" << eul_sr << std::endl
+        << "rho_t0;" << 1.0 - sigma_t0[0][1] - sigma_t0[1][0] << std::endl
+        << "risk_t0;" << sigma_t0[0][1]/(sigma_t0[1][0] +sigma_t0[0][1]) << std::endl
+        << "rho_tend;" << 1.0 - sigma_tend[0][1] - sigma_tend[1][0] << std::endl
+        << "risk_tend;" << sigma_tend[0][1]/(sigma_tend[1][0] + sigma_tend[0][1]) << std::endl;
 
     for (int iter_i = 0; iter_i < 2; ++iter_i)
     {
         // output p_i
-        output_file << "p" << (iter_i + 1) << ";" << pars.p[iter_i] << std::endl;
+        output_file << "p" << (iter_i + 1) << ";" << p[iter_i] << std::endl;
 
         // output nf, nm
         output_file << "n" << 
                 (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
-                << ";" << pars.n[iter_i] << std::endl;
+                << ";" << n[iter_i] << std::endl;
+        output_file << "d_init" << 
+                (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << ";" << d[iter_i] << std::endl;
 
         for (int iter_j = 0; iter_j < 2; ++iter_j)
         {
@@ -124,21 +282,42 @@ void TSD_Multivariate::write_parameters()
                 << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
                 << (iter_j + 1) 
                 << ";"
-                << pars.surv[iter_i][iter_j] 
+                << surv[iter_i][iter_j] 
                 << std::endl;
             
+            output_file << "surv_tend" 
+                << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << (iter_j + 1) 
+                << ";"
+                << surv_tend[iter_i][iter_j] 
+                << std::endl;
+
+            output_file << "surv_t0" 
+                << (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+                << (iter_j + 1) 
+                << ";"
+                << surv_t0[iter_i][iter_j] 
+                << std::endl;
+
             output_file << "sigma" 
                 << (iter_i + 1) 
                 << (iter_j + 1) 
                 << ";"
-                << pars.sigma[iter_i][iter_j]
+                << sigma[iter_i][iter_j]
                 << std::endl;
-        
-            output_file << "d_init" << 
-                (static_cast<Sex>(iter_i) == Male ? "m" : "f") 
+
+            output_file << "sigma_tend"
+                << (iter_i + 1) 
                 << (iter_j + 1) 
-                << ";" 
-                << pars.d[iter_i][iter_j] 
+                << ";"
+                << sigma_tend[iter_i][iter_j]
+                << std::endl;
+            
+            output_file << "sigma_t0"
+                << (iter_i + 1) 
+                << (iter_j + 1) 
+                << ";"
+                << sigma_t0[iter_i][iter_j]
                 << std::endl;
         } // end for iter_i
     } // end for iter_i
@@ -162,9 +341,9 @@ double TSD_Multivariate::dfecundity_survival_db(
         return(envt_t1 == 0 ? 
                 0.0
                 :
-                -1.0 * pars.s[envt_t1] * pars.surv[sex_t1][envt_t1] + 
-                    1.0 * pars.s[!envt_t1] * (pars.delta_surv * pars.surv[sex_t1][!envt_t1] 
-                                        + (1 - pars.delta_surv) * pars.surv[sex_t1][envt_t1]));
+                -1.0 * s[envt_t1] * surv[sex_t1][envt_t1] + 
+                    1.0 * s[!envt_t1] * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
     }
 
     // fecundity / survival in terms of 
@@ -172,9 +351,9 @@ double TSD_Multivariate::dfecundity_survival_db(
     return(envt_t1 == 0 ?
             0.0
             :
-            -1.0 * (1.0 - pars.s[envt_t1]) * pars.surv[sex_t1][envt_t1] + 
-                    1.0 * (1.0 - pars.s[!envt_t1]) * (pars.delta_surv * pars.surv[sex_t1][!envt_t1] 
-                                        + (1 - pars.delta_surv) * pars.surv[sex_t1][envt_t1]));
+            -1.0 * (1.0 - s[envt_t1]) * surv[sex_t1][envt_t1] + 
+                    1.0 * (1.0 - s[!envt_t1]) * (delta_surv * surv[sex_t1][!envt_t1] 
+                                        + (1 - delta_surv) * surv[sex_t1][envt_t1]));
 } // end d fecundity_survival dsr
 
 /*
@@ -191,7 +370,7 @@ double TSD_Multivariate::dfecundity_survival_db(
 double TSD_Multivariate::dfecundity_survival_ds(
         bool const envt_t1
         ,Sex const sex_t1
-        ,bool const envt_dsr // environmental variable of interest re the derivative
+        ,bool const envt_dsr // 
         ) 
 {
     // set up the derivatives
@@ -496,18 +675,18 @@ double TSD_Multivariate::dB_dd(
 // partial derivatives of the mutant transition matrix
 // wrt to mutant sex ratio trait used in environment envt_dsr in {0,1}
 double TSD_Multivariate::dB_dsr(
-        bool const envt_t // environment of origin
-        ,Sex const sex_t // sex of origin
-        ,bool const envt_t1 // future envt
-        ,Sex const sex_t1 // future sex
-        ,bool const envt_dsr) // variable of differentiation, i.e., derivative over s1 or s2
+        bool const envt_t
+        ,Sex const sex_t
+        ,bool const envt_t1
+        ,Sex const sex_t1
+        ,bool const envt_dsr)
 {
     double dbij_dsr_focal = 0.0;
     double dbij_dsr_local = 0.0;
 
     if (sex_t == Female)
     {
-         dbij_dsr_focal = pars.sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) *
+         dbij_dsr_focal = sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) *
             dfecundity_survival_ds(envt_t, sex_t1, envt_dsr) / C(sex_t1, envt_t)
             + (
                 p[envt_t1] * (1.0 - sigma[envt_t1][!envt_t1]) / C(sex_t1, envt_t1) 
@@ -530,7 +709,7 @@ double TSD_Multivariate::dB_dsr(
     }
 
     // derivative of the local traits in the denominator
-    dbij_dsr_local += pars.sigma[envt_t][envt_t1] * (1.0 - pars.d[sex_t1]) * 
+    dbij_dsr_local += sigma[envt_t][envt_t1] * (1.0 - d[sex_t1]) * 
                                 -fecundity_survival(envt_t, sex_t1) * 
                                     dCdsrlocal(sex_t1, envt_t, envt_dsr) / 
                                         (C(sex_t1, envt_t) * C(sex_t1, envt_t));

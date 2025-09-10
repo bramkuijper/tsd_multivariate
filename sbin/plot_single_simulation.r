@@ -61,6 +61,8 @@ find_out_param_line <- function(filename) {
 # get the line at which the data starts
 data_row <- find_out_data_line(args[1])
 
+param_row <- find_out_param_line(args[1])
+
 if (is.na(data_row))
 {
     print("cannot find data...")
@@ -68,7 +70,7 @@ if (is.na(data_row))
 }
 
 # read in data frame of corresponding simulation
-the.data <- read.table(args[1], header=T, skip = data_row - 1, sep=";")
+the.data <- read.table(args[1], header=T, skip = data_row - 1, nrows = param_row - 2,sep=";")
 
 # now use ggplot2 to plot stuff
 # put the.data in a format so that trait combines

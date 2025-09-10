@@ -28,6 +28,8 @@ risk = list(np.arange(0.01,0.99,0.01))
 # environmental autocorrelation (within a patch)
 autocorr = list(np.arange(-.99,0.99,0.01))
 
+autocorr = [0.0]
+
 for risk_i in risk:
     for autocorr_i in autocorr:
         s12 = (1 - risk_i) * (1 - autocorr_i)
@@ -43,17 +45,16 @@ for risk_i in risk:
 
 # [eul_d, eul_sr, eul_b]
 euls = [[0,0.01,0],[0.01,0.01,0],[0.01,0.01,0.01],[0,0.01,0.01]]
-#euls = [[0,0.01,0.01],[0.01,0.01,0.01]]
-
 
 survival_vf2 = [ 1.0 ] #[0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0]
 survival_vm2 = [ 0.5 ] #[0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0]
 
 survival_values = []
 
-for survm_i in survival_vm2:
-    for survf_i in survival_vf2:
-        survival_values += [[[1.0,survm_i],[1.0,survf_i]]]
+sigma = [[0.25,0.25]]
+
+for surv_i in survival_vf2:
+    survival_values += [[[1.0,1.0],[1.0,surv_i]]]
 
 burrow_mod_survival = [1]
 

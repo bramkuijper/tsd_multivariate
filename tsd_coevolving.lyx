@@ -1,5 +1,5 @@
-#LyX 2.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 544
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -12,11 +12,11 @@
 \definecolor{darkblue}{RGB}{28,29,123}
 \end_preamble
 \use_default_options true
-\maintain_unincluded_children false
+\maintain_unincluded_children no
 \language english
 \language_package default
-\inputencoding auto
-\fontencoding global
+\inputencoding auto-legacy
+\fontencoding auto
 \font_roman "default" "default"
 \font_sans "default" "default"
 \font_typewriter "default" "default"
@@ -24,7 +24,9 @@
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
-\font_osf false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
 \font_sf_scale 100 100
 \font_tt_scale 100 100
 \use_microtype false
@@ -68,7 +70,9 @@
 \suppress_date false
 \justification true
 \use_refstyle 1
+\use_formatted_ref 0
 \use_minted 0
+\use_lineno 0
 \index Index
 \shortcut idx
 \color #008000
@@ -88,11 +92,16 @@
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
+\tablestyle default
 \tracking_changes false
 \output_changes false
+\change_bars false
+\postpone_fragile_content false
 \html_math_output 0
 \html_css_as_file 0
 \html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
 \end_header
 
 \begin_body
@@ -110,7 +119,8 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-In various taxa, sex determination is affected by the environment 
+In various taxa,
+ sex determination is affected by the environment 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Bachtrog2014"
@@ -118,7 +128,8 @@ literal "false"
 
 \end_inset
 
-, involving cues such as temperature 
+,
+ involving cues such as temperature 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Georges2010"
@@ -126,7 +137,8 @@ literal "false"
 
 \end_inset
 
-, photoperiod 
+,
+ photoperiod 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Naylor1988"
@@ -134,7 +146,8 @@ literal "false"
 
 \end_inset
 
-, number of competing foundresses 
+,
+ number of competing foundresses 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Werren1980"
@@ -151,9 +164,7 @@ literal "false"
 \end_inset
 
 ).
- Classical theory suggests that environmental sex determination is adaptive
- over and above genetic forms of sex determination when sex-specific fitness
- varies predictably across different environments 
+ Classical theory suggests that environmental sex determination is adaptive over and above genetic forms of sex determination when sex-specific fitness varies predictably across different environments 
 \begin_inset CommandInset citation
 LatexCommand citealp
 key "Trivers1973,Charnov1977,Warner2008"
@@ -162,8 +173,7 @@ literal "false"
 \end_inset
 
 .
- These predictions have subsequently been corroborated by a vast body of
- theory (reviewed in 
+ These predictions have subsequently been corroborated by a vast body of theory (reviewed in 
 \begin_inset CommandInset citation
 LatexCommand citealp
 key "Schwanz2021"
@@ -172,16 +182,18 @@ literal "false"
 \end_inset
 
 ) and empirical work (reviewed in ???).
- However, a shortcoming of most of these studies is, however, that key evolution
-ary predictions focus only the evolution of environmental sex determination
- itself, while considering that other types of sex determination
+ However,
+ a shortcoming of most of these studies is,
+ however,
+ that key evolutionary predictions focus only the evolution of environmental sex determination itself,
+ while considering that other types of sex determination
 \end_layout
 
 \begin_layout Standard
-What factors maintain sex ratios in taxa with environmental sex determination
- that face environmental change? Long-standing debates focused on the relative
- roles of maternal nest-site selection behaviour, thermal sensitivity of
- offspring sex (e.g., 
+What factors maintain sex ratios in taxa with environmental sex determination that face environmental change?
+ Long-standing debates focused on the relative roles of maternal nest-site selection behaviour,
+ thermal sensitivity of offspring sex (e.g.,
+ 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Bull1982,Bull1982a,Janzen1992,Rhen1998,Morjan2003a,Morjan2003"
@@ -193,8 +205,7 @@ literal "false"
 \end_layout
 
 \begin_layout Standard
-A recent review concluded that more integration among different models of
- TSD is called for 
+A recent review concluded that more integration among different models of TSD is called for 
 \end_layout
 
 \begin_layout Section
@@ -202,8 +213,7 @@ The model
 \end_layout
 
 \begin_layout Standard
-Our model builds on the classical Charnov-Bull model of condition-dependent
- sex allocation 
+Our model builds on the classical Charnov-Bull model of condition-dependent sex allocation 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Charnov1977,West2009,Schwanz2021"
@@ -211,11 +221,13 @@ literal "false"
 
 \end_inset
 
-, which considers a patch-structured population linked by juvenile dispersal.
- For the sake of tractability, each patch can be in one of two environmental
- states, which differentially affects sex-specific survival upon birth.
- Consequently, probabilities of survival of newborn females and males in
- a patch currently in environmental state 
+,
+ which considers a patch-structured population linked by juvenile dispersal.
+ For the sake of tractability,
+ each patch can be in one of two environmental states,
+ which differentially affects sex-specific survival upon birth.
+ Consequently,
+ probabilities of survival of newborn females and males in a patch currently in environmental state 
 \begin_inset Formula $i$
 \end_inset
 
@@ -228,7 +240,8 @@ literal "false"
 \end_inset
 
  respectively.
- After birth and survival, individuals disperse to 
+ After birth and survival,
+ individuals disperse to 
 \end_layout
 
 \begin_layout Subsection
@@ -236,10 +249,10 @@ Burrowing
 \end_layout
 
 \begin_layout Standard
-We consider a scenario in which burrowing affects nest temperature, allowing
- parents to modulate their local environment and thus the consequences of
- sex-specific survival.
- To this end, we consider an evolvable probability 
+We consider a scenario in which burrowing affects nest temperature,
+ allowing parents to modulate their local environment and thus the consequences of sex-specific survival.
+ To this end,
+ we consider an evolvable probability 
 \begin_inset Formula $b$
 \end_inset
 
@@ -247,7 +260,8 @@ We consider a scenario in which burrowing affects nest temperature, allowing
 \end_layout
 
 \begin_layout Standard
-loss of generality, we assume that burrowing in environment 
+loss of generality,
+ we assume that burrowing in environment 
 \begin_inset Formula $2$
 \end_inset
 
@@ -304,14 +318,14 @@ The life cycle starts upon the birth of an expected number of
 \begin_inset Formula $m_{i}$
 \end_inset
 
- daughters and sons from a parent who lives in a patch in environmental
- state 
+ daughters and sons from a parent who lives in a patch in environmental state 
 \begin_inset Formula $i$
 \end_inset
 
 .
- Subsequent to birth, survival occurs, after which the environment potentially
- changes to a different state (at rate 
+ Subsequent to birth,
+ survival occurs,
+ after which the environment potentially changes to a different state (at rate 
 \begin_inset Formula $\sigma_{ij}$
 \end_inset
 
@@ -320,7 +334,8 @@ The life cycle starts upon the birth of an expected number of
 \end_inset
 
 ).
- Subsequently, juveniles individuals of sex 
+ Subsequently,
+ juveniles individuals of sex 
 \begin_inset Formula $x$
 \end_inset
 
@@ -328,17 +343,19 @@ The life cycle starts upon the birth of an expected number of
 \begin_inset Formula $d_{x}$
 \end_inset
 
-, or they return to breed the natal patch with probability 
+,
+ or they return to breed the natal patch with probability 
 \begin_inset Formula $h_{x}=1-d_{x}$
 \end_inset
 
 .
- Upon return to the breeding site, adults compete with a total number 
+ Upon return to the breeding site,
+ adults compete with a total number 
 \begin_inset Formula $C_{i}(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}};\mathbf{s},b)$
 \end_inset
 
- of philopatric and immigrant adults for breeding positions, which is given
- by
+ of philopatric and immigrant adults for breeding positions,
+ which is given by
 \begin_inset Formula 
 \begin{align*}
 C_{\mathrm{f},i}\left(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}},\mathbf{d}^{\mathrm{local}}\right) & =\left(1-d_{\mathrm{f}i}^{\mathrm{local}}\right)f_{i}\left(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}}\right)+\sum_{k=\{1,2\}}d_{\mathrm{f}k}p_{k}f_{k}\left(\mathbf{s},b\right).\\
@@ -347,7 +364,8 @@ C_{\mathrm{m},i}\left(\mathbf{s}^{\mathrm{local}},b^{\mathrm{local}},\mathbf{d}^
 
 \end_inset
 
-Hence, the expected number 
+Hence,
+ the expected number 
 \begin_inset Formula $w_{\mathrm{f}i\rightarrow xj}$
 \end_inset
 
@@ -364,6 +382,24 @@ Hence, the expected number
 \end_inset
 
  is given by
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+We need to be explicit here about local mating,
+ as 
+\begin_inset Formula $n_{\mathrm{f}}=n_{\mathrm{m}}$
+\end_inset
+
+ and there are no fertility differences,
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -398,8 +434,7 @@ Let
 \begin_inset Formula $t$
 \end_inset
 
- between two randomly sampled adults (sampled without replacement) who live
- in environment 
+ between two randomly sampled adults (sampled without replacement) who live in environment 
 \begin_inset Formula $k$
 \end_inset
 
@@ -414,8 +449,7 @@ Q_{\mathrm{mm}j}\left(t+1\right) & =\sum_{k}\frac{p_{k}\sigma_{kj}}{\sum_{\ell}\
 
 \end_inset
 
-where the first term in the summation is the probability that the environment
- in the previous timestep is in a certain state 
+where the first term in the summation is the probability that the environment in the previous timestep is in a certain state 
 \begin_inset Formula $k$
 \end_inset
 
@@ -423,8 +457,8 @@ where the first term in the summation is the probability that the environment
 \begin_inset Formula $j$
 \end_inset
 
-, which is a standard result from Bayes' theorem and the total law of probabilit
-y
+,
+ which is a standard result from Bayes' theorem and the total law of probability
 \begin_inset Formula 
 \begin{align*}
 \Pr(\text{envt}(t)=k\mid\text{envt}(t+1)=j) & =\frac{\Pr(\text{envt}(t+1)=j\mid\text{envt}(t)=k)\Pr\left(\text{envt}\left(t\right)=k\right)}{\text{Pr}\left(\text{envt}(t+1)=j\right)}\\
@@ -442,7 +476,8 @@ where
 \end_inset
 
 .
- Next, 
+ Next,
+ 
 \begin_inset Formula $g_{xk}$
 \end_inset
 
@@ -469,8 +504,8 @@ Relatedness coefficients when offspring control trait
 \end_layout
 
 \begin_layout Standard
-Due to the structure of our fitness function, our focal recipient is either
- an adult male or female breeder.
+Due to the structure of our fitness function,
+ our focal recipient is either an adult male or female breeder.
  The relatedness coefficient 
 \begin_inset Formula $r_{\mathrm{f},j\rightarrow\text{own}}$
 \end_inset
@@ -479,8 +514,7 @@ Due to the structure of our fitness function, our focal recipient is either
 \begin_inset Formula $r_{\mathrm{m},j\rightarrow\text{own}}$
 \end_inset
 
-) between an adult female (or male) breeder and her/his own mutant offspring
- is given by
+) between an adult female (or male) breeder and her/his own mutant offspring is given by
 \begin_inset Formula 
 \begin{align*}
 r_{\mathrm{f},j\rightarrow\text{own}} & =r_{\mathrm{m,}j\rightarrow\text{own}}=\hat{Q}_{j},
@@ -492,8 +526,7 @@ where
 \begin_inset Formula $\hat{Q}_{j}$
 \end_inset
 
- is Wright's equilibrium coefficient of inbreeding in adults who breed in
- environment 
+ is Wright's equilibrium coefficient of inbreeding in adults who breed in environment 
 \begin_inset Formula $j$
 \end_inset
 
@@ -505,7 +538,8 @@ where
 
 \end_inset
 
-Then, the relatedness coefficients 
+Then,
+ the relatedness coefficients 
 \begin_inset Formula $r_{\mathrm{\mathrm{f}},j\rightarrow\text{off}}$
 \end_inset
 
@@ -513,8 +547,7 @@ Then, the relatedness coefficients
 \begin_inset Formula $r_{\mathrm{\mathrm{m}},j\rightarrow\text{off}}$
 \end_inset
 
-) between a focal recipient who is a mutant mother (or father) and a randomly
- chosen offspring actor in environment 
+) between a focal recipient who is a mutant mother (or father) and a randomly chosen offspring actor in environment 
 \begin_inset Formula $j$
 \end_inset
 
@@ -535,7 +568,8 @@ Relatedness coefficients when mothers control trait
 \end_layout
 
 \begin_layout Standard
-In case the trait is a maternal effect, we have
+In case the trait is a maternal effect,
+ we have
 \begin_inset Formula 
 \begin{align*}
 r_{\mathrm{f},j\rightarrow\mathrm{own}}^{\mathrm{M}} & =\hat{Q}_{j}\\
@@ -569,11 +603,13 @@ We then calculate the selection gradients in the sex allocation loci
 \begin_inset Formula $s_{2}$
 \end_inset
 
-, the digging trait 
+,
+ the digging trait 
 \begin_inset Formula $b$
 \end_inset
 
-, the philopatry traits 
+,
+ the philopatry traits 
 \begin_inset Formula $d_{\mathrm{f}}$
 \end_inset
 
@@ -755,8 +791,7 @@ begin{center}
 
 %
 \backslash
-LARGE{Evolution of epigenetic transmission when selection acts on fecundity
- versus viability}
+LARGE{Environmental Sex Determination When Multiple Traits Coevolve}
 \backslash
 
 \backslash
@@ -769,8 +804,7 @@ LARGE{Evolution of epigenetic transmission when selection acts on fecundity
 \backslash
 Large{Bram Kuijper 
 \backslash
-& Rufus A.
- Johnstone}
+& Dave Hosken}
 \backslash
 
 \backslash
