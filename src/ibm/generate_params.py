@@ -23,7 +23,7 @@ def riskAutocorr2freq(risk, autocorr):
 
     return([s12,s21])
 
-nf_nm = [[5,5]]
+nf_nm = [[10,10]]
 
 init_d = [[1.0,1.0],[0.2,0.2]]
 
@@ -31,14 +31,14 @@ init_b = [0.0]
 
 init_sr = [[0.5,0.5]]
 
-vf = [[1.0,0.9]]
+vf = [[1.0,0.3]]
 
 vm = [[1.0,1.0]]
 
 d_cue_is_envt = 0
 
-vf_pert = [[1.0,0.3]]
-vm_pert = [[1.0,1.0]]
+vf_pert = vf
+vm_pert = vm
 
 #r = list(np.linspace(0.01,0.99,10))
 #p1 = list(np.linspace(0.01,0.99,10))
