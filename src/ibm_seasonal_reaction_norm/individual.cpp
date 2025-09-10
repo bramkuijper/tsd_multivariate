@@ -80,7 +80,7 @@ void Individual::operator=(Individual const &other)
 // determine sex of this individual
 double Individual::determine_sex(double const temperature)
 {
-    double p_female = 1.0 / (1.0 + std::exp(-(a + b * temperature)));
+    double p_female = 1.0 / (1.0 + std::exp(-b *(temperature - a)));
     
     return(p_female);
 } // end determine_sex
