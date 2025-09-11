@@ -16,22 +16,22 @@ base_name = "sim_seasonal_tsd_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
 ctr = 0
-max_simulation_time = int(10000000)
+max_simulation_time = int(20000000)
 
 sm = [ 0 ]
 sf = [ 0 ]
 
-t_opt_f = [ 0.8 ]
-t_opt_m = [ 0.5,0.8]
+t_opt_f = [0.5]
+t_opt_m = [0.5]
 
 # width of the selection function
 omega = 0.01
 
 nrep = 3
 
-temp_change = [0]
+temp_change = [0.5]
 mu_t = [0.05]
-mu_tb = [0,0.05]
+mu_tb = [0.05]
 temp_error = [0,0.01,0.05]
 cue_error = [0,0.01,0.05]
 
