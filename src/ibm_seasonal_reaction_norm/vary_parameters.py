@@ -16,13 +16,13 @@ base_name = "sim_seasonal_tsd_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
 ctr = 0
-max_simulation_time = int(1000000)
+max_simulation_time = int(10000000)
 
 sm = [ 0 ]
 sf = [ 0 ]
 
-t_opt_f = [ 0.5 ]
-t_opt_m = 0.5
+t_opt_f = [ 0.8 ]
+t_opt_m = [ 0.5,0.8]
 
 # width of the selection function
 omega = 0.01
@@ -32,8 +32,8 @@ nrep = 3
 temp_change = [0]
 mu_t = [0.05]
 mu_tb = [0,0.05]
-temp_error = 0
-cue_error = 0
+temp_error = [0,0.01,0.05]
+cue_error = [0,0.01,0.05]
 
 # aim for roughly 25000 lines
 skip = max([int(round(max_simulation_time / 25000, 0)),1])
@@ -47,23 +47,26 @@ for mu_tbi in mu_tb:
                         continue
 
                     for t_opt_fi in t_opt_f:
+                        for t_opt_mi in t_opt_m:
+                            for temp_error_i in temp_error:
+                                for cue_error_i in cue_error:
 
-                        # get the basename
-                        ctr += 1
-                        base_name_i = base_name + "_" + str(ctr)
+                                    # get the basename
+                                    ctr += 1
+                                    base_name_i = base_name + "_" + str(ctr)
 
-                        print(f"{exe_name} {base_name_i} " \
-                                f"{max_simulation_time} " \
-                                f"{sm_i} " \
-                                f"{sf_i} " \
-                                f"{omega} " \
-                                f"{omega} " \
-                                f"{t_opt_m} " \
-                                f"{t_opt_fi} " \
-                                f"{skip} " \
-                                f"{change_i} " \
-                                f"{mu_t[0]} " \
-                                f"{mu_tbi} " \
-                                f"{temp_error} " \
-                                f"{cue_error} " \
-                              )
+                                    print(f"{exe_name} {base_name_i} " \
+                                            f"{max_simulation_time} " \
+                                            f"{sm_i} " \
+                                            f"{sf_i} " \
+                                            f"{omega} " \
+                                            f"{omega} " \
+                                            f"{t_opt_mi} " \
+                                            f"{t_opt_fi} " \
+                                            f"{skip} " \
+                                            f"{change_i} " \
+                                            f"{mu_t[0]} " \
+                                            f"{mu_tbi} " \
+                                            f"{temp_error_i} " \
+                                            f"{cue_error_i} " \
+                                          )
