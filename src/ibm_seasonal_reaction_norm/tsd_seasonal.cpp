@@ -575,7 +575,7 @@ void TSDSeasonal::replace()
         write_parameters();
         exit(1);
     }
-}
+} // end replace()
 
 void TSDSeasonal::write_parameters()
 {

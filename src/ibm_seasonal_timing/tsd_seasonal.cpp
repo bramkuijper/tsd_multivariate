@@ -38,12 +38,14 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
             reset_adult_breeding_status();
         }
 
+        // reproduction happens every time step to the 
+        // subset of the individuals willing to reproduce
         reproduce();
         update_environment();
     
         if (time_step % par.skip_output == 0 || 
-                (time_step > par.max_simulation_time / 2 - 50 && 
-                 time_step < par.max_simulation_time / 2 + 50))
+                (time_step > par.max_simulation_time / 2 - par.interval / 2 && 
+                 time_step < par.max_simulation_time / 2 + par.interval / 2))
         {
             write_data();
         }
@@ -51,6 +53,39 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
 
     write_parameters();
 } // end constructor
+
+// once an individual is selected to breed at a
+// particular timestep (based on its seasonal reaction norm)
+// it cannot breed another time during the season.
+// Only once the season starts again, will the breeding status
+// of this individual be reset
+void TSDSeasonal::reset_adult_breeding_status()
+{
+    n_already_attempted[male] = 0;
+    n_already_attempted[female] = 0;
+
+    // update the environment in each patch wi
+    for (unsigned int patch_idx = 0; 
+            patch_idx < metapopulation.size();
+            ++patch_idx)
+    {
+        // reset males 
+        for (auto male_iterator = metapopulation[patch_idx].males.begin(); 
+                male_iterator != metapopulation[patch_idx].males.end();
+                ++male_iterator)
+        {
+            male_iterator->attempted_to_mate = false;
+        }
+
+        // reset females
+        for (auto female_iterator = metapopulation[patch_idx].females.begin(); 
+                female_iterator != metapopulation[patch_idx].females.end();
+                ++female_iterator)
+        {
+            female_iterator->attempted_to_mate = false;
+        }
+    } // patch_idx
+} // end reset_adult_breeding_status()
 
 // envt is sinusoidal varying over time from -1 to 1 + error
 void TSDSeasonal::update_environment()
@@ -70,7 +105,7 @@ void TSDSeasonal::update_environment()
         metapopulation[patch_idx].temperature = 
             intercept + 
             par.amplitude * std::sin(time_step * 2 * M_PI / par.max_t_season) +
-            temperature_error(rng_r);
+                standard_normal(rng_r) * par.temp_error_sd;
     }
 }// end update_environment()
 
@@ -88,18 +123,18 @@ void TSDSeasonal::adult_survival()
 
         std::binomial_distribution<unsigned> 
             female_survivor_sampler(
-                    patch_iter->females.size(),
+                    static_cast<unsigned>(patch_iter->females.size()),
                     par.survival_prob[female]);
         
         std::binomial_distribution<unsigned> 
             male_survivor_sampler(
-                    patch_iter->males.size(),
+                    static_cast<unsigned>(patch_iter->males.size()),
                     par.survival_prob[male]);
 
 
         // get number of female survivors
-        int n_female_survivors = female_survivor_sampler(rng_r);
-        int n_male_survivors = male_survivor_sampler(rng_r);
+        unsigned n_female_survivors = female_survivor_sampler(rng_r);
+        unsigned n_male_survivors = male_survivor_sampler(rng_r);
 
         // sample surviving f and put them into female survivors
         std::sample(patch_iter->females.begin(), 
@@ -137,6 +172,11 @@ void TSDSeasonal::reproduce()
 
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
+    std::vector <unsigned int> already_attempted_to_mate{};
+
+    // reset stats
+    n_available_adults[male] = 0;
+    n_available_adults[female] = 0;
     
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
@@ -149,18 +189,22 @@ void TSDSeasonal::reproduce()
                 male_idx < metapopulation[patch_idx].males.size();
                 ++male_idx)
         {
-            // only reproduce if timing is right
-            if (metapopulation[patch_idx].males[male_idx].t == (time_step % par.max_t_season))
+            if (!metapopulation[patch_idx].males[male_idx].attempted_to_mate)
             {
-                available_local_males.push_back(male_idx);
+                // only reproduce if timing is right
+                if (metapopulation[patch_idx].males[male_idx].t == 
+                        (time_step % par.max_t_season))
+                {
+                    available_local_males.push_back(male_idx);
+                    metapopulation[patch_idx].males[male_idx].attempted_to_mate = true;
+                }
             }
-        }
+        } // end male_idx
 
-        // no male available: no offspring produced.
-        if (available_local_males.size() < 1)
-        {
-            continue;
-        }
+        // update counter for the stats function on available number of 
+        // individuals at this time step
+        n_available_adults[male] += static_cast<unsigned>(available_local_males.size());
+        n_already_attempted[male] += static_cast<unsigned>(available_local_males.size());
 
         // mix the list of available males
         std::shuffle(available_local_males.begin(),
@@ -175,76 +219,96 @@ void TSDSeasonal::reproduce()
         {
             assert(metapopulation[patch_idx].females[female_idx].is_female);
 
-            // check whether a female indeed reproduces at this time step
-            if (metapopulation[patch_idx].females[female_idx].t == (time_step % par.max_t_season))
+            if (metapopulation[patch_idx].females[female_idx].attempted_to_mate)
             {
-                for (int egg_idx = 0; egg_idx < par.fecundity; ++egg_idx)
+                continue;
+            }
+            
+            // only reproduce if timing is right
+            if (metapopulation[patch_idx].females[female_idx].t == 
+                    (time_step % par.max_t_season))
+            {
+                metapopulation[patch_idx].females[
+                    female_idx].attempted_to_mate = true;
+                
+                // update counter for the stats function on available number of 
+                // individuals at this time step
+                ++n_available_adults[female];
+                ++n_already_attempted[female];
+
+                if (available_local_males.size() > 0)
                 {
-                    // obtain father_idx
-                    unsigned int father_idx = available_local_males[
-                        egg_idx % available_local_males.size()];
-
-                    assert(father_idx >= 0);
-                    assert(father_idx < metapopulation[patch_idx].males.size());
-
-                    Individual Kid(metapopulation[patch_idx].females[female_idx],
-                                metapopulation[patch_idx].males[father_idx],
-                                par,
-                                rng_r);
-
-                    // calculate individual SR
-                    double p_female = Kid.determine_sex(
-                            metapopulation[patch_idx].temperature);
-
-                    // realise sex determination
-                    Kid.is_female = uniform(rng_r) < p_female;
-
-                    // survive and add to pool of juveniles
-                    if (Kid.is_female)
+                    for (unsigned egg_idx = 0; egg_idx < par.fecundity; ++egg_idx)
                     {
-                        if (uniform(rng_r) < 
-                                calculate_survival(patch_idx, female))
+                        // obtain father_idx
+                        unsigned int father_idx = available_local_males[
+                            egg_idx % static_cast<unsigned>(available_local_males.size())];
+
+                        assert(father_idx >= 0);
+                        assert(father_idx < metapopulation[patch_idx].males.size());
+
+                        Individual Kid(metapopulation[patch_idx].females[female_idx],
+                                    metapopulation[patch_idx].males[father_idx],
+                                    par,
+                                    rng_r);
+
+                        // calculate individual SR
+                        double p_female = Kid.determine_sex(
+                                metapopulation[patch_idx].temperature);
+
+                        // realise sex determination
+                        Kid.is_female = uniform(rng_r) < p_female;
+
+                        // survive and add to pool of juveniles
+                        if (Kid.is_female)
                         {
-                            metapopulation[patch_idx].female_juveniles.push_back(Kid);
+                            if (uniform(rng_r) < 
+                                    calculate_survival(patch_idx, female))
+                            {
+                                metapopulation[patch_idx].female_juveniles.push_back(Kid);
+                            }
                         }
-                    }
-                    else
-                    {
-                        if (uniform(rng_r) < 
-                                calculate_survival(patch_idx, male))
+                        else
                         {
-                            metapopulation[patch_idx].male_juveniles.push_back(Kid);
+                            if (uniform(rng_r) < 
+                                    calculate_survival(patch_idx, male))
+                            {
+                                metapopulation[patch_idx].male_juveniles.push_back(Kid);
+                            }
                         }
-                    }
-                } // end for()
-            } // end if
+                    } // end for()
+                } // if local_available_males.size() > 0
+            } // end if uniform() <  prob_reproduce
         } // end for female_idx
-
     } // end for patch_idx
 } // end reproduce()
-
 
 void TSDSeasonal::calculate_patch_productivities()
 {
     // vectors to store all local productivities
     // of males and females, allowing us to make 
     // a productivity distribution
-    std::vector<int> local_productivity_male{};
-    std::vector<int> local_productivity_female{};
+    std::vector<unsigned> local_productivity_male{};
+    std::vector<unsigned> local_productivity_female{};
      
     // reset sum of all productivities to 0
     global_productivity[male] = 0;
     global_productivity[female] = 0;
 
-    int njuv_males,njuv_females;
+    unsigned njuv_males,njuv_females;
 
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
-        njuv_males = metapopulation[patch_idx].male_juveniles.size();
-        njuv_females = metapopulation[patch_idx].female_juveniles.size();
+        njuv_males = static_cast<unsigned>(
+                metapopulation[patch_idx].male_juveniles.size()
+                );
+
+        njuv_females = static_cast<unsigned>(
+                metapopulation[patch_idx].female_juveniles.size()
+                );
 
         local_productivity_male.push_back(njuv_males);
         local_productivity_female.push_back(njuv_females);
@@ -370,8 +434,13 @@ void TSDSeasonal::fill_vacancies()
                 probabilities.begin(), probabilities.end());
 
         // calculate number of vacancies
-        n_vacancies = par.n - metapopulation[patch_idx].
-            female_survivors.size() - metapopulation[patch_idx].male_survivors.size();
+        n_vacancies = par.n - 
+            static_cast<unsigned>(
+                    metapopulation[patch_idx].female_survivors.size()
+                    ) - 
+            static_cast<unsigned>(
+                    metapopulation[patch_idx].male_survivors.size()
+                    );
 
         assert(n_vacancies <= par.n);
         assert(n_vacancies >= 0);
@@ -389,8 +458,9 @@ void TSDSeasonal::fill_vacancies()
                     {
                         patch_origin = patch_idx;
 
-                        unsigned int sizet0 = metapopulation[patch_idx].
-                            male_survivors.size();
+                        unsigned int sizet0 = static_cast<unsigned>(
+                                metapopulation[patch_idx].male_survivors.size()
+                                );
 
                         add_juv_to_survivors(
                             metapopulation[patch_origin].male_juveniles,
@@ -406,7 +476,9 @@ void TSDSeasonal::fill_vacancies()
                     {
                         patch_origin = productivity_distribution_m(rng_r); 
                         
-                        unsigned int sizet0 = metapopulation[patch_idx].male_survivors.size();
+                        unsigned int sizet0 = static_cast<unsigned>(
+                                metapopulation[patch_idx].male_survivors.size()
+                                );
 
                         add_juv_to_survivors(
                             metapopulation[patch_origin].male_juveniles,
@@ -420,7 +492,9 @@ void TSDSeasonal::fill_vacancies()
                     {
                         patch_origin = patch_idx;
 
-                        unsigned int sizet0 = metapopulation[patch_idx].female_survivors.size();
+                        unsigned int sizet0 = static_cast<unsigned>(
+                                metapopulation[patch_idx].female_survivors.size()
+                                );
 
                         add_juv_to_survivors(
                             metapopulation[patch_origin].female_juveniles,
@@ -437,7 +511,9 @@ void TSDSeasonal::fill_vacancies()
                         assert(patch_origin >= 0);
                         assert(patch_origin < par.npatches);
                         
-                        unsigned int sizet0 = metapopulation[patch_idx].female_survivors.size();
+                        unsigned int sizet0 = static_cast<unsigned>(
+                                metapopulation[patch_idx].female_survivors.size()
+                                );
 
                         add_juv_to_survivors(
                             metapopulation[patch_origin].female_juveniles,
@@ -484,7 +560,7 @@ void TSDSeasonal::replace()
         write_parameters();
         exit(1);
     }
-}
+} // end replace()
 
 void TSDSeasonal::write_parameters()
 {
@@ -512,12 +588,18 @@ void TSDSeasonal::write_parameters()
         << "mu_a;" << par.mu_a << std::endl
         << "mu_b;" << par.mu_b << std::endl
         << "mu_t;" << par.mu_t << std::endl
-        << "unif_range_sdmu_t;" << par.unif_range_sdmu_t << std::endl
-        << "sdmu;" << par.sdmu << std::endl; 
+        << "sdmu;" << par.sdmu << std::endl
+        << "sdmu_t;" << par.unif_range_sdmu_t << std::endl
+        << "temp_error_sd;" << par.temp_error_sd << std::endl
+        << "cue_error;" << par.cue_error << std::endl; 
 } // end write_parameters
 
 void TSDSeasonal::write_data()
 {
+    // first calculate all the productivities
+    // again to make sure numbers are ok
+    calculate_patch_productivities();
+
     double meana{0.0};
     double ssa{0.0};
 
@@ -529,10 +611,16 @@ void TSDSeasonal::write_data()
     
     double x;
 
-    int nf{0};
-    int nm{0};
+    // number of adult females and males
+    unsigned nf{0};
+    unsigned nm{0};
+    // number of adult females and males
+    // which have survived
+    unsigned nf_surv{0};
+    unsigned nm_surv{0};
 
     double adult_sr{0.0};
+    double adult_sr_surv{0.0};
 
     double mean_temperature{0.0};
     double ss_temperature{0.0};
@@ -544,6 +632,8 @@ void TSDSeasonal::write_data()
     {
         nf += patch_iter->females.size();
         nm += patch_iter->males.size();
+        nf_surv += patch_iter->female_survivors.size();
+        nm_surv += patch_iter->male_survivors.size();
 
         mean_temperature += patch_iter->temperature;
         ss_temperature += patch_iter->temperature * patch_iter->temperature;
@@ -583,7 +673,10 @@ void TSDSeasonal::write_data()
         }
     }
 
+    // adult sex ratio
     adult_sr = (nf + nm) == 0 ? 0 : static_cast<double>(nm) / (nf + nm);
+    adult_sr_surv = (nf_surv + nm_surv) == 0 ? 0 : 
+        static_cast<double>(nm_surv) / (nf_surv + nm_surv);
 
     meana /= nf + nm;
     double vara = ssa / (nf + nm) - meana * meana;
@@ -594,12 +687,14 @@ void TSDSeasonal::write_data()
     meant /= nf + nm;
     double vart = sst / (nf + nm) - meant * meant;
     
+    // calculate sex ratio among surviving juveniles
     double global_juv_sr_after_survival = global_productivity[male] + global_productivity[female] == 0 ? 0 :
         static_cast<double>(global_productivity[male]) / 
             (global_productivity[male] + global_productivity[female]);
 
     mean_temperature /= par.npatches;
-    double var_temperature = ss_temperature / par.npatches - mean_temperature * mean_temperature;
+    double var_temperature = ss_temperature / par.npatches - 
+        mean_temperature * mean_temperature;
 
     data_file << time_step << ";" << 
         meana << ";" <<
@@ -611,10 +706,38 @@ void TSDSeasonal::write_data()
         meant << ";" <<
         vart << ";" <<
 
+        // surviving male juvs
         static_cast<double>(global_productivity[male])/par.npatches << ";" << 
+        
+        // surviving female juvs
         static_cast<double>(global_productivity[female])/par.npatches << ";" << 
+
+        // surviving female adults
+        static_cast<double>(nf_surv)/par.npatches << ";" << 
+        
+        // surviving male adults
+        static_cast<double>(nm_surv)/par.npatches << ";" << 
+
+        // available males per time step
+        static_cast<double>(n_available_adults[male])/par.npatches << ";" <<
+        
+        // available females per time step
+        static_cast<double>(n_available_adults[female])/par.npatches << ";" <<
+
+        // prior attempts male
+        static_cast<double>(n_already_attempted[male])/par.npatches << ";" <<
+        
+        // prior attempts male
+        static_cast<double>(n_already_attempted[female])/par.npatches << ";" <<
+
+        // juvenile sr
         global_juv_sr_after_survival << ";" << 
+
+        //  adult sr
         adult_sr << ";" << 
+
+        //  adult sr
+        adult_sr_surv << ";" << 
         static_cast<double>(nf)/par.npatches  << ";" << 
         static_cast<double>(nm)/par.npatches  << ";" << 
         mean_temperature << ";" <<
@@ -624,6 +747,6 @@ void TSDSeasonal::write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;surviving_male_juvs;surviving_female_juvs;surviving_juv_sr;adult_sr;nf;nm;mean_environment;var_environment;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;surviving_male_juvs;surviving_female_juvs;surviving_male_adults;surviving_female_adults;available_males;available_females;already_attempted_males;already_attempted_females;surviving_juv_sr;adult_sr;adult_surv_sr;nf;nm;mean_environment;var_environment;" 
         << std::endl;
 } // write_headers()

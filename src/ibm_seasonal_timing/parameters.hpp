@@ -29,12 +29,17 @@ class Parameters
         double temperature_intercept_change{0.8};
 
         // max number of timesteps in one season
-        int max_t_season{50};
+        long unsigned max_t_season{50};
 
         // timing value, where t is time in the season of reproduction
         int init_t{3};
 
+        // maximum duration of the simulation
         long unsigned max_simulation_time{100};
+
+        // interval surrounding the perturbation
+        // during which all data is plotted at every time step
+        long unsigned interval{300};
 
         // initial sex allocation threshold 
         double init_a{0.0};
@@ -52,6 +57,7 @@ class Parameters
         unsigned int skip_output{1};
 
         double temp_error_sd{0.1};
+        double cue_error{0.1};
 
         std::string file_name{"sim_tsd_seasonal"};
 

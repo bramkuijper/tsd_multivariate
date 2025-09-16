@@ -18,7 +18,8 @@ Individual::Individual(Individual const &other) :
     a{other.a},
     b{other.b},
     t{other.t},
-    tb{other.tb}
+    tb{other.tb},
+    attempted_to_mate{other.attempted_to_mate}
 {
 }
 
