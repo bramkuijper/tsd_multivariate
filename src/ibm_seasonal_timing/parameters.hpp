@@ -29,16 +29,16 @@ class Parameters
         double temperature_intercept_change{0.8};
 
         // max number of timesteps in one season
-        int max_t{50};
+        int max_t_season{50};
 
         // timing value, where t is time in the season of reproduction
-        int init_t{8};
+        int init_t{3};
 
         long unsigned max_simulation_time{100};
 
         // initial sex allocation threshold 
-        double init_a{5.0};
-        double init_b{-8.0};
+        double init_a{0.0};
+        double init_b{0.0};
 
         double mu_a{0.02};
         double mu_b{0.02};

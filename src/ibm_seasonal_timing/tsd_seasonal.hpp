@@ -16,7 +16,7 @@ class TSDSeasonal
         std::ofstream data_file;
 
         std::uniform_real_distribution<double> uniform;
-        std::normal_distribution<double> temperature_error{1.0,0.1};
+        std::normal_distribution<double> standard_normal{0.0,1.0};
         
         // productivity distributions for females and males, 
         // initialized with some dummy values
@@ -35,6 +35,8 @@ class TSDSeasonal
         // total productivity for males and females
         int global_productivity[2]{0,0};
         unsigned int survivors[2]{0,0};
+        unsigned int n_available_adults[2]{0,0};
+        unsigned int n_already_attempted[2]{0,0};
         unsigned int fecundity{0};
 
         void adult_survival();
@@ -48,6 +50,10 @@ class TSDSeasonal
 
         // update the state of the environment
         void update_environment();
+        
+        // reset an individual's breeding statuses
+        // at the start of each season
+        void reset_adult_breeding_status();
 
         // calculate fecundity of an individual
         // and update resource levels
@@ -55,8 +61,12 @@ class TSDSeasonal
 
         double calculate_survival(unsigned int const patch_idx, Sex const the_sex);
 
+        // calculate fecundities of all the patches
+        // this is necessary to calculate whether
+        // newly established adults are native or immigrant
         void calculate_patch_productivities();
 
+        // juvenile establishes itself as an adult
         void add_juv_to_survivors(std::vector<Individual> &from,
                 std::vector<Individual> &to);
 
