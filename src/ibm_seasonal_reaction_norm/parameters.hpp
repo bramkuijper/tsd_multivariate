@@ -44,6 +44,9 @@ class Parameters
         // the duration of the simulation
         long unsigned max_simulation_time{100};
 
+        long unsigned interval{300};
+
+
         // initial sex allocation threshold 
         double init_a{0.0};
         double init_b{0.0};

@@ -47,8 +47,8 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
         }
     
         if (time_step % par.skip_output == 0 || 
-                (time_step > par.max_simulation_time / 2 - 50 && 
-                 time_step < par.max_simulation_time / 2 + 50))
+                (time_step > par.max_simulation_time / 2 - par.interval / 2 && 
+                 time_step < par.max_simulation_time / 2 + par.interval / 2))
         {
             write_data();
         }
