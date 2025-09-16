@@ -14,7 +14,6 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     par{par},
     data_file{par.file_name},
     uniform{0.0,1.0},
-    temperature_error{0.0,par.temp_error_sd},
     rd{},
     seed{rd()},
     rng_r{seed},
@@ -24,10 +23,10 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     write_headers();
 
     // now run the simulation
-    for (time_step = 1; 
+    for (time_step = 0; 
             time_step <= par.max_simulation_time; ++time_step)
     {
-        if (time_step % par.max_t == 0)
+        if (time_step > 0 && time_step % par.max_t_season == 0)
         {
             adult_survival();
             fill_vacancies();
@@ -36,6 +35,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
             // clear the stack of juveniles and be ready for the
             // next season
             clear_juveniles();
+            reset_adult_breeding_status();
         }
 
         reproduce();
@@ -69,7 +69,7 @@ void TSDSeasonal::update_environment()
     {
         metapopulation[patch_idx].temperature = 
             intercept + 
-            par.amplitude * std::sin(time_step * 2 * M_PI / par.max_t) +
+            par.amplitude * std::sin(time_step * 2 * M_PI / par.max_t_season) +
             temperature_error(rng_r);
     }
 }// end update_environment()
@@ -150,7 +150,7 @@ void TSDSeasonal::reproduce()
                 ++male_idx)
         {
             // only reproduce if timing is right
-            if (metapopulation[patch_idx].males[male_idx].t == (time_step % par.max_t))
+            if (metapopulation[patch_idx].males[male_idx].t == (time_step % par.max_t_season))
             {
                 available_local_males.push_back(male_idx);
             }
@@ -176,7 +176,7 @@ void TSDSeasonal::reproduce()
             assert(metapopulation[patch_idx].females[female_idx].is_female);
 
             // check whether a female indeed reproduces at this time step
-            if (metapopulation[patch_idx].females[female_idx].t == (time_step % par.max_t))
+            if (metapopulation[patch_idx].females[female_idx].t == (time_step % par.max_t_season))
             {
                 for (int egg_idx = 0; egg_idx < par.fecundity; ++egg_idx)
                 {
@@ -506,7 +506,7 @@ void TSDSeasonal::write_parameters()
         << "intercept;" << par.temperature_intercept << std::endl
         << "intercept_change;" << par.temperature_intercept_change << std::endl
         << "init_t;" << par.init_t << std::endl
-        << "max_t;" << par.max_t << std::endl
+        << "max_t_season;" << par.max_t_season << std::endl
         << "init_a;" << par.init_a << std::endl
         << "init_b;" << par.init_b << std::endl
         << "mu_a;" << par.mu_a << std::endl

@@ -61,8 +61,12 @@ class TSDSeasonal
 
         double calculate_survival(unsigned int const patch_idx, Sex const the_sex);
 
+        // calculate fecundities of all the patches
+        // this is necessary to calculate whether
+        // newly established adults are native or immigrant
         void calculate_patch_productivities();
 
+        // juvenile establishes itself as an adult
         void add_juv_to_survivors(std::vector<Individual> &from,
                 std::vector<Individual> &to);
 
