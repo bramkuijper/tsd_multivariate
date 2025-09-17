@@ -39,7 +39,7 @@ class Parameters
 
         // interval surrounding the perturbation
         // during which all data is plotted at every time step
-        long unsigned interval{300};
+        long unsigned interval{1000};
 
         // initial sex allocation threshold 
         double init_a{0.0};

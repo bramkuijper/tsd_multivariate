@@ -32,7 +32,8 @@ nrep = 3
 temp_change = [0.5]
 mu_t = [0.05]
 
-temp_error = [0,0.01,0.05,0.5,1.0]
+#temp_error = [0,0.01,0.05,0.5,1.0]
+temp_error = [0]
 
 # aim for roughly 25000 lines
 skip = max([int(round(max_simulation_time / 25000, 0)),1])
