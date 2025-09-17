@@ -27,7 +27,7 @@ class Parameters
         // the width of the seasonal function
         double omega_t[2]{0.1,0.1};
 
-        int fecundity{30};
+        unsigned fecundity{30};
 
         // amplitude of the temperature sinusoidal
         double amplitude{1.0};

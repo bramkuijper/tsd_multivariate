@@ -100,6 +100,9 @@ void TSDSeasonal::update_environment()
         : 
         par.temperature_intercept_change;
 
+    double d_max_t_season = static_cast<double>(par.max_t_season);
+    double d_time_step = static_cast<double>(time_step);
+
     // update the environment in each patch wi
     for (unsigned int patch_idx = 0; 
             patch_idx < metapopulation.size();
@@ -107,7 +110,7 @@ void TSDSeasonal::update_environment()
     {
         metapopulation[patch_idx].temperature = 
             intercept + 
-            par.amplitude * std::sin(time_step * 2 * M_PI / par.max_t_season) +
+            par.amplitude * std::sin(d_time_step * 2 * M_PI / d_max_t_season) +
             standard_normal(rng_r) * par.temp_error_sd;
     }
 }// end update_environment()
@@ -417,8 +420,9 @@ void TSDSeasonal::fill_vacancies()
         sumprob = 0.0;
 
         double plocal_male = 
-                (1.0 - par.d[male]) * metapopulation[patch_idx].
-                male_juveniles.size();
+                (1.0 - par.d[male]) * static_cast<unsigned>(
+                        metapopulation[patch_idx].male_juveniles.size()
+                        );
 
         // event 0: sample local male
         probabilities.push_back(plocal_male);
@@ -434,8 +438,9 @@ void TSDSeasonal::fill_vacancies()
         sumprob += premote_male;
 
         // event 2: sample philopatric female
-        double plocal_female = (1.0 - par.d[female]) * metapopulation[patch_idx].
-                    female_juveniles.size();
+        double plocal_female = (1.0 - par.d[female]) * static_cast<unsigned>(
+                metapopulation[patch_idx].
+                    female_juveniles.size());
 
         probabilities.push_back(plocal_female);
         sumprob += plocal_female;
@@ -572,8 +577,8 @@ void TSDSeasonal::replace()
             patch_iter != metapopulation.end();
             ++patch_iter)
     {
-        survivors[male] += patch_iter->male_survivors.size();
-        survivors[female] += patch_iter->female_survivors.size();
+        survivors[male] += static_cast<unsigned>(patch_iter->male_survivors.size());
+        survivors[female] += static_cast<unsigned>(patch_iter->female_survivors.size());
 
         patch_iter->females = patch_iter->female_survivors;
         patch_iter->males = patch_iter->male_survivors;
@@ -666,10 +671,10 @@ void TSDSeasonal::write_data()
             patch_iter != metapopulation.end();
             ++patch_iter)
     {
-        nf += patch_iter->females.size();
-        nm += patch_iter->males.size();
-        nf_surv += patch_iter->female_survivors.size();
-        nm_surv += patch_iter->male_survivors.size();
+        nf += static_cast<unsigned>(patch_iter->females.size());
+        nm += static_cast<unsigned>(patch_iter->males.size());
+        nf_surv += static_cast<unsigned>(patch_iter->female_survivors.size());
+        nm_surv += static_cast<unsigned>(patch_iter->male_survivors.size());
 
         mean_temperature += patch_iter->temperature;
         ss_temperature += patch_iter->temperature * patch_iter->temperature;
