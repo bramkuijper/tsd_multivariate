@@ -69,7 +69,7 @@ Individual::Individual(Individual const &mom,
         if (t < 0)
         {
             t = 0;
-        } else if (t > par.max_t_season)
+        } else if (t > static_cast<int>(par.max_t_season))
         {
             t = static_cast<int>(par.max_t_season);
         }

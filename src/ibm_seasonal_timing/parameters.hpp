@@ -21,7 +21,7 @@ class Parameters
         double t_opt[2]{-0.5,0.5};
         double omega_t[2]{0.1,0.1};
 
-        int fecundity{10};
+        unsigned fecundity{10};
 
         // temperature sinusoidal
         double amplitude{1.0};

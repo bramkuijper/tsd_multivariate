@@ -17,7 +17,6 @@ int main(int argc, char **argv)
     params.temperature_intercept_change = std::stod(argv[10]);
     params.mu_t = std::stod(argv[11]);
     params.temp_error_sd = std::stod(argv[12]);
-    params.cue_error = std::stod(argv[13]);
 
     TSDSeasonal sim(params);
 }
