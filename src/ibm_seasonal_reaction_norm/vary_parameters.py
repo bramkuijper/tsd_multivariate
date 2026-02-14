@@ -16,7 +16,8 @@ base_name = "sim_seasonal_tsd_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
 ctr = 0
-max_simulation_time = int(20000000)
+#max_simulation_time = int(20000000)
+max_simulation_time = int(200)
 
 sm = [ 0 ]
 sf = [ 0 ]

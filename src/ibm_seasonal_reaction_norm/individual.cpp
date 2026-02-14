@@ -15,11 +15,11 @@ Individual::Individual(Parameters const &params, bool const is_female) :
 // copy constructor
 Individual::Individual(Individual const &other) :
     is_female{other.is_female},
+    attempted_to_mate{other.attempted_to_mate},
     a{other.a},
     b{other.b},
     t{other.t},
-    tb{other.tb},
-    attempted_to_mate{other.attempted_to_mate}
+    tb{other.tb}
 {
 }
 
