@@ -7,8 +7,6 @@
 #include "parameters.hpp"
 
 // the evolution of TSD in a seasonal environment
-// when individuals can simply evolve a time at which to reproduce
-// rather than relying on a cue indicative of seasonality
 
 // constructor
 TSDSeasonal::TSDSeasonal(Parameters const &par) :
@@ -45,7 +43,8 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
             clear_juveniles();
             reset_adult_breeding_status();
         }
-    
+
+        // closely monitor change around when things are happening
         if (time_step % par.skip_output == 0 || 
                 (time_step > par.max_simulation_time / 2 - par.interval / 2 && 
                  time_step < par.max_simulation_time / 2 + par.interval / 2))
@@ -198,11 +197,13 @@ void TSDSeasonal::reproduce()
                 male_idx < metapopulation[patch_idx].males.size();
                 ++male_idx)
         {
+            // if this male has not mated before, will it mate now?
             if (!metapopulation[patch_idx].males[male_idx].attempted_to_mate)
             {
                 cue = metapopulation[patch_idx].temperature +
                           standard_normal(rng_r) * par.cue_error;
 
+                // whether male should currently reproduce or not
                 prob_reproduce = metapopulation[patch_idx].males[male_idx].tmax * 1.0 / 
                     (1.0 + std::exp(
                     - metapopulation[patch_idx].males[male_idx].tb * (
@@ -245,6 +246,7 @@ void TSDSeasonal::reproduce()
             cue = metapopulation[patch_idx].temperature +
                       standard_normal(rng_r) * par.cue_error;
 
+            // will female reproduce during this time step yes no
             prob_reproduce = metapopulation[patch_idx].females[female_idx].tmax * 
                 1.0 / 
                 (1.0 + std::exp(
@@ -264,6 +266,7 @@ void TSDSeasonal::reproduce()
                 ++n_available_adults[female];
                 ++n_already_attempted[female];
 
+                // only reproduce if other males are available
                 if (available_local_males.size() > 0)
                 {
                     for (unsigned egg_idx = 0; egg_idx < par.fecundity; ++egg_idx)
@@ -819,3 +822,21 @@ void TSDSeasonal::write_headers()
     data_file << "time;a;var_a;b;var_b;t;var_t;tb;var_tb;tmax;var_tmax;surviving_male_juvs;surviving_female_juvs;surviving_male_adults;surviving_female_adults;available_males;available_females;already_attempted_males;already_attempted_females;surviving_juv_sr;adult_sr;adult_surv_sr;nf;nm;mean_environment;var_environment;" 
         << std::endl;
 } // write_headers()
+
+void TSDSeasonal::write_individuals()
+{
+    // go through all survivors and assess whether they are breeding
+    for (auto patch_iter = metapopulation.begin();
+            patch_iter != metapopulation.end();
+            ++patch_iter)
+    {
+        for (auto female_iter = patch_iter->females.begin();
+                female_iter != patch_iter->females.end();
+                ++female_iter)
+        {
+
+
+        }
+
+    }
+} // end write_individuals
