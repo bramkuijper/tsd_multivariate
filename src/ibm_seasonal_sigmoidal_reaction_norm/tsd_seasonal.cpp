@@ -822,21 +822,3 @@ void TSDSeasonal::write_headers()
     data_file << "time;a;var_a;b;var_b;t;var_t;tb;var_tb;tmax;var_tmax;surviving_male_juvs;surviving_female_juvs;surviving_male_adults;surviving_female_adults;available_males;available_females;already_attempted_males;already_attempted_females;surviving_juv_sr;adult_sr;adult_surv_sr;nf;nm;mean_environment;var_environment;" 
         << std::endl;
 } // write_headers()
-
-void TSDSeasonal::write_individuals()
-{
-    // go through all survivors and assess whether they are breeding
-    for (auto patch_iter = metapopulation.begin();
-            patch_iter != metapopulation.end();
-            ++patch_iter)
-    {
-        for (auto female_iter = patch_iter->females.begin();
-                female_iter != patch_iter->females.end();
-                ++female_iter)
-        {
-
-
-        }
-
-    }
-} // end write_individuals

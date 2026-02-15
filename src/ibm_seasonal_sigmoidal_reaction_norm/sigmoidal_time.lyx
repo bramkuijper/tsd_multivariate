@@ -141,7 +141,7 @@ placement document
 alignment document
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Graphics
@@ -174,7 +174,35 @@ status open
 \end_layout
 
 \begin_layout Standard
-So how would earlier seasons work with breeding decisions.
+So clearly if temperatures increase,
+ we immediately get that plasticity should be doing the job etc.
+ etc.
+\end_layout
+
+\begin_layout Standard
+There are problems,
+ however,
+ with this type of reaction norm.
+\end_layout
+
+\begin_layout Standard
+It might be intuitive to see 
+\begin_inset Formula $t$
+\end_inset
+
+ as a non-plastic threshold trait,
+ but unless 
+\begin_inset Formula $t_{b}$
+\end_inset
+
+ is nonzero,
+ it is wholly useless,
+ as you will get a flat line the height of which is determined by tmax.
+\end_layout
+
+\begin_layout Standard
+What we actually want is a temperature-independent threshold.
+ 
 \end_layout
 
 \begin_layout Standard

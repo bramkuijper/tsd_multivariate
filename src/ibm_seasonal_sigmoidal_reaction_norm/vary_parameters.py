@@ -15,22 +15,32 @@ date = datetime.datetime.now()
 base_name = "sim_seasonal_tsd_" +\
         f"{date:%d}_{date:%m}_{date:%Y}_{date:%H}{date:%M}{date:%S}"
 
+# auxiliary variable counting the number of simulations
+# that need to be run 
 ctr = 0
+
+#  maximum duration the simulation is running
 max_simulation_time = int(20000000)
 
+# annual survival probability of female and male parents
 sm = [ 0 ]
 sf = [ 0 ]
 
+# optimal temperature of females and males
 t_opt_f = [0.5]
-t_opt_m = [0.5,0.8]
+t_opt_m = [0.8]
 
 # width of the selection function
 omega = 0.01
 
+# number of simulation replicates
 nrep = 3
 
+# how much temperature should change in a particular generation
 temp_change = [0.5]
-mu_t = [0.05]
+
+# mutation rate of the threshold at which an individual should breed
+mu_t = [0.02]
 
 mu_tb = [0,0.05]
 temp_error = [0,0.01,0.05,0.5,1.0]
