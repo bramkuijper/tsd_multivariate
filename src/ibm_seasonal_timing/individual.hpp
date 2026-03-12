@@ -12,6 +12,7 @@ class Individual
         bool attempted_to_mate{false}; // whether individual is female or not
         double a{0.0}; // the sex allocation temperature intercept
         double b{0.0}; // the sex allocation temperature slope
+        double t{0.0}; // the sex allocation temperature slope
         
         int t{1}; // the time step in the season at which the individual reproduces
        

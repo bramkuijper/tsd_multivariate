@@ -195,9 +195,20 @@ void TSDSeasonal::reproduce()
         {
             if (!metapopulation[patch_idx].males[male_idx].attempted_to_mate)
             {
-                // only reproduce if timing is right
-                if (metapopulation[patch_idx].males[male_idx].t == 
-                        static_cast<int>(time_step % par.max_t_season))
+                cue = metapopulation[patch_idx].temperature +
+                          standard_normal(rng_r) * par.cue_error;
+
+                // whether male should currently reproduce or not
+                prob_reproduce = metapopulation[patch_idx].males[male_idx].tmax * 1.0 / 
+                    (1.0 + std::exp(
+                    - metapopulation[patch_idx].males[male_idx].tb * (
+                        cue - 
+                            metapopulation[patch_idx].males[male_idx].t)
+                        )
+                     -par.time_b * (time_step - metapopulation[patch_idx].males[male_idx].time_a)
+                    );
+
+                if (uniform(rng_r) < prob_reproduce)
                 {
                     available_local_males.push_back(male_idx);
                     metapopulation[patch_idx].males[male_idx].attempted_to_mate = true;
@@ -587,10 +598,11 @@ void TSDSeasonal::write_parameters()
         << "amplitude;" << par.amplitude << std::endl
         << "intercept;" << par.temperature_intercept << std::endl
         << "intercept_change;" << par.temperature_intercept_change << std::endl
-        << "init_t;" << par.init_t << std::endl
+        << "init_time_a;" << par.init_time_a << std::endl
         << "max_t_season;" << par.max_t_season << std::endl
         << "init_a;" << par.init_a << std::endl
         << "init_b;" << par.init_b << std::endl
+        << "time_b;" << par.time_b << std::endl;
         << "mu_a;" << par.mu_a << std::endl
         << "mu_b;" << par.mu_b << std::endl
         << "mu_t;" << par.mu_t << std::endl
@@ -612,8 +624,8 @@ void TSDSeasonal::write_data()
     double meanb{0.0};
     double ssb{0.0};
     
-    double meant{0.0};
-    double sst{0.0};
+    double mean_time_a{0.0};
+    double ss_time_a{0.0};
     
     double x;
 
@@ -656,9 +668,9 @@ void TSDSeasonal::write_data()
             meanb += x;
             ssb += x * x;
 
-            x = female_iter->t;
-            meant += x;
-            sst += x * x;
+            x = female_iter->time_a;
+            mean_time_a += x;
+            ss_time_a += x * x;
         }
         
         for (auto male_iter = patch_iter->males.begin();
@@ -673,9 +685,9 @@ void TSDSeasonal::write_data()
             meanb += x;
             ssb += x * x;
 
-            x = male_iter->t;
-            meant += x;
-            sst += x * x;
+            x = male_iter->time_a;
+            mean_time_a += x;
+            ss_time_a += x * x;
         }
     }
 
@@ -690,11 +702,12 @@ void TSDSeasonal::write_data()
     meanb /= nf + nm;
     double varb = ssb / (nf + nm) - meanb * meanb;
     
-    meant /= nf + nm;
-    double vart = sst / (nf + nm) - meant * meant;
+    mean_time_a /= nf + nm;
+    double var_time_a = ss_time_a / (nf + nm) - mean_time_a * mean_time_a;
     
     // calculate sex ratio among surviving juveniles
-    double global_juv_sr_after_survival = global_productivity[male] + global_productivity[female] == 0 ? 0 :
+    double global_juv_sr_after_survival = global_productivity[male] + 
+        global_productivity[female] == 0 ? 0 :
         static_cast<double>(global_productivity[male]) / 
             (global_productivity[male] + global_productivity[female]);
 
@@ -709,8 +722,8 @@ void TSDSeasonal::write_data()
         meanb << ";" <<
         varb << ";" <<
         
-        meant << ";" <<
-        vart << ";" <<
+        mean_time_a << ";" <<
+        var_time_a << ";" <<
 
         // surviving male juvs
         static_cast<double>(global_productivity[male])/par.npatches << ";" << 
@@ -753,6 +766,6 @@ void TSDSeasonal::write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;surviving_male_juvs;surviving_female_juvs;surviving_male_adults;surviving_female_adults;available_males;available_females;already_attempted_males;already_attempted_females;surviving_juv_sr;adult_sr;adult_surv_sr;nf;nm;mean_environment;var_environment;" 
+    data_file << "time;a;var_a;b;var_b;time_a;var_time_a;surviving_male_juvs;surviving_female_juvs;surviving_male_adults;surviving_female_adults;available_males;available_females;already_attempted_males;already_attempted_females;surviving_juv_sr;adult_sr;adult_surv_sr;nf;nm;mean_environment;var_environment;" 
         << std::endl;
 } // write_headers()

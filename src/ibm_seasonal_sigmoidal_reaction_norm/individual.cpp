@@ -8,9 +8,10 @@ Individual::Individual(Parameters const &params, bool const is_female) :
     is_female{is_female},
     a{params.init_a}, // pivotal temp 
     b{params.init_b}, // temp slope (sigmoidal)
-    t{params.init_t}, // timing intercept
-    tb{params.init_tb}, // timing slope on perceived temp
-    tmax{params.init_tmax} // max to the per-timestep probability
+    temp_a{params.init_t}, // timing intercept
+    temp_b{params.init_tb}, // timing slope on perceived temp
+    tmax{params.init_tmax}, // max to the per-timestep probability
+    time_threshold{params.init_time_threshold} // when probabilities should start to be applied
 {}
 
 // copy constructor
@@ -19,9 +20,10 @@ Individual::Individual(Individual const &other) :
     attempted_to_mate{other.attempted_to_mate},
     a{other.a},
     b{other.b},
-    t{other.t},
-    tb{other.tb},
-    tmax{other.tmax} 
+    temp_a{other.temp_a},
+    temp_b{other.temp_b},
+    tmax{other.tmax},
+    time_threshold{other.time_threshold}
 {
 }
 
@@ -38,10 +40,11 @@ Individual::Individual(Individual const &mom,
     // inherit haploid traits
     a = uniform(rng_r) < 0.5 ? dad.a : mom.a; // pivotal temperature
     b = uniform(rng_r) < 0.5 ? dad.b : mom.b; // sex alloc slope on temperature
-    t = uniform(rng_r) < 0.5 ? dad.t : mom.t; // timing of reproduction, intercept
-    tb = uniform(rng_r) < 0.5 ? dad.tb : mom.tb; // timing of reproduction, plasticity
+    temp_a = uniform(rng_r) < 0.5 ? dad.temp_a : mom.temp_a; // timing of reproduction, intercept
+    temp_b = uniform(rng_r) < 0.5 ? dad.temp_b : mom.temp_b; // timing of reproduction, plasticity
     tmax = uniform(rng_r) < 0.5 ? dad.tmax : mom.tmax; // timing of reproduction, max prob per timestep
-                                              //
+    time_threshold = uniform(rng_r) < 0.5 ? dad.time_threshold : mom.time_threshold; // timing of threshold, probability after which things become nonzero
+
     // mutate the intercept
     if (uniform(rng_r) < par.mu_a)
     {
@@ -59,23 +62,34 @@ Individual::Individual(Individual const &mom,
 
     if (uniform(rng_r) < par.mu_t)
     {
-        t+=normal(rng_r);
-        t = std::clamp(t, par.ab_range[0], par.ab_range[1]);
+        temp_a+=normal(rng_r);
+        temp_a = std::clamp(temp_a, par.ab_range[0], par.ab_range[1]);
     }
     
     if (uniform(rng_r) < par.mu_tb)
     {
-        tb += normal(rng_r);
-        tb = std::clamp(tb, par.ab_range[0], par.ab_range[1]);
+        temp_b += normal(rng_r);
+        temp_b = std::clamp(temp_b, par.ab_range[0], par.ab_range[1]);
     }
     
     if (uniform(rng_r) < par.mu_tmax)
     {
         tmax+=normal(rng_r);
 
-        if (tmax < 0)
+        tmax = std::clamp(tmax, 0.0, 1.0);
+
+    }
+    
+    if (uniform(rng_r) < par.mu_time_threshold)
+    {
+        time_threshold += uniform(rng_r) < 0.5 ? -1 : 1;
+   
+        if (time_threshold < 0)
         {
-            tmax = 0;
+            time_threshold = 0;
+        } else if (time_threshold > static_cast<double>(par.max_t_season))
+        {
+            time_threshold = static_cast<double>(par.max_t_season);
         }
     }
 } // end birth constructor
@@ -87,10 +101,11 @@ void Individual::operator=(Individual const &other)
     is_female = other.is_female;
     a = other.a;
     b = other.b;
-    t = other.t;
-    tb = other.tb;
+    temp_a = other.temp_a;
+    temp_b = other.temp_b;
     tmax = other.tmax;
     attempted_to_mate = other.attempted_to_mate;
+    time_threshold = other.time_threshold;
 }
 
 // determine sex of this individual

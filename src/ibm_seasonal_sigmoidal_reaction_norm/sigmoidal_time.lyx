@@ -201,8 +201,7 @@ It might be intuitive to see
 \end_layout
 
 \begin_layout Standard
-What we actually want is a temperature-independent threshold.
- 
+What we actually want is a temperature-independent threshold that just depends on time since start of season...
 \end_layout
 
 \begin_layout Standard

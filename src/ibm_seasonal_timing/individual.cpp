@@ -8,7 +8,7 @@ Individual::Individual(Parameters const &params, bool const is_female) :
     is_female{is_female},
     a{params.init_a}, // pivotal temp 
     b{params.init_b}, // temp slope (sigmoidal)
-    t{params.init_t} // timing 
+    time_a{params.init_time_a} // timing 
 {
 } // end Individual()
 
@@ -18,7 +18,7 @@ Individual::Individual(Individual const &other) :
     attempted_to_mate{other.attempted_to_mate},
     a{other.a},
     b{other.b},
-    t{other.t}
+    time_a{params.init_time_a} // timing 
 {
 }
 
@@ -35,7 +35,8 @@ Individual::Individual(Individual const &mom,
     // inherit haploid traits
     a = uniform(rng_r) < 0.5 ? dad.a : mom.a; // sex alloc pivotal temp
     b = uniform(rng_r) < 0.5 ? dad.b : mom.b; // sex alloc slope on temp
-    t = uniform(rng_r) < 0.5 ? dad.t : mom.t; // timing of reproduction
+    time_a = uniform(rng_r) < 0.5 ? 
+        dad.time_a : mom.time_a; // timing of reproduction
                                               //
     // mutate the intercept
     if (uniform(rng_r) < par.mu_a)
@@ -64,17 +65,16 @@ Individual::Individual(Individual const &mom,
         // round to nearest integer value
         delta_t_int = static_cast<int>(std::lround(delta_t_double));
 
-        t += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
+        time_a += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
    
-        if (t < 0)
+        if (time_a < 0)
         {
-            t = 0;
-        } else if (t > static_cast<int>(par.max_t_season))
+            time_a = 0;
+        } else if (time_a > static_cast<int>(par.max_t_season))
         {
-            t = static_cast<int>(par.max_t_season);
+            time_a = static_cast<int>(par.max_t_season);
         }
     }
-
 } // end birth constructor
 
 // assignment operator
@@ -83,7 +83,7 @@ void Individual::operator=(Individual const &other)
     is_female = other.is_female;
     a = other.a;
     b = other.b;
-    t = other.t;
+    time_a = other.time_a;
     
     attempted_to_mate = other.attempted_to_mate;
 }

@@ -14,6 +14,7 @@ class TSDSeasonal
     private:
         Parameters par;
         std::ofstream data_file;
+        std::ofstream data_file_distribution;
 
         std::uniform_real_distribution<double> uniform;
         std::normal_distribution<double> standard_normal{0.0,1.0};
@@ -34,7 +35,7 @@ class TSDSeasonal
 
         // total productivity in terms of newborn males and females
         int global_productivity[2]{0,0};
-        unsigned int survivors[2]{0,0};
+        unsigned int n_survivors[2]{0,0};
         unsigned int n_available_adults[2]{0,0};
         unsigned int n_already_attempted[2]{0,0};
         unsigned int fecundity{0};
@@ -47,6 +48,7 @@ class TSDSeasonal
         void write_headers();
         void write_data();
         void write_parameters();
+        void write_distribution();
 
         // reset an individual's breeding statuses
         // at the start of each season

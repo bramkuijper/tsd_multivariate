@@ -21,7 +21,11 @@ class Parameters
         double t_opt[2]{-0.5,0.5};
         double omega_t[2]{0.1,0.1};
 
+        // number of offspring per female
         unsigned fecundity{10};
+
+        // slope of time sensitivity
+        double time_b{1000};
 
         // temperature sinusoidal
         double amplitude{1.0};
@@ -32,7 +36,7 @@ class Parameters
         long unsigned max_t_season{50};
 
         // timing value, where t is time in the season of reproduction
-        int init_t{3};
+        int init_time_a{3};
 
         // maximum duration of the simulation
         long unsigned max_simulation_time{100};

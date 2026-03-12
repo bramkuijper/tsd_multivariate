@@ -22,7 +22,7 @@ sm = [ 0 ]
 sf = [ 0 ]
 
 t_opt_f = [0.5]
-t_opt_m = [0.5,0.8]
+t_opt_m = [0.8]
 
 # width of the selection function
 omega = 0.01
