@@ -41,13 +41,13 @@ class Parameters
         double init_t{0.0};
         double init_tb{0.0}; // initial slope of the reaction norm
         double init_tmax{1.0/50}; // max probability of starting to breed per time step
-        double init_time_threshold{5}; // max probability of starting to breed per time step
+        double init_time_threshold{6}; // max probability of starting to breed per time step
 
         // the duration of the simulation
         long unsigned max_simulation_time{100};
         long unsigned simulation_time_change{90};
 
-        long unsigned interval_before_after_change{300};
+        long unsigned interval_before_after_change{2000};
 
 
         // initial sex allocation threshold 

@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
     params.mu_time_threshold = std::stod(argv[14]);
     params.temp_error_sd = std::stod(argv[15]);
     params.cue_error = std::stod(argv[16]);
+    params.init_time_threshold = std::stod(argv[17]);
 
     TSDSeasonal sim(params);
 }

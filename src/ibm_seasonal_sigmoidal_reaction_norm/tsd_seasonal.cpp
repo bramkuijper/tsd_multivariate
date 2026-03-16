@@ -195,6 +195,9 @@ void TSDSeasonal::reproduce()
     std::vector <unsigned int> already_attempted_to_mate{};
     n_available_adults[male] = 0;
     n_available_adults[female] = 0;
+
+    long int time_threshold_i;
+    double time_threshold_diff;
     
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
@@ -215,9 +218,16 @@ void TSDSeasonal::reproduce()
 
                 prob_reproduce = 0.0;
 
+                time_threshold_i = std::floor(metapopulation[patch_idx].males[male_idx].time_threshold);
+                time_threshold_diff = metapopulation[patch_idx].males[male_idx].time_threshold - time_threshold_i;
+
+                if (uniform(rng_r) < time_threshold_diff)
+                {
+                    ++time_threshold_i;
+                }
+
                 // probability can only become nonzero after crossing time threshold
-                if (time_step % par.max_t_season >= 
-                        metapopulation[patch_idx].males[male_idx].time_threshold)
+                if (time_step % par.max_t_season >= time_threshold_i)
                 {
                     // whether male should currently reproduce or not
                     prob_reproduce = metapopulation[patch_idx].males[male_idx].tmax * 1.0 / 
@@ -267,10 +277,18 @@ void TSDSeasonal::reproduce()
                       standard_normal(rng_r) * par.cue_error;
             
             prob_reproduce = 0.0; 
+            
+            time_threshold_i = std::floor(metapopulation[patch_idx].females[female_idx].time_threshold);
+            time_threshold_diff = metapopulation[patch_idx].females[female_idx].time_threshold - 
+                time_threshold_i;
+
+            if (uniform(rng_r) < time_threshold_diff)
+            {
+                ++time_threshold_i;
+            }
 
             // probability can only become nonzero after crossing time threshold
-            if (time_step % par.max_t_season >=
-                    metapopulation[patch_idx].females[female_idx].time_threshold)
+            if (time_step % par.max_t_season >= time_threshold_i)
             {
                 // will female reproduce during this time step yes no
                 prob_reproduce = metapopulation[patch_idx].females[female_idx].tmax * 

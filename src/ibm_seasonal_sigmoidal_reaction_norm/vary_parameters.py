@@ -35,20 +35,22 @@ t_opt_m = [0.8]
 omega = 0.01
 
 # number of simulation replicates
-nrep = 6
+nrep = 10
 
 # how much temperature should change in a particular generation
-temp_change = [0.5]
+temp_change = np.linspace(start = 0.31, stop=0.5,num=10)
 
 # mutation rate of the threshold at which an individual should breed
 mu_t = [0.02]
 
-mu_tb = [0]
+mu_tb = [0.02]
+
+init_threshold = 0
 
 # mutation rate of the threshold 
-mu_threshold = [0.25]
-temp_error =[0.01] #[0,0.01,0.05,0.5,1.0]
-cue_error = [0.01] #[0,0.01,0.05,0.5,1.0]
+mu_threshold = [0.0]
+temp_error =[0.0] #[0,0.01,0.05,0.5,1.0]
+cue_error = [0.0] #[0,0.01,0.05,0.5,1.0]
 
 # aim for roughly 25000 lines
 skip = max([int(round(max_simulation_time / 25000, 0)),1])
@@ -90,4 +92,5 @@ for mu_threshold_i in mu_threshold:
                                                     f"{mu_threshold_i} " \
                                                     f"{temp_error_i} " \
                                                     f"{cue_error_i} " \
+                                                    f"{init_threshold} " \
                                                   )
