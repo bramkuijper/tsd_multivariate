@@ -28,8 +28,7 @@ sm = [ 0 ]
 sf = [ 0 ]
 
 # optimal temperature of females and males
-t_opt_f = [0.5]
-t_opt_m = [0.8]
+t_opt = [[0.5,0.8],[0.8,0.5]]
 
 # width of the selection function
 omega = 0.01
@@ -38,17 +37,17 @@ omega = 0.01
 nrep = 10
 
 # how much temperature should change in a particular generation
-temp_change = np.linspace(start = 0, stop=0.48,num=30)
+temp_change = np.linspace(start = 0, stop=1.0,num=60)
 
 # mutation rate of the threshold at which an individual should breed
 mu_t = [0.02]
 
-mu_tb = [0.0]
+mu_tb = [0.0,0.02]
 
 init_threshold = None
 
 # mutation rate of the threshold 
-mu_threshold = [0.0, 0.1]
+mu_threshold = None
 temp_error =[0.0] #[0,0.01,0.05,0.5,1.0]
 cue_error = [0.0] #[0,0.01,0.05,0.5,1.0]
 
@@ -57,46 +56,49 @@ skip = max([int(round(max_simulation_time / 25000, 0)),1])
 
 simulation_time_change = max_simulation_time - 1000
 
-for mu_threshold_i in mu_threshold:
+for mu_ti in mu_t:
+    for mu_tbi in mu_tb:
 
-    if mu_threshold_i > 0:
-        init_treshold = 5
-    else:
-        init_threshold = 0
+        if mu_tbi > 0:
+            init_threshold = 0
+            mu_threshold_i = 0
+        else:
+            init_threshold = 5
+            mu_threshold_i = 0.1
 
-    for mu_ti in mu_t:
-        for mu_tbi in mu_tb:
-            for change_i in temp_change:
-                for rep_i in range(0,nrep):
-                    for sm_i in sm:
-                        for sf_i in sf:
-                            if sf_i != sm_i:
-                                continue
+        for change_i in temp_change:
+            for rep_i in range(0,nrep):
+                for sm_i in sm:
+                    for sf_i in sf:
+                        if sf_i != sm_i:
+                            continue
 
-                            for t_opt_fi in t_opt_f:
-                                for t_opt_mi in t_opt_m:
-                                    for temp_error_i in temp_error:
-                                        for cue_error_i in cue_error:
+                        for t_opt_i in t_opt:
+                            t_opt_fi = t_opt_i[0]
+                            t_opt_mi = t_opt_i[1]
 
-                                            # get the basename
-                                            ctr += 1
-                                            base_name_i = base_name + "_" + str(ctr)
+                            for temp_error_i in temp_error:
+                                for cue_error_i in cue_error:
 
-                                            print(f"{exe_name} {base_name_i} " \
-                                                    f"{max_simulation_time} " \
-                                                    f"{simulation_time_change} " \
-                                                    f"{sm_i} " \
-                                                    f"{sf_i} " \
-                                                    f"{omega} " \
-                                                    f"{omega} " \
-                                                    f"{t_opt_mi} " \
-                                                    f"{t_opt_fi} " \
-                                                    f"{skip} " \
-                                                    f"{change_i} " \
-                                                    f"{mu_ti} " \
-                                                    f"{mu_tbi} " \
-                                                    f"{mu_threshold_i} " \
-                                                    f"{temp_error_i} " \
-                                                    f"{cue_error_i} " \
-                                                    f"{init_threshold} " \
-                                                  )
+                                    # get the basename
+                                    ctr += 1
+                                    base_name_i = base_name + "_" + str(ctr)
+
+                                    print(f"{exe_name} {base_name_i} " \
+                                            f"{max_simulation_time} " \
+                                            f"{simulation_time_change} " \
+                                            f"{sm_i} " \
+                                            f"{sf_i} " \
+                                            f"{omega} " \
+                                            f"{omega} " \
+                                            f"{t_opt_mi} " \
+                                            f"{t_opt_fi} " \
+                                            f"{skip} " \
+                                            f"{change_i} " \
+                                            f"{mu_ti} " \
+                                            f"{mu_tbi} " \
+                                            f"{mu_threshold_i} " \
+                                            f"{temp_error_i} " \
+                                            f"{cue_error_i} " \
+                                            f"{init_threshold} " \
+                                          )
