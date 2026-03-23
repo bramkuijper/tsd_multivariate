@@ -39,9 +39,13 @@ Individual::Individual(Individual const &mom,
     // inherit haploid traits
     a = uniform(rng_r) < 0.5 ? dad.a : mom.a; // sex alloc threshold
     b = uniform(rng_r) < 0.5 ? dad.b : mom.b; // sex alloc threshold
-    time_threshold = uniform(rng_r) < 0.5 ? dad.time_threshold : mom.time_threshold; // timing of reproduction
+    
+    time_threshold = uniform(rng_r) < 0.5 ? 
+        dad.time_threshold : mom.time_threshold; // timing of reproduction
+                                                 //
     depth = uniform(rng_r) < 0.5 ? 
         dad.depth : mom.depth; // depth of burrow
+
     depth_slope = uniform(rng_r) < 0.5 ? 
         dad.depth_slope : mom.depth_slope; // depth_slope of burrow
                                               //
@@ -73,7 +77,7 @@ Individual::Individual(Individual const &mom,
 
         time_threshold += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
     
-        time_threshold = std::clamp(time_threshold,0,par.max_t);
+        time_threshold = std::clamp(time_threshold,0,par.max_t_season);
     }
 
     // mutate the burrowing depth

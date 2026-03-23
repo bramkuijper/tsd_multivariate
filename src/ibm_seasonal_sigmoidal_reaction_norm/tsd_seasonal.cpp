@@ -1,6 +1,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 #include <vector>
 #include <cmath>
 #include "tsd_seasonal.hpp"

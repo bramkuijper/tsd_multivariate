@@ -34,6 +34,7 @@ class TSDSeasonal
         int global_productivity[2]{0,0};
         unsigned int n_survivors[2]{0,0};
         unsigned int n_available_adults[2]{0,0};
+        unsigned int n_already_attempted[2]{0,0};
         unsigned int fecundity{0};
 
         void adult_survival();

@@ -19,6 +19,7 @@ int main(int argc, char **argv)
     params.interval_before_after_change = std::stoi(argv[12]);
     params.mu_t = std::stod(argv[13]);
     params.mu_depth = std::stod(argv[14]);
+    params.mu_depth_slope = std::stod(argv[15]);
 
     TSDSeasonal sim(params);
 }

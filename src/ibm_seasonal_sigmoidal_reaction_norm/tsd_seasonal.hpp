@@ -74,6 +74,9 @@ class TSDSeasonal
         // next season
         void clear_juveniles();
 
+
+        void operator++(int val);
+
     public:
         TSDSeasonal(Parameters const &par);
 

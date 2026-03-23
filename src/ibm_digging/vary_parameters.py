@@ -13,9 +13,10 @@ base_name = "sim_seasonal_tsd_" +\
 
 ctr = 0
 max_simulation_time = int(1e07)
+max_simulation_time = int(1000000)
+simulation_time_change = max_simulation_time - 1000
+interval_data = 1000
 
-sm = [ 0.5]
-sf = [ 0.5]
 
 t_opt_f = [ 0.8 ]
 t_opt_m = 0.5
@@ -51,7 +52,8 @@ for slope_i in slope:
                                 ctr += 1
                                 base_name_i = base_name + "_" + str(ctr)
 
-                                print(f"{exe_name} {base_name_i} " \
+                                print(f"{exe_name} " \
+                                        f"{base_name_i} " \
                                         f"{max_simulation_time} " \
                                         f"{sm_i} " \
                                         f"{sf_i} " \
@@ -61,7 +63,9 @@ for slope_i in slope:
                                         f"{t_opt_fi} " \
                                         f"{skip} " \
                                         f"{change_i} " \
-                                        f"{slope_i} " \
+                                        f"{simulation_time_change} " \
+                                        f"{interval_data} " \
                                         f"{mu_ti} " \
                                         f"{mu_di} " \
+                                        f"{mu_d_slope_i} " \
                                         )
