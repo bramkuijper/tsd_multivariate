@@ -2,10 +2,8 @@
 #define _TSD_SEASONAL_HPP_
 
 #include <vector>
-#include <iostream>
 #include <fstream>
 #include <random>
-#include <string>
 #include "parameters.hpp"
 #include "patch.hpp"
 
@@ -16,7 +14,7 @@ class TSDSeasonal
         std::ofstream data_file;
 
         std::uniform_real_distribution<double> uniform;
-        std::normal_distribution<double> temperature_error{1.0,0.1};
+        std::normal_distribution<double> standard_normal{};
         
         // productivity distributions for females and males, 
         // initialized with some dummy values
@@ -34,7 +32,8 @@ class TSDSeasonal
 
         // total productivity for males and females
         int global_productivity[2]{0,0};
-        unsigned int survivors[2]{0,0};
+        unsigned int n_survivors[2]{0,0};
+        unsigned int n_available_adults[2]{0,0};
         unsigned int fecundity{0};
 
         void adult_survival();
@@ -64,6 +63,8 @@ class TSDSeasonal
         // clear the stack of juveniles and be ready for the
         // next season
         void clear_juveniles();
+
+        void reset_adult_breeding_status();
 
     public:
         TSDSeasonal(Parameters const &par);

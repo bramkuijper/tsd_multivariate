@@ -9,10 +9,10 @@ class Individual
 
     public:
         bool is_female{true}; // whether individual is female or not
-        bool attempted_to_mate{false}; // whether individual is female or not
+        bool attempted_to_mate{false}; // whether individual has already mated or not
         double a{0.0}; // the sex allocation temperature intercept
         double b{0.0}; // the sex allocation temperature slope
-        double temp_a{0.0}; // inflection point re temperaturue
+        double temp_a{0.0}; // inflection point re time of breeding and temperaturue
         double temp_b{0.0}; // linear slope on temperature
         double tmax{0.0}; // max to the per-timestep probability
         double time_threshold{0.0}; // max to the per-timestep probability

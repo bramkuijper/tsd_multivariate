@@ -1,5 +1,6 @@
 #include <cassert>
 #include <stdexcept>
+#include <algorithm>
 #include <vector>
 #include <cmath>
 #include "tsd_seasonal.hpp"
@@ -10,7 +11,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     par{par},
     data_file{par.file_name},
     uniform{0.0,1.0},
-    temperature_error{0.0,par.temp_error_sd},
+    standard_normal{0.0,1.0},
     rd{},
     seed{rd()},
     rng_r{seed},
@@ -22,6 +23,9 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
     for (time_step = 1; 
             time_step <= par.max_simulation_time; ++time_step)
     {
+        reproduce();
+        update_environment();
+    
         if (time_step % par.max_t == 0)
         {
             adult_survival();
@@ -31,17 +35,16 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
             // clear the stack of juveniles and be ready for the
             // next season
             clear_juveniles();
+            reset_adult_breeding_status();
         }
 
-        reproduce();
-        update_environment();
-    
         if (time_step % par.skip_output == 0 || 
-                (time_step > par.max_simulation_time / 2 - 5000 && 
-                 time_step < par.max_simulation_time / 2 + 5000))
+                (time_step > par.simulation_time_change - par.interval_before_after_change / 2 && 
+                 time_step < par.simulation_time_change + par.interval_before_after_change / 2))
         {
             write_data();
         }
+
     }
 
     write_parameters();
@@ -50,25 +53,19 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
 // envt is Gaussian varying over time from -1 to 1
 void TSDSeasonal::update_environment()
 {
-    double intercept = std::clamp(
-            par.temperature_intercept +
-            ((int)time_step - (int)par.max_simulation_time / 2) * par.slope,
-            par.temperature_intercept, par.temperature_intercept_change);
-
-//    intercept = time_step < par.max_simulation_time / 2 ? 
-//        par.temperature_intercept 
-//        : 
-//        par.temperature_intercept_change;
+    double intercept = time_step < par.max_simulation_time / 2 ? 
+        par.temperature_intercept 
+        : 
+        par.temperature_intercept_change;
 
     for (unsigned int patch_idx = 0; 
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
         metapopulation[patch_idx].temperature = 
-            par.amplitude * (intercept + 
-                std::sin(time_step * 2 * M_PI / par.max_t) +
-                temperature_error(rng_r)
-                );
+            intercept + par.amplitude *
+                    std::sin(time_step * 2 * M_PI / par.max_t) +
+                    standard_normal(rng_r) * par.temp_error_sd;
     }
 }// end update_environment()
 
@@ -94,10 +91,12 @@ void TSDSeasonal::adult_survival()
                     patch_iter->males.size(),
                     par.survival_prob[male]);
 
-
         // get number of female survivors
         int n_female_survivors = female_survivor_sampler(rng_r);
         int n_male_survivors = male_survivor_sampler(rng_r);
+        
+        n_survivors[female] += n_female_survivors;
+        n_survivors[male] += n_male_survivors;
 
         // sample surviving f and put them into female survivors
         std::sample(patch_iter->females.begin(), 
@@ -137,8 +136,16 @@ void TSDSeasonal::reproduce()
     // reset fecundity variable
     fecundity = 0;
 
+    // auxiliary variable to store the current time threshold
+    int time_threshold_i{0};
+    double time_threshold_diff{0.0};
+
     // empty vector with available local males
     std::vector <unsigned int> available_local_males{};
+    std::vector <unsigned int> already_attempted_to_mate{};
+
+    n_available_adults[male] = 0;
+    n_available_adults[female] = 0;
     
     // go through all survivors and assess whether they are breeding
     for (unsigned int patch_idx = 0;
@@ -151,12 +158,43 @@ void TSDSeasonal::reproduce()
                 male_idx < metapopulation[patch_idx].males.size();
                 ++male_idx)
         {
-            if (metapopulation[patch_idx].males[male_idx].t == (time_step % par.max_t))
+            // if this male has not mated before, will it mate now?
+            if (!metapopulation[patch_idx].males[male_idx].attempted_to_mate)
             {
-                available_local_males.push_back(male_idx);
-            }
-        }
+                time_threshold_i = std::floor(
+                        metapopulation[patch_idx].males[male_idx].time_threshold
+                        );
 
+                // perform stochastic rounding so that a time-step of 5.5 has 50% 
+                // chance of being 6 and 50% of being 5.
+                time_threshold_diff = metapopulation[patch_idx].
+                    males[male_idx].time_threshold - time_threshold_i;
+
+                if (uniform(rng_r) < time_threshold_diff)
+                {
+                    ++time_threshold_i;
+                }
+
+                // probability can only become nonzero after crossing time threshold
+                if (time_step % par.max_t_season >= time_threshold_i)
+                {
+                    available_local_males.push_back(male_idx);
+                    metapopulation[patch_idx].males[male_idx].attempted_to_mate = true;
+                }
+            } // end if (!metapop... attempted_to_mate)
+
+        } // end for male_idx
+        
+        // update counter for the stats function on available number of 
+        // individuals at this time step
+        n_available_adults[male] += static_cast<unsigned>(available_local_males.size());
+        n_already_attempted[male] += static_cast<unsigned>(available_local_males.size());
+        
+        // mix the list of available males
+        std::shuffle(available_local_males.begin(),
+                available_local_males.end(),
+                rng_r);
+        
         // no male available: no offspring produced.
         if (available_local_males.size() < 1)
         {
@@ -496,6 +534,8 @@ void TSDSeasonal::write_parameters()
     data_file << std::endl << std::endl
         << "seed;" << seed << std::endl
         << "npatches;" << par.npatches << std::endl
+        << "max_simulation_time;" << par.max_simulation_time << std::endl
+        << "simulation_time_change;" << par.simulation_time_change << std::endl
         << "n;" << par.n << std::endl
         << "df;" << par.d[female] << std::endl
         << "dm;" << par.d[male] << std::endl
@@ -510,15 +550,16 @@ void TSDSeasonal::write_parameters()
         << "amplitude;" << par.amplitude << std::endl
         << "intercept;" << par.temperature_intercept << std::endl
         << "intercept_change;" << par.temperature_intercept_change << std::endl
-        << "slope;" << par.slope << std::endl
         << "init_t;" << par.init_t << std::endl
-        << "max_t;" << par.max_t << std::endl
+        << "max_t_season;" << par.max_t_season << std::endl
         << "init_a;" << par.init_a << std::endl
         << "init_b;" << par.init_b << std::endl
+        << "init_depth;" << par.init_depth_slope << std::endl
         << "mu_a;" << par.mu_a << std::endl
         << "mu_b;" << par.mu_b << std::endl
         << "mu_t;" << par.mu_t << std::endl
         << "mu_depth;" << par.mu_depth << std::endl
+        << "mu_depth_slope;" << par.mu_depth_slope << std::endl
         << "unif_range_sdmu_t;" << par.unif_range_sdmu_t << std::endl
         << "sdmu;" << par.sdmu << std::endl; 
 } // end write_parameters

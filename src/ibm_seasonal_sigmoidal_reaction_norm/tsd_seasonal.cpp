@@ -247,7 +247,7 @@ void TSDSeasonal::reproduce()
                     available_local_males.push_back(male_idx);
                     metapopulation[patch_idx].males[male_idx].attempted_to_mate = true;
                 }
-            }
+            } // end if (!metapopulation[patch_idx].males[male_idx].attempted_to_mate)
         } // end male_idx
 
         // update counter for the stats function on available number of 

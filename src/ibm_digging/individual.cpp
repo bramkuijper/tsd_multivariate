@@ -8,26 +8,29 @@ Individual::Individual(Parameters const &params, bool const is_female) :
     is_female{is_female},
     a{params.init_a},
     b{params.init_b},
-    t{params.init_t},
-    depth{params.init_depth}
+    time_threshold{params.init_t},
+    depth{params.init_depth},
+    depth_slope{params.init_depth_slope}
 {
 } // end Individual()
 
 // copy constructor
 Individual::Individual(Individual const &other) :
     is_female{other.is_female},
+    attempted_to_mate{other.attempted_to_mate},
     a{other.a},
     b{other.b},
-    t{other.t},
-    depth{other.depth}
+    time_threshold{other.time_threshold},
+    depth{other.depth},
+    depth_slope{other.depth_slope}
 {
 }
 
 // birth constructor
 Individual::Individual(Individual const &mom,
-        Individual const &dad,
-        Parameters const &par,
-        std::mt19937 &rng_r) :
+    Individual const &dad,
+    Parameters const &par,
+    std::mt19937 &rng_r) :
     is_female{true} // by default individual is female until sex is determined
 {
     std::uniform_real_distribution uniform{0.0,1.0};
@@ -36,8 +39,11 @@ Individual::Individual(Individual const &mom,
     // inherit haploid traits
     a = uniform(rng_r) < 0.5 ? dad.a : mom.a; // sex alloc threshold
     b = uniform(rng_r) < 0.5 ? dad.b : mom.b; // sex alloc threshold
-    t = uniform(rng_r) < 0.5 ? dad.t : mom.t; // timing of reproduction
-    depth = uniform(rng_r) < 0.5 ? dad.depth : mom.depth; // depth of burrow
+    time_threshold = uniform(rng_r) < 0.5 ? dad.time_threshold : mom.time_threshold; // timing of reproduction
+    depth = uniform(rng_r) < 0.5 ? 
+        dad.depth : mom.depth; // depth of burrow
+    depth_slope = uniform(rng_r) < 0.5 ? 
+        dad.depth_slope : mom.depth_slope; // depth_slope of burrow
                                               //
     // mutate the intercept
     if (uniform(rng_r) < par.mu_a)
@@ -65,9 +71,9 @@ Individual::Individual(Individual const &mom,
     
         delta_t_int = std::lround(delta_t_double);
 
-        t += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
+        time_threshold += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
     
-        t = std::clamp(t,0,par.max_t);
+        time_threshold = std::clamp(time_threshold,0,par.max_t);
     }
 
     // mutate the burrowing depth
@@ -80,6 +86,11 @@ Individual::Individual(Individual const &mom,
             depth = 0.0;
         }
     }
+
+    if (uniform(rng_r) < par.mu_depth_slope)
+    {
+        depth_slope += normal(rng_r);
+    }
 } // end birth constructor
 
 // assignment operator
@@ -88,14 +99,16 @@ void Individual::operator=(Individual const &other)
     is_female = other.is_female;
     a = other.a;
     b = other.b;
-    t = other.t;
+    time_threshold = other.time_threshold;
+    attempted_to_mate = other.attempted_to_mate;
     depth = other.depth;
+    depth_slope = other.depth_slope;
 }
 
 // determine sex of this individual
 double Individual::determine_sex(double const temperature)
 {
-    double p_female = 1.0 / (1.0 + std::exp(-(a + b * temperature)));
+    double p_female = 1.0 / (1.0 + std::exp(-b * (temperature - a)));
 
     return(p_female);
 } // end determine_sex

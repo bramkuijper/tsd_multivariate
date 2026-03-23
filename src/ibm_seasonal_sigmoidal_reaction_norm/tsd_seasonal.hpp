@@ -2,10 +2,8 @@
 #define _TSD_SEASONAL_HPP_
 
 #include <vector>
-#include <iostream>
 #include <fstream>
 #include <random>
-#include <string>
 #include "parameters.hpp"
 #include "patch.hpp"
 

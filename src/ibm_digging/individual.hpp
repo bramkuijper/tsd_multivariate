@@ -9,10 +9,12 @@ class Individual
 
     public:
         bool is_female{true}; // whether individual is female or not
+        bool attempted_to_mate{false}; // whether individual has already mated or not
         double a{0.0}; // the sex allocation temperature intercept
         double b{0.0}; // the sex allocation temperature slope
-        int t{1}; // the time step in the season at which the individual reproduces
-        double depth{0.0}; // the sex allocation temperature slope
+        int time_threshold{1}; // the time step in the season at which the individual reproduces
+        double depth{0.0}; // burrowing depth intercept
+        double depth_slope{0.0}; // burrowing depth slope
        
         Individual(Parameters const &pars, bool const is_female);
         Individual(Individual const &other);

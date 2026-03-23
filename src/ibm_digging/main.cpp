@@ -15,9 +15,10 @@ int main(int argc, char **argv)
     params.t_opt[female] = std::stod(argv[8]);
     params.skip_output = std::stoi(argv[9]);
     params.temperature_intercept_change = std::stod(argv[10]);
-    params.slope = std::stod(argv[11]);
-    params.mu_t = std::stod(argv[12]);
-    params.mu_depth = std::stod(argv[13]);
+    params.simulation_time_change = std::stoi(argv[11]);
+    params.interval_before_after_change = std::stoi(argv[12]);
+    params.mu_t = std::stod(argv[13]);
+    params.mu_depth = std::stod(argv[14]);
 
     TSDSeasonal sim(params);
 }
