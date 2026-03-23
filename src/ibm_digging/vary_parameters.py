@@ -17,18 +17,20 @@ max_simulation_time = int(1000000)
 simulation_time_change = max_simulation_time - 1000
 interval_data = 1000
 
+sm = [ 0 ]
+sf = [ 0 ]
 
-t_opt_f = [ 0.8 ]
-t_opt_m = 0.5
+t_opt = [[0.5,0.8],[0.8,0.5]]
 
 omega = 0.05
 
-nrep = 3
+nrep = 10
 
-temp_change = [0.4]
-slope = [0.00001,0.000001]
-mu_t = [0.01]
-mu_d = [0,0.01]
+# how much temperature should change in a particular generation
+temp_change = [0.25, 0.5] #np.linspace(start = 0, stop=1.0,num=60)
+mu_t = [0.1]
+mu_d = [0.01]
+mu_slope = [0,0.01]
 
 # aim for roughly 25000 lines
 skip = int(round(max_simulation_time / 25000, 0))
@@ -36,7 +38,7 @@ skip = int(round(max_simulation_time / 25000, 0))
 if skip < 1:
     skip = 1
 
-for slope_i in slope:
+for mu_d_slope_i in mu_slope:
     for mu_di in mu_d:
         for mu_ti in mu_t:
             for change_i in temp_change:
@@ -46,7 +48,9 @@ for slope_i in slope:
                             if sf_i != sm_i:
                                 continue
 
-                            for t_opt_fi in t_opt_f:
+                            for t_opt_i in t_opt:
+                                t_opt_f = t_opt_i[0]
+                                t_opt_m = t_opt_i[1]
 
                                 # get the basename
                                 ctr += 1
@@ -60,7 +64,7 @@ for slope_i in slope:
                                         f"{omega} " \
                                         f"{omega} " \
                                         f"{t_opt_m} " \
-                                        f"{t_opt_fi} " \
+                                        f"{t_opt_f} " \
                                         f"{skip} " \
                                         f"{change_i} " \
                                         f"{simulation_time_change} " \
