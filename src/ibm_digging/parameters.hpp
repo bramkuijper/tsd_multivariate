@@ -39,8 +39,8 @@ class Parameters
         long unsigned interval_before_after_change{15};
 
         // initial sex allocation threshold 
-        double init_a{5.0};
-        double init_b{-8.0};
+        double init_a{0.0};
+        double init_b{0.0};
         double init_depth{0.1};
         double init_depth_slope{0.0};
 

@@ -215,7 +215,7 @@ void TSDSeasonal::reproduce()
                 }
 
                 // probability can only become nonzero after crossing time threshold
-                if (time_step % par.max_t_season >= time_threshold_i)
+                if (static_cast<int>(time_step) % par.max_t_season >= time_threshold_i)
                 {
                     available_local_males.push_back(male_idx);
                     metapopulation[patch_idx].males[male_idx].attempted_to_mate = true;
@@ -271,7 +271,7 @@ void TSDSeasonal::reproduce()
             }
 
             // probability can only become nonzero after crossing time threshold
-            if (time_step % par.max_t_season >= time_threshold_i)
+            if (static_cast<int>(time_step) % par.max_t_season >= time_threshold_i)
             {
                 metapopulation[patch_idx].females[female_idx].attempted_to_mate = true;
                 
@@ -636,6 +636,10 @@ void TSDSeasonal::write_parameters()
 
 void TSDSeasonal::write_data()
 {
+    // first calculate all the productivities
+    // again to make sure numbers are ok
+    calculate_patch_productivities();
+
     double meana{0.0};
     double ssa{0.0};
 
@@ -743,9 +747,11 @@ void TSDSeasonal::write_data()
     double var_depth_slope = ss_depth_slope / (nf + nm) - 
         mean_depth_slope * mean_depth_slope;
     
-    double global_juv_sr_after_survival = global_productivity[male] + global_productivity[female] == 0 ? 0 :
-        static_cast<double>(global_productivity[male]) / 
-            (global_productivity[male] + global_productivity[female]);
+    double global_juv_sr_after_survival = global_productivity[male] + 
+        global_productivity[female] == 0 ? 0 
+        :
+            static_cast<double>(global_productivity[male]) / 
+                (global_productivity[male] + global_productivity[female]);
 
     mean_temperature /= par.npatches;
     double var_temperature = ss_temperature / par.npatches - mean_temperature * mean_temperature;
@@ -766,19 +772,53 @@ void TSDSeasonal::write_data()
         mean_depth_slope << ";" <<
         var_depth_slope << ";" <<
 
+        // surviving male juvs
         static_cast<double>(global_productivity[male])/par.npatches << ";" << 
+        
+        // surviving female juvs
         static_cast<double>(global_productivity[female])/par.npatches << ";" << 
+
+        // surviving female adults
+        static_cast<double>(n_survivors[female])/par.npatches << ";" << 
+        
+        // surviving male adults
+        static_cast<double>(n_survivors[male])/par.npatches << ";" << 
+
+        // available males per time step
+        static_cast<double>(n_available_adults[male])/par.npatches << ";" <<
+        
+        // available females per time step
+        static_cast<double>(n_available_adults[female])/par.npatches << ";" <<
+
+        // prior attempts male
+        static_cast<double>(n_already_attempted[male])/par.npatches << ";" <<
+        
+        // prior attempts male
+        static_cast<double>(n_already_attempted[female])/par.npatches << ";" <<
+
+        // juvenile sr
         global_juv_sr_after_survival << ";" << 
+
+        //  adult sr
         adult_sr << ";" << 
+
         static_cast<double>(nf)/par.npatches  << ";" << 
         static_cast<double>(nm)/par.npatches  << ";" << 
+
         mean_temperature << ";" <<
         var_temperature << ";" <<
+
         std::endl;
 } // end write_data()
 
 void TSDSeasonal::write_headers()
 {
-    data_file << "time;a;var_a;b;var_b;t;var_t;depth;var_depth;depth_slope;var_depth_slope;surviving_male_juvs;surviving_female_juvs;surviving_juv_sr;adult_sr;nf;nm;mean_environment;var_environment;" 
+    data_file << "time;a;var_a;b;var_b;t;var_t;depth;var_depth;depth_slope;var_depth_slope;"
+        << "surviving_male_juvs;surviving_female_juvs;"
+        << "surviving_male_adults;surviving_female_adults;"  
+        << "available_males;available_females;" 
+        << "already_attempted_males;already_attempted_females;"
+        << "surviving_juv_sr;adult_sr;"
+        << "nf;nm;mean_environment;var_environment;" 
         << std::endl;
 } // write_headers()

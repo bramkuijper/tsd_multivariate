@@ -20,6 +20,7 @@ int main(int argc, char **argv)
     params.mu_t = std::stod(argv[13]);
     params.mu_depth = std::stod(argv[14]);
     params.mu_depth_slope = std::stod(argv[15]);
+    params.init_t = std::stod(argv[16]);
 
     TSDSeasonal sim(params);
 }

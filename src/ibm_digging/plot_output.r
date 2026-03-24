@@ -54,6 +54,10 @@ jsonstuff <- '[
     },
     {
         "xvar" : "time",
+        "yvar" : "depth_slope"
+    },
+    {
+        "xvar" : "time",
         "yvar" : ["var_a","var_b","var_t","var_depth"]
     },
     {
@@ -62,7 +66,19 @@ jsonstuff <- '[
     },
     {
         "xvar" : "time",
+        "yvar" : ["surviving_female_adults","surviving_male_adults"]
+    },
+    {
+        "xvar" : "time",
         "yvar" : ["surviving_juv_sr","adult_sr"]
+    },
+    {
+        "xvar" : "time",
+        "yvar" : ["available_males","available_females"]
+    },
+    {
+        "xvar" : "time",
+        "yvar" : ["already_attempted_males","already_attempted_females"]
     },
     {
         "xvar" : "time",
