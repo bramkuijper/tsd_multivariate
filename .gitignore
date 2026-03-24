@@ -10,6 +10,7 @@
 *.exe
 iter_*
 hpcbatch_*
+distribution_*
 sim_*
 *lyxformat*
 graph_sim_*
