@@ -196,7 +196,12 @@ void TSDSeasonal::reproduce()
             patch_idx < metapopulation.size();
             ++patch_idx)
     {
-        available_local_males.clear();
+        // if mating is synchronous, males can only mate during a single
+        // time step
+        if (par.mating_synchronous)
+        {
+            available_local_males.clear();
+        }
 
         for (unsigned int male_idx = 0; 
                 male_idx < metapopulation[patch_idx].males.size();
