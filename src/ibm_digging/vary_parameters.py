@@ -22,12 +22,12 @@ sf = [ 0 ]
 
 t_opt = [[0.5,0.8],[0.8,0.5]]
 
-omega = 0.05
+omega = 0.01
 
 nrep = 10
 
 # how much temperature should change in a particular generation
-temp_change = [0.25, 0.5] #np.linspace(start = 0, stop=1.0,num=60)
+temp_change = np.linspace(start = 0, stop=1.0,num=60)
 mu_t = [0.1]
 mu_d = [0.01]
 mu_slope = [0,0.01]
@@ -35,7 +35,7 @@ mu_slope = [0,0.01]
 init_time_threshold = 6
 
 # aim for roughly 25000 lines
-skip = 1#int(round(max_simulation_time / 25000, 0))
+skip = int(round(max_simulation_time / 25000, 0))
 
 if skip < 1:
     skip = 1

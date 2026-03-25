@@ -41,7 +41,7 @@ class Parameters
         // initial sex allocation threshold 
         double init_a{0.0};
         double init_b{0.0};
-        double init_depth{0.1};
+        double init_depth{0.0};
         double init_depth_slope{0.0};
 
         double mu_a{0.02};

@@ -88,7 +88,7 @@ void TSDSeasonal::reset_adult_breeding_status()
 // envt is Gaussian varying over time from -1 to 1
 void TSDSeasonal::update_environment()
 {
-    double intercept = time_step < par.max_simulation_time / 2 ? 
+    double intercept = time_step < par.simulation_time_change ? 
         par.temperature_intercept 
         : 
         par.temperature_intercept_change;
@@ -170,7 +170,7 @@ void TSDSeasonal::reproduce()
 {
     // auxiliary variable storing the temperature of this particular mother
     // (i.e., including burrowing depth)
-    double temperature_this_female;
+    double temperature_this_female, depth_total;
 
     // reset fecundity variable
     fecundity = 0;
@@ -295,12 +295,20 @@ void TSDSeasonal::reproduce()
                                 par,
                                 rng_r);
 
-                    // now calculate the exposed temperature due to digging
-                    temperature_this_female = 
-                        metapopulation[patch_idx].temperature -
-                        metapopulation[patch_idx].females[female_idx].depth +
+                    depth_total = metapopulation[patch_idx].females[female_idx].depth +
                             metapopulation[patch_idx].females[female_idx].depth_slope * 
                                 metapopulation[patch_idx].temperature;
+
+                    // cannot have digging actually making things hotter
+                    // rather than colder
+                    if (depth_total < 0)
+                    {
+                        depth_total = 0.0;
+                    }
+
+                    // now calculate the exposed temperature due to digging
+                    temperature_this_female = 
+                        metapopulation[patch_idx].temperature - depth_total;
 
 
                     // calculate individual SR

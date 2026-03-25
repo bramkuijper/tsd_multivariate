@@ -211,7 +211,7 @@ if (exists("params") && "sf" %in% names(params))
 wrap_plots(plot.list,ncol=1) + plot_annotation(
         title=title)
 
-file.name <- paste0("graph_",basename(file.name),".pdf")
+file.name <- paste0("graph_",basename(file.name),".png")
 
 ggsave(file.name,height= 3 * plot.structure.l)
 

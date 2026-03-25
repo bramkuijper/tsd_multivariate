@@ -24,14 +24,19 @@ the_data_l <- the_data %>% pivot_longer(
     cols = c(freq_fem_fraction, freq_male_fraction),
     names_to = "juvenile_type",
     values_to = "fraction") %>% mutate(
-        female_warmer = if_else(toptm <= toptf, "Females in warmer envts", "Males in warmer envts")
+        female_warmer = if_else(toptm <= toptf, "Females in warmer envts", "Males in warmer envts"),
+        is_female = if_else(grepl(x=juvenile_type,pattern = "fem"),"Female","Male")
     )
 
-    ggplot(data = the_data_l, 
-           mapping = aes(x = intercept_change / 0.707, y = fraction)) +
-        geom_hline(yintercept = 1, colour = "lightgrey", linewidth = 0.75) +
-        geom_point(alpha = 0.5) +
-        facet_grid(female_warmer~mu_depth_slope)
+ggplot(data = the_data_l, 
+       mapping = aes(x = intercept_change / 0.707, y = fraction)) +
+    geom_hline(yintercept = 1, colour = "lightgrey", linewidth = 0.75) +
+    geom_point(mapping = aes(colour = is_female), alpha = 0.5) +
+    scale_colour_brewer(palette = "Set1") +
+    facet_grid(female_warmer~mu_depth_slope) +
+    theme_classic()
+    
+    
 #+
 #    scale_colour_brewer(palette = "Set1") +
 #    labs(x = "Change in temperature (% of 1 SD)",
