@@ -96,6 +96,10 @@ void TSDSeasonal::update_environment()
     double d_max_t_season = static_cast<double>(par.max_t_season);
     double d_time_step = static_cast<double>(time_step);
 
+    // we need some spatial variation to ensure that digging evolves
+    // so in the odd patches, intercept - constant + sin(...)
+    // so in the even patches, intercept + constant + sin(...)
+
     // update the environment in each patch wi
     for (unsigned int patch_idx = 0; 
             patch_idx < metapopulation.size();
@@ -103,6 +107,7 @@ void TSDSeasonal::update_environment()
     {
         metapopulation[patch_idx].temperature = 
             intercept + 
+            (patch_idx % 2 == 0 ? par.spatial_temp_ampl : -par.spatial_temp_ampl) +
             par.amplitude * std::sin(d_time_step * 2 * M_PI / d_max_t_season) +
             standard_normal(rng_r) * par.temp_error_sd;
     }
@@ -637,6 +642,7 @@ void TSDSeasonal::write_parameters()
         << "mu_t;" << par.mu_t << std::endl
         << "mu_depth;" << par.mu_depth << std::endl
         << "mu_depth_slope;" << par.mu_depth_slope << std::endl
+        << "spatial_temp_ampl;" << par.spatial_temp_ampl << std::endl
         << "temp_error_sd;" << par.temp_error_sd << std::endl
         << "unif_range_sdmu_t;" << par.unif_range_sdmu_t << std::endl
         << "sdmu;" << par.sdmu << std::endl; 
