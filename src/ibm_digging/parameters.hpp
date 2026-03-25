@@ -25,6 +25,7 @@ class Parameters
 
         // temperature sinusoidal
         double amplitude{1.0};
+        double spatial_temp_ampl{0.25};
         double temperature_intercept{0.0};
         double temperature_intercept_change{0.8};
 
@@ -32,7 +33,7 @@ class Parameters
         int max_t_season{50};
 
         // timing value, where t is time in the season of reproduction
-        int init_t{8};
+        double init_t{8};
 
         long unsigned max_simulation_time{100};
         long unsigned simulation_time_change{90};

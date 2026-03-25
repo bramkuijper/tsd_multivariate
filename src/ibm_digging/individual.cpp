@@ -66,14 +66,14 @@ Individual::Individual(Individual const &mom,
 
     // mutate the timestep at which an individual will reproduce
     double delta_t_double{0.0};
-    double delta_t_int{0.0};
+    int delta_t_int{0};
 
     if (uniform(rng_r) < par.mu_t)
     {
         // either increment or decrement with values from a certain range
         delta_t_double = uniform(rng_r) * par.unif_range_sdmu_t;
     
-        delta_t_int = std::lround(delta_t_double);
+        delta_t_int = std::round(delta_t_double);
 
         time_threshold += uniform(rng_r) < 0.5 ? -delta_t_int : delta_t_int;
     

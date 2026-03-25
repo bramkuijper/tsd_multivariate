@@ -24,7 +24,7 @@ t_opt = [[0.5,0.8],[0.8,0.5]]
 
 omega = 0.01
 
-nrep = 10
+nrep = 3
 
 # how much temperature should change in a particular generation
 temp_change = np.linspace(start = 0, stop=1.0,num=60)

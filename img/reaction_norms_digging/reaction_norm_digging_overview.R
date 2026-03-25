@@ -1,6 +1,7 @@
 library("tidyverse")
+library("patchwork")
 
-the_data <- read.table(file="summary_digging_plasticity.csv",sep=";",header=T)
+the_data <- read.table(file="summary_digging.csv",sep=";",header=T)
 
 # find out the different times pre and post perturbation
 time_pre_post <- the_data %>% 
@@ -28,16 +29,33 @@ the_data_l <- the_data %>% pivot_longer(
         is_female = if_else(grepl(x=juvenile_type,pattern = "fem"),"Female","Male")
     )
 
-ggplot(data = the_data_l, 
+plot_outcomes <- ggplot(data = the_data_l, 
        mapping = aes(x = intercept_change / 0.707, y = fraction)) +
     geom_hline(yintercept = 1, colour = "lightgrey", linewidth = 0.75) +
     geom_point(mapping = aes(colour = is_female), alpha = 0.5) +
     scale_colour_brewer(palette = "Set1") +
     facet_grid(female_warmer~mu_depth_slope) +
     theme_classic()
+
+the_data_l2 <- the_data %>% pivot_longer(
+    cols = c("depth","depth_slope"),
+    names_to = "trait_name",
+    values_to = "trait_type"
+) %>% 
+    mutate(
+        female_warmer = if_else(toptm <= toptf, "Females in warmer envts", "Males in warmer envts")
+    )
     
+plot_digging <- ggplot(data = the_data_l2, 
+       mapping = aes(x = intercept_change / 0.707, y = trait_type)) +
+    geom_point(mapping = aes(colour = trait_name), alpha = 0.5) +
+    facet_grid(female_warmer~mu_depth_slope) +
+    theme_classic()
+
+plot_digging | plot_outcomes
+
+ggsave(filename = "overview_plot_digging.pdf",width = 10, height = 5)
     
-#+
 #    scale_colour_brewer(palette = "Set1") +
 #    labs(x = "Change in temperature (% of 1 SD)",
 #         y = "Number of offspring after vs before perturbation") +

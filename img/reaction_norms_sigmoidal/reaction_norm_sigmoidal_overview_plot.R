@@ -45,10 +45,16 @@ the_data_l <- the_data %>% pivot_longer(
     female_warmer = if_else(toptm <= toptf, "Females in warmer envts", "Males in warmer envts")
 )
 
-label_data <- data.frame(
-    panel_label = rev(unique(the_data_l$panel_label)),
-    identifier = LETTERS[1:length(unique(the_data_l$panel_label))]
+label_data <- as.data.frame(
+    expand.grid(
+        panel_label = unique(the_data_l$panel_label),
+        female_warmer = unique(the_data_l$female_warmer)
+    )
+) %>% arrange(
+    panel_label,
+    desc(female_warmer)
 )
+label_data$identifier <- LETTERS[1:nrow(label_data)]
 
 subdat <- the_data_l %>% 
     filter(grepl(x = file, pattern="sim_seasonal_tsd_18_03_2026_152608_.*")) %>%
@@ -59,13 +65,16 @@ ggplot(data = the_data_l,
     geom_hline(yintercept = 1, colour = "lightgrey", linewidth = 0.75) +
     geom_point(mapping = aes(colour = label), alpha = 0.5) +
     scale_colour_brewer(palette = "Set1") +
-    labs(x = "Change in temperature (% of 1 SD)",
+    labs(x = "Change in temperature (standard deviations)",
          y = "Number of offspring after vs before perturbation") +
     facet_grid(female_warmer ~ panel_label) + 
+    scale_y_continuous(breaks = seq(0,5,1)) +
     guides(colour = guide_legend(title = NULL)) +
-    geom_text(size = 10, 
+    geom_text(size = 6, 
               data = label_data, 
-              mapping = aes(x = max(the_data_l$intercept_change / 0.707), y = max(the_data_l$fraction), label = identifier)) +
+              mapping = aes(x = max(the_data_l$intercept_change / 0.707), 
+                            y = max(the_data_l$fraction), 
+                            label = identifier)) +
     theme_classic(base_size = 16) +
     theme(strip.background = element_rect(colour = "transparent")
           , strip.text = element_text(size = 16, colour = "#000000"))  
