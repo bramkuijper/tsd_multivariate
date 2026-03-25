@@ -1,7 +1,8 @@
 library("tidyverse")
 library("patchwork")
 
-the_data <- read.table(file="summary_digging.csv",sep=";",header=T)
+#the_data <- read.table(file="summary_digging.csv",sep=";",header=T)
+the_data <- read.table(file="summary_plasticity_space.csv",sep=";",header=T)
 
 # find out the different times pre and post perturbation
 time_pre_post <- the_data %>% 

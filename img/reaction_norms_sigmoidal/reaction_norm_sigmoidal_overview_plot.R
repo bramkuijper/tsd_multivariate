@@ -8,7 +8,9 @@ the_data <- read.table(
         temp_plasticity = if_else(mu_tb > 0,"ON","OFF")
     ) %>% filter(
         time >= max(time) - 950
-    )
+    ) %>% 
+    slice_min(abs(intercept_change / 0.707 - 0.6)) %>% filter(mu_tb == 0 & toptf > toptm) 
+
 
 # find out the different times pre and post perturbation
 time_pre_post <- the_data %>% 

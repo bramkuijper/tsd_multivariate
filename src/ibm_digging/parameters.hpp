@@ -25,7 +25,7 @@ class Parameters
 
         // temperature sinusoidal
         double amplitude{1.0};
-        double spatial_temp_ampl{0.25};
+        double spatial_temp_ampl{0.5};
         double temperature_intercept{0.0};
         double temperature_intercept_change{0.8};
 
