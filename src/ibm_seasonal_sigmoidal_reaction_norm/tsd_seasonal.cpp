@@ -54,7 +54,7 @@ TSDSeasonal::TSDSeasonal(Parameters const &par) :
             write_data();
         }
 
-        if (time_step == std::floor(par.max_simulation_time/2))
+        if (time_step == std::floor(par.simulation_time_change-50))
         {
             write_distribution();
         }
