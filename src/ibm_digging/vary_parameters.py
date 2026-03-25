@@ -32,7 +32,7 @@ mu_t = [0.1]
 mu_d = [0.01]
 mu_slope = [0,0.01]
 
-init_time_threshold = 6
+init_time_threshold = 3
 
 # aim for roughly 25000 lines
 skip = int(round(max_simulation_time / 25000, 0))
