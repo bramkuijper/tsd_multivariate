@@ -1,3 +1,6 @@
+library("tidyverse")
+library("patchwork")
+
 # single simulations in which you see adaptation to change
 # in a non-plastic vs plastic context
 
@@ -53,14 +56,14 @@ sinusoidal <- function(time, season_time, time_change, intercept_change) {
     val <- if_else(time > time_change, val + intercept_change, val)
     return(val)
 }
-
+max_time <- 100
 # make the temperature time series
 probabilities_no_plast <- tibble(
-    time = seq(0,100),
+    time = seq(0,max_time),
 ) %>% mutate(
     temp = sinusoidal(time = time
-                      ,season_time = 50
-                      ,time_change = 50
+                      ,season_time = max_time/2 
+                      ,time_change = max_time/2
                       ,intercept_change = as.numeric(params["intercept_change"]))
 )
 
@@ -79,12 +82,14 @@ max_individuals <- 100
 rows_latest_individuals <- 
     data_no_plast_individuals %>% filter(time == max(time))
 
+time_series <- seq()
 # let's just plot the first 100
 for (individual_idx in 1:max_individuals) {
     
     row <- rows_latest_individuals[individual_idx,]
-    
-    list_reaction_norms[[individual_idx ]]
+ 
+    breeding_probability <- function(t, temp, threshold, tmax, ta, tb)   
+    list_reaction_norms[[individual_idx]] <- individual_idx
     
 }
 
