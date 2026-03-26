@@ -2,14 +2,13 @@ library("tidyverse")
 
 
 the_data <- read.table(
-        file="summary_all.csv", 
+        file="summary_seasonal.csv", 
     sep=";", 
     header=T) %>% mutate(
         temp_plasticity = if_else(mu_tb > 0,"ON","OFF")
     ) %>% filter(
         time >= max(time) - 950
-    ) %>% 
-    slice_min(abs(intercept_change / 0.707 - 0.6)) %>% filter(mu_tb == 0 & toptf > toptm) 
+    ) 
 
 
 # find out the different times pre and post perturbation
@@ -51,26 +50,22 @@ label_data <- as.data.frame(
     expand.grid(
         panel_label = unique(the_data_l$panel_label),
         female_warmer = unique(the_data_l$female_warmer)
+        )
+    ) %>% arrange(
+        panel_label,
+        desc(female_warmer)
     )
-) %>% arrange(
-    panel_label,
-    desc(female_warmer)
-)
-label_data$identifier <- LETTERS[1:nrow(label_data)]
-
-subdat <- the_data_l %>% 
-    filter(grepl(x = file, pattern="sim_seasonal_tsd_18_03_2026_152608_.*")) %>%
-    filter(intercept_change == max(intercept_change))
-
+    label_data$identifier <- rev(LETTERS[1:nrow(label_data)])
+    
 ggplot(data = the_data_l, 
-       mapping = aes(x = intercept_change / 0.707, y = fraction)) +
-    geom_hline(yintercept = 1, colour = "lightgrey", linewidth = 0.75) +
-    geom_point(mapping = aes(colour = label), alpha = 0.5) +
-    scale_colour_brewer(palette = "Set1") +
+           mapping = aes(x = intercept_change / 0.707, y = fraction)) +
+        geom_hline(yintercept = 1, colour = "lightgrey", linewidth = 0.75) +
+        geom_point(mapping = aes(colour = label), alpha = 0.5) +
+        scale_colour_brewer(palette = "Set1") +
     labs(x = "Change in temperature (standard deviations)",
-         y = "Number of offspring after vs before perturbation") +
+         y = "Number of offspring as fraction of offspring before temperature change") +
     facet_grid(female_warmer ~ panel_label) + 
-    scale_y_continuous(breaks = seq(0,5,1)) +
+    scale_y_continuous(breaks = seq(0,11,1)) +
     guides(colour = guide_legend(title = NULL)) +
     geom_text(size = 6, 
               data = label_data, 

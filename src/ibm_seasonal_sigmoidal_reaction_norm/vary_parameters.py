@@ -34,10 +34,10 @@ t_opt = [[0.5,0.8],[0.8,0.5]]
 omega = 0.01
 
 # number of simulation replicates
-nrep = 10
+nrep = 5
 
 # how much temperature should change in a particular generation
-temp_change = np.linspace(start = 0, stop=1.0,num=60)
+temp_change = [0.6] #np.linspace(start = 0, stop=1.0,num=60)
 
 # mutation rate of the threshold at which an individual should breed
 mu_t = [0.02]
