@@ -41,7 +41,7 @@ class Parameters
         double init_t{0.0};
         double init_tb{0.0}; // initial slope of the reaction norm
         double init_tmax{1.0/50}; // max probability of starting to breed per time step
-        double init_time_threshold{6}; // max probability of starting to breed per time step
+        double init_time_threshold{6.0}; // max probability of starting to breed per time step
 
         // the duration of the simulation
         long unsigned max_simulation_time{100};
