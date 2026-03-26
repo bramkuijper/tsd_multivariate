@@ -76,7 +76,7 @@ Individual::Individual(Individual const &mom,
     {
         tmax+=normal(rng_r);
 
-        tmax = std::clamp(tmax, 0.0, 1.0);
+        tmax = std::clamp(tmax, 0.0, 2.0);
 
     }
     
