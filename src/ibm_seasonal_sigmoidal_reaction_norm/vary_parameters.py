@@ -21,7 +21,7 @@ ctr = 0
 
 #  maximum duration the simulation is running
 #max_simulation_time = int(20000000)
-max_simulation_time = int(1000000)
+max_simulation_time = int(1_000_000)
 
 # annual survival probability of female and male parents
 sm = [ 0 ]

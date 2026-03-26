@@ -43,6 +43,7 @@ data_no_plast_params <- read_delim(file=file_normal_data
         ,col_names=c("name","value")
         )
 
+# put parameters into a better format
 params <- data_no_plast_params$value
 names(params) <- data_no_plast_params$name
 
@@ -51,19 +52,22 @@ data_no_plast_individuals <- read.table(file=distribution_file,
                                        sep=";",
                                        header=T)
 
+# plot the temperature curve
 sinusoidal <- function(time, season_time, time_change, intercept_change) {
     val <- sin(2 * pi * time / season_time) 
     val <- if_else(time > time_change, val + intercept_change, val)
     return(val)
 }
+
 max_time <- 100
+max_t_season <- max_time / 2
 # make the temperature time series
-probabilities_no_plast <- tibble(
+time_series_data <- tibble(
     time = seq(0,max_time),
 ) %>% mutate(
     temp = sinusoidal(time = time
-                      ,season_time = max_time/2 
-                      ,time_change = max_time/2
+                      ,season_time = max_t_season 
+                      ,time_change = max_t_season
                       ,intercept_change = as.numeric(params["intercept_change"]))
 )
 
@@ -72,31 +76,47 @@ probabilities_no_plast <- tibble(
 breeding_probability <- function(t, temp, threshold, tmax, ta, tb) {
     val <- tmax / (1.0 + exp(-tb*(temp - ta)))
 
-    return(if_else(t >= threshold, val, 0))
+    return(if_else(t %% max_t_season > threshold, 
+                   (1.0 - val)^((t %% max_t_season) - threshold) * val, 0))
 }
 
 list_reaction_norms <- list()
 
-max_individuals <- 100
+max_individuals <- 1000
 
 rows_latest_individuals <- 
     data_no_plast_individuals %>% filter(time == max(time))
 
-time_series <- seq()
 # let's just plot the first 100
 for (individual_idx in 1:max_individuals) {
     
     row <- rows_latest_individuals[individual_idx,]
- 
-    breeding_probability <- function(t, temp, threshold, tmax, ta, tb)   
-    list_reaction_norms[[individual_idx]] <- individual_idx
     
+    p_breed <- breeding_probability(t = time_series_data$time %% max_time, 
+                         temp = time_series_data$temp, 
+                         threshold = row$time_threshold, 
+                         tmax = row$tmax, 
+                         ta = row$temp_a, 
+                         tb = row$temp_b)
+    
+    time_series_singular_individual <- data.frame(
+        t = time_series_data$time,
+        p_breed = p_breed,
+        id = individual_idx
+    )
+    
+    list_reaction_norms[[individual_idx]] <- time_series_singular_individual
 }
 
+all_time_series <- bind_rows(list_reaction_norms)
 
-ggplot(data = probabilities_no_plast,
+
+ggplot(data = time_series_data,
        mapping = aes(x = time, y = temp)) +
     geom_line(colour="darkblue") +
+    geom_line(data = all_time_series,
+              mapping = aes(x = t, y = p_breed, group = id), 
+              linewidth = 0.25, alpha = 0.1) +
     labs(x = "Time", 
          y = "Breeding probability") + 
     theme_classic(base_size = 16)

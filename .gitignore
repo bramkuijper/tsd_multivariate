@@ -10,6 +10,8 @@
 *.exe
 iter_*
 hpcbatch_*
+.DS_store
+.Rhistory
 distribution_*
 sim_*
 *lyxformat*

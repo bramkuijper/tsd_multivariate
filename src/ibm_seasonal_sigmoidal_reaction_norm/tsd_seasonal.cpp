@@ -219,7 +219,10 @@ void TSDSeasonal::reproduce()
 
                 prob_reproduce = 0.0;
 
-                time_threshold_i = std::floor(metapopulation[patch_idx].males[male_idx].time_threshold);
+                time_threshold_i = std::floor(
+                        metapopulation[patch_idx].males[male_idx].time_threshold
+                        );
+
                 time_threshold_diff = metapopulation[patch_idx].males[male_idx].time_threshold - time_threshold_i;
 
                 if (uniform(rng_r) < time_threshold_diff)
@@ -892,7 +895,7 @@ void TSDSeasonal::write_headers()
         << "nf;nm;mean_environment;var_environment;" 
         << std::endl;
 
-    data_file_distribution << "time;a;b;temp_a;temp_b;tmax;temperature;" << std::endl;
+    data_file_distribution << "time;a;b;temp_a;temp_b;tmax;time_threshold;temperature;" << std::endl;
 } // write_headers()
 
 
@@ -914,6 +917,7 @@ void TSDSeasonal::write_distribution()
                 << female_iter->temp_a << ";"
                 << female_iter->temp_b << ";"
                 << female_iter->tmax << ";"
+                << female_iter->time_threshold << ";"
                 << patch_iter->temperature << ";"
                 << std::endl;
         }
@@ -928,6 +932,7 @@ void TSDSeasonal::write_distribution()
                 << male_iter->temp_a << ";"
                 << male_iter->temp_b << ";"
                 << male_iter->tmax << ";"
+                << male_iter->time_threshold << ";"
                 << patch_iter->temperature << ";"
                 << std::endl;
         }
